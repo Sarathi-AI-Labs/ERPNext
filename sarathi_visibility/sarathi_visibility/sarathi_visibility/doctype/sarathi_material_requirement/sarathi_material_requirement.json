@@ -1,0 +1,134 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "format:PMR-.#####",
+  "creation": "2026-09-05 00:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "project",
+    "bom",
+    "item_code",
+    "item_name",
+    "required_qty",
+    "available_qty",
+    "reserved_qty",
+    "transferred_qty",
+    "consumed_qty",
+    "returned_qty",
+    "shortage_qty",
+    "warehouse",
+    "purchase_status",
+    "status"
+  ],
+  "fields": [
+    {
+      "fieldname": "project",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Project",
+      "options": "Project",
+      "reqd": 1
+    },
+    {
+      "fieldname": "bom",
+      "fieldtype": "Link",
+      "label": "BOM",
+      "options": "BOM"
+    },
+    {
+      "fieldname": "item_code",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Item",
+      "options": "Item"
+    },
+    {
+      "fieldname": "item_name",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Item Name"
+    },
+    {
+      "fieldname": "required_qty",
+      "fieldtype": "Float",
+      "in_list_view": 1,
+      "label": "Required Qty"
+    },
+    {
+      "fieldname": "available_qty",
+      "fieldtype": "Float",
+      "in_list_view": 1,
+      "label": "Available Qty"
+    },
+    {
+      "fieldname": "reserved_qty",
+      "fieldtype": "Float",
+      "label": "Reserved Qty"
+    },
+    {
+      "fieldname": "transferred_qty",
+      "fieldtype": "Float",
+      "label": "Transferred Qty"
+    },
+    {
+      "fieldname": "consumed_qty",
+      "fieldtype": "Float",
+      "label": "Consumed Qty"
+    },
+    {
+      "fieldname": "returned_qty",
+      "fieldtype": "Float",
+      "label": "Returned Qty"
+    },
+    {
+      "fieldname": "shortage_qty",
+      "fieldtype": "Float",
+      "in_list_view": 1,
+      "label": "Shortage Qty"
+    },
+    {
+      "fieldname": "warehouse",
+      "fieldtype": "Link",
+      "label": "Warehouse",
+      "options": "Warehouse"
+    },
+    {
+      "fieldname": "purchase_status",
+      "fieldtype": "Select",
+      "label": "Purchase Status",
+      "options": "Not Required\nRequested\nOrdered\nReceived"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Open\nReady\nShort\nBlocked\nClosed"
+    }
+  ],
+  "links": [],
+  "modified": "2026-09-05 00:00:00.000000",
+  "module": "Sarathi Visibility",
+  "name": "Sarathi Material Requirement",
+  "naming_rule": "Expression",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}
+

@@ -1,0 +1,23 @@
+{
+  "doctype": "Page",
+  "name": "sarathicontroltower",
+  "page_name": "sarathicontroltower",
+  "title": "Sarathi Industrial Dashboard",
+  "module": "Sarathi Visibility",
+  "standard": "Yes",
+  "system_page": 0,
+  "roles": [
+    {
+      "role": "Manufacturing User"
+    },
+    {
+      "role": "Manufacturing Manager"
+    },
+    {
+      "role": "System Manager"
+    },
+    {
+      "role": "Sarathi Super Admin"
+    }
+  ]
+}

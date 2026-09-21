@@ -1,0 +1,108 @@
+{
+  "app": "sarathi_visibility",
+  "charts": [],
+  "content": "[{\"id\":\"sarathi-control-tower-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sarathi Industrial Dashboard\",\"col\":3}},{\"id\":\"sarathi-master-data\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Control Tower Data</b></span>\",\"col\":12}},{\"id\":\"sarathi-project-controller-card\",\"type\":\"card\",\"data\":{\"card_name\":\"Project Control\",\"col\":4}},{\"id\":\"sarathi-production-card\",\"type\":\"card\",\"data\":{\"card_name\":\"Production Visibility\",\"col\":4}},{\"id\":\"sarathi-integration-card\",\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}}]",
+  "creation": "2026-09-05 00:00:00.000000",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "dashboard",
+  "idx": 0,
+  "is_hidden": 0,
+  "label": "Sarathi Visibility",
+  "links": [
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Project Control",
+      "link_count": 0,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "dependencies": "",
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Sarathi Project Controller",
+      "link_count": 0,
+      "link_to": "Sarathi Project Controller",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Production Visibility",
+      "link_count": 0,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "dependencies": "",
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Sarathi Production Tracker",
+      "link_count": 0,
+      "link_to": "Sarathi Production Tracker",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "dependencies": "",
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Sarathi Material Requirement",
+      "link_count": 0,
+      "link_to": "Sarathi Material Requirement",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Integrations",
+      "link_count": 0,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "dependencies": "",
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Sarathi Machine Integration Log",
+      "link_count": 0,
+      "link_to": "Sarathi Machine Integration Log",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    }
+  ],
+  "modified": "2026-09-05 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Sarathi Visibility",
+  "name": "Sarathi Visibility",
+  "number_cards": [],
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "restrict_to_domain": "",
+  "roles": [],
+  "sequence_id": 6.0,
+  "shortcuts": [
+    {
+      "color": "Blue",
+      "doc_view": "",
+      "label": "Sarathi Industrial Dashboard",
+      "link_to": "sarathicontroltower",
+      "type": "Page"
+    }
+  ],
+  "title": "Sarathi Visibility",
+  "type": "Workspace"
+}

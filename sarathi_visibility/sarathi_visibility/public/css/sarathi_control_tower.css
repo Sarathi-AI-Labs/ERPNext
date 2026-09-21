@@ -1,0 +1,4287 @@
+.sarathi-tower {
+  --sarathi-ink: #172233;
+  --sarathi-muted: #637083;
+  --sarathi-border: #d8e0ea;
+  --sarathi-panel: #ffffff;
+  --sarathi-soft: #f5f8fb;
+  --sarathi-navy: #12314d;
+  --sarathi-blue: #2377b7;
+  --sarathi-teal: #0b8f8a;
+  --sarathi-green: #14824f;
+  --sarathi-amber: #a86900;
+  --sarathi-red: #bd2f35;
+  color: var(--sarathi-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.sarathi-tower button {
+  border: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.sarathi-hero {
+  align-items: center;
+  background: linear-gradient(120deg, var(--sarathi-navy), #17556a 62%, #23624f);
+  border-radius: 8px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px;
+}
+
+.sarathi-eyebrow {
+  color: #b7d7ea;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sarathi-hero h2 {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 4px 0 10px;
+}
+
+.sarathi-meta,
+.sarathi-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sarathi-meta span {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.sarathi-search {
+  background: #fff;
+  border: 1px solid var(--sarathi-border);
+  border-radius: 6px;
+  min-width: 220px;
+  padding: 6px 10px;
+}
+
+.sarathi-kpis {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.sarathi-kpi {
+  background: var(--sarathi-panel);
+  border: 1px solid var(--sarathi-border);
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 76px;
+  padding: 12px;
+}
+
+.sarathi-kpi span {
+  color: var(--sarathi-muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.sarathi-kpi strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+
+.sarathi-analysis {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.sarathi-analysis-card {
+  background: var(--sarathi-soft);
+  border: 1px solid var(--sarathi-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  min-height: 138px;
+  padding: 12px;
+}
+
+.sarathi-analysis-card span {
+  color: var(--sarathi-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sarathi-analysis-card strong {
+  color: var(--sarathi-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-analysis-card b {
+  color: var(--sarathi-blue);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.sarathi-analysis-card em {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.3;
+}
+
+.sarathi-analysis-card.success {
+  background: #f0fbf5;
+  border-color: #9fd8bc;
+}
+
+.sarathi-analysis-card.info {
+  background: #eef7ff;
+  border-color: #a8cdec;
+}
+
+.sarathi-analysis-card.warning {
+  background: #fff8e8;
+  border-color: #eac77c;
+}
+
+.sarathi-analysis-card.critical {
+  background: #fff0f1;
+  border-color: #e59a9e;
+}
+
+.sarathi-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-grid-main {
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+.sarathi-panel {
+  background: var(--sarathi-panel);
+  border: 1px solid var(--sarathi-border);
+  border-radius: 8px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.sarathi-panel-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sarathi-panel-head h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.sarathi-panel-head span {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+}
+
+.sarathi-panel-note {
+  background: #eef4fa;
+  border: 1px solid #d9e5ef;
+  border-radius: 999px;
+  color: var(--sarathi-muted);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 100%;
+  padding: 6px 10px;
+}
+
+.sarathi-panel-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.sarathi-pipeline {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sarathi-stage {
+  background: var(--sarathi-soft);
+  border: 1px solid var(--sarathi-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  min-height: 116px;
+  padding: 12px;
+}
+
+.sarathi-stage-title {
+  font-weight: 700;
+}
+
+.sarathi-stage-foot {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+}
+
+.sarathi-progress {
+  background: #dfe8f1;
+  border-radius: 999px;
+  display: block;
+  height: 8px;
+  overflow: hidden;
+}
+
+.sarathi-progress i {
+  background: linear-gradient(90deg, var(--sarathi-blue), var(--sarathi-teal));
+  display: block;
+  height: 100%;
+}
+
+.sarathi-tabs {
+  border-bottom: 1px solid var(--sarathi-border);
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.sarathi-tabs button {
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  color: var(--sarathi-muted);
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.sarathi-tabs button.active {
+  border-color: var(--sarathi-blue);
+  color: var(--sarathi-ink);
+  font-weight: 700;
+}
+
+.sarathi-tab {
+  display: none;
+}
+
+.sarathi-tab.active {
+  display: block;
+}
+
+.sarathi-table-wrap {
+  overflow-x: auto;
+}
+
+.sarathi-table {
+  border-collapse: collapse;
+  min-width: 720px;
+  width: 100%;
+}
+
+.sarathi-table-spaced {
+  margin-top: 16px;
+}
+
+.sarathi-table th,
+.sarathi-table td {
+  border-bottom: 1px solid var(--sarathi-border);
+  font-size: 12px;
+  padding: 9px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.sarathi-table th {
+  color: var(--sarathi-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sarathi-link {
+  background: transparent;
+  color: var(--sarathi-blue);
+  cursor: pointer;
+  padding: 0;
+}
+
+.sarathi-badge,
+.sarathi-machine em {
+  background: #edf2f7;
+  border-radius: 999px;
+  color: var(--sarathi-muted);
+  display: inline-flex;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 8px;
+}
+
+.sarathi-badge.success,
+.sarathi-machine em.success,
+.sarathi-number.success {
+  background: #e7f6ee;
+  color: var(--sarathi-green);
+}
+
+.sarathi-badge.info,
+.sarathi-machine em.info {
+  background: #e8f2fb;
+  color: var(--sarathi-blue);
+}
+
+.sarathi-badge.warning,
+.sarathi-machine em.warning {
+  background: #fff4dc;
+  color: var(--sarathi-amber);
+}
+
+.sarathi-badge.critical,
+.sarathi-machine em.critical,
+.sarathi-number.critical {
+  background: #fde9ea;
+  color: var(--sarathi-red);
+}
+
+.sarathi-alerts {
+  display: grid;
+  gap: 8px;
+}
+
+.sarathi-alert {
+  border-left: 4px solid var(--sarathi-border);
+  border-radius: 6px;
+  color: inherit;
+  display: grid;
+  gap: 2px;
+  padding: 9px 10px;
+  text-decoration: none;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-alert:hover,
+.sarathi-alert:focus-visible {
+  box-shadow: 0 10px 22px rgba(20, 45, 73, 0.1);
+  color: inherit;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.sarathi-alert.critical {
+  background: #fff5f5;
+  border-color: var(--sarathi-red);
+}
+
+.sarathi-alert.warning {
+  background: #fff9ed;
+  border-color: var(--sarathi-amber);
+}
+
+.sarathi-alert span,
+.sarathi-empty,
+.sarathi-empty-cell {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+}
+
+.sarathi-card-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sarathi-machine {
+  background: var(--sarathi-soft);
+  border: 1px solid var(--sarathi-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  min-height: 120px;
+  padding: 12px;
+}
+
+.sarathi-machine strong {
+  font-weight: 700;
+}
+
+.sarathi-machine span {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+}
+
+.sarathi-number {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 7px;
+}
+
+.sarathi-tower.loading {
+  opacity: 0.72;
+}
+
+@media (max-width: 1200px) {
+  .sarathi-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sarathi-pipeline,
+  .sarathi-analysis,
+  .sarathi-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+
+  .sarathi-hero,
+  .sarathi-grid,
+  .sarathi-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-hero {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .sarathi-kpis,
+  .sarathi-pipeline,
+  .sarathi-analysis,
+  .sarathi-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-search {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.sarathi-v2 {
+  --sarathi-cyan: #00a6d6;
+  --sarathi-orange: #ec7a23;
+  --sarathi-violet: #7256d8;
+  --sarathi-bg: #f3f6fa;
+  background:
+    linear-gradient(180deg, #f7fbff 0, rgba(247, 251, 255, 0) 360px),
+    var(--sarathi-bg);
+  border-radius: 12px;
+  margin: -18px auto 0;
+  max-width: 1480px;
+  padding: 18px;
+}
+
+.sarathi-v2 .sarathi-hero-app {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(255, 255, 255, 0.22), transparent 28%),
+    linear-gradient(120deg, #0f2b46 0%, #106b79 48%, #16754d 100%);
+  border: 0;
+  box-shadow: 0 18px 45px rgba(18, 49, 77, 0.23);
+  min-height: 168px;
+  overflow: hidden;
+  position: relative;
+}
+
+.sarathi-v2 .sarathi-hero-app::after {
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 18px);
+  content: "";
+  inset: auto 0 0;
+  height: 46px;
+  position: absolute;
+}
+
+.sarathi-v2 .sarathi-hero-copy,
+.sarathi-v2 .sarathi-command {
+  position: relative;
+  z-index: 1;
+}
+
+.sarathi-v2 .sarathi-hero h2 {
+  font-size: 34px;
+  letter-spacing: 0;
+  margin-bottom: 14px;
+}
+
+.sarathi-command {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.sarathi-v2 .sarathi-search {
+  border: 0;
+  box-shadow: 0 8px 22px rgba(13, 39, 66, 0.14);
+  min-height: 42px;
+  min-width: 300px;
+}
+
+.sarathi-v2 .btn {
+  border-radius: 8px;
+  min-height: 38px;
+}
+
+.sarathi-live-dot {
+  padding-left: 26px !important;
+  position: relative;
+}
+
+.sarathi-live-dot::before {
+  animation: sarathi-pulse 1.45s ease-in-out infinite;
+  background: #32d583;
+  border-radius: 999px;
+  box-shadow: 0 0 0 6px rgba(50, 213, 131, 0.16);
+  content: "";
+  height: 8px;
+  left: 11px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+}
+
+.sarathi-employee-view .sarathi-admin-only {
+  display: none !important;
+}
+
+.sarathi-organization-mode .sarathi-project-detail-only {
+  display: none !important;
+}
+
+.sarathi-project-mode .sarathi-organization-only {
+  display: none !important;
+}
+
+.sarathi-organization-mode .sarathi-project-switcher {
+  min-height: 360px;
+}
+
+.sarathi-organization-mode .sarathi-project-list {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.sarathi-employee-panel {
+  display: none;
+}
+
+.sarathi-employee-view .sarathi-employee-panel {
+  display: block;
+}
+
+.sarathi-employee-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.sarathi-employee-summary {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+.sarathi-employee-card,
+.sarathi-employee-task {
+  background: #f7fafc;
+  border: 1px solid #dbe6f0 !important;
+  border-radius: 10px;
+  color: inherit;
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  padding: 14px;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-employee-card:hover,
+.sarathi-employee-card:focus-visible,
+.sarathi-employee-task:hover,
+.sarathi-employee-task:focus-visible {
+  border-color: #9ec8eb;
+  box-shadow: 0 14px 30px rgba(20, 45, 73, 0.12);
+  color: inherit;
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.sarathi-employee-card span,
+.sarathi-employee-task span {
+  color: var(--sarathi-muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sarathi-employee-card strong,
+.sarathi-employee-task strong {
+  color: var(--sarathi-ink);
+  font-size: 22px;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-employee-card em,
+.sarathi-employee-task em {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.sarathi-employee-card.success,
+.sarathi-employee-task.success {
+  background: linear-gradient(180deg, #f0fbf5, #fff);
+  border-color: #a8dcc1;
+}
+
+.sarathi-employee-card.info,
+.sarathi-employee-task.info {
+  background: linear-gradient(180deg, #eef7ff, #fff);
+  border-color: #a9cfee;
+}
+
+.sarathi-employee-card.warning,
+.sarathi-employee-task.warning {
+  background: linear-gradient(180deg, #fff8e8, #fff);
+  border-color: #eac77c;
+}
+
+.sarathi-employee-card.critical,
+.sarathi-employee-task.critical {
+  background: linear-gradient(180deg, #fff0f1, #fff);
+  border-color: #e59a9e;
+}
+
+.sarathi-employee-queue {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.sarathi-employee-task {
+  min-height: 92px;
+  padding: 12px;
+}
+
+.sarathi-employee-task strong {
+  font-size: 16px;
+}
+
+.sarathi-project-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+}
+
+.sarathi-organization-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.sarathi-organization-option {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 251, 254, 0.98)),
+    #fff;
+  border: 1px solid #dbe6f0 !important;
+  border-radius: 10px;
+  box-shadow: 0 12px 26px rgba(26, 43, 62, 0.08);
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 9px;
+  min-height: 168px;
+  overflow: hidden;
+  padding: 16px;
+  position: relative;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-organization-option::before {
+  background: linear-gradient(90deg, var(--sarathi-blue), var(--sarathi-teal), var(--sarathi-green));
+  content: "";
+  height: 5px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.sarathi-organization-option.active,
+.sarathi-organization-option:hover,
+.sarathi-organization-option:focus-visible {
+  border-color: #8dbfe7 !important;
+  box-shadow: 0 18px 38px rgba(20, 45, 73, 0.14);
+  transform: translateY(-2px);
+}
+
+.sarathi-organization-option span {
+  align-items: center;
+  background: #e8f2fb;
+  border-radius: 999px;
+  color: var(--sarathi-blue);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  height: 34px;
+  justify-content: center;
+  width: 58px;
+}
+
+.sarathi-organization-option strong {
+  color: var(--sarathi-ink);
+  font-size: 20px;
+  line-height: 1.16;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-organization-option em {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.sarathi-organization-metrics {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sarathi-organization-metrics b {
+  background: #f1f6fb;
+  border: 1px solid #deebf5;
+  border-radius: 8px;
+  color: var(--sarathi-ink);
+  display: grid;
+  font-size: 18px;
+  gap: 4px;
+  min-height: 54px;
+  place-items: center;
+}
+
+.sarathi-organization-metrics small {
+  color: var(--sarathi-muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sarathi-project-option {
+  background: #f8fbfe;
+  border: 1px solid #dbe6f0 !important;
+  border-radius: 10px;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 7px;
+  min-height: 142px;
+  padding: 14px;
+  position: relative;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-project-option::before {
+  background: var(--sarathi-blue);
+  content: "";
+  height: 4px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.sarathi-project-option.success::before {
+  background: var(--sarathi-green);
+}
+
+.sarathi-project-option.warning::before {
+  background: var(--sarathi-orange);
+}
+
+.sarathi-project-option.critical::before {
+  background: var(--sarathi-red);
+}
+
+.sarathi-project-option.active,
+.sarathi-project-option:hover,
+.sarathi-project-option:focus-visible {
+  border-color: #8dbfe7 !important;
+  box-shadow: 0 16px 34px rgba(20, 45, 73, 0.13);
+  transform: translateY(-2px);
+}
+
+.sarathi-project-option.active {
+  background: linear-gradient(180deg, #eef7ff, #fff);
+}
+
+.sarathi-project-option span,
+.sarathi-project-option em {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.sarathi-project-option span {
+  font-weight: 900;
+}
+
+.sarathi-project-option strong {
+  color: var(--sarathi-ink);
+  font-size: 17px;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-project-option-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sarathi-project-option-meta b {
+  background: #eef4fa;
+  border-radius: 999px;
+  color: var(--sarathi-muted);
+  font-size: 11px;
+  line-height: 1;
+  padding: 6px 8px;
+}
+
+@keyframes sarathi-pulse {
+  50% {
+    opacity: 0.45;
+    transform: translateY(-50%) scale(0.82);
+  }
+}
+
+.sarathi-nav {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(216, 224, 234, 0.88);
+  border-radius: 10px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.sarathi-nav a {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 9px 12px;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+  white-space: nowrap;
+}
+
+.sarathi-nav a:hover,
+.sarathi-nav a:focus-visible {
+  background: #e0f2fe;
+  border-color: #8dbfe7;
+  color: var(--sarathi-blue);
+  box-shadow: 0 8px 18px rgba(35, 119, 183, 0.12);
+  outline: 0;
+}
+
+.sarathi-nav a.active {
+  background: var(--sarathi-navy);
+  border-color: var(--sarathi-navy);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(18, 49, 77, 0.22);
+}
+
+.sarathi-nav a.active:hover,
+.sarathi-nav a.active:focus-visible {
+  background: var(--sarathi-teal);
+  border-color: var(--sarathi-teal);
+  color: #fff;
+}
+
+.sarathi-v2 .sarathi-kpis {
+  grid-template-columns: repeat(8, minmax(116px, 1fr));
+}
+
+.sarathi-v2 .sarathi-kpi {
+  border: 0;
+  color: var(--sarathi-ink);
+  box-shadow: 0 12px 26px rgba(26, 43, 62, 0.08);
+  min-height: 104px;
+  overflow: hidden;
+  position: relative;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.sarathi-v2 .sarathi-kpi:hover,
+.sarathi-v2 .sarathi-kpi:focus-visible {
+  box-shadow: 0 18px 36px rgba(20, 45, 73, 0.14);
+  color: var(--sarathi-ink);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.sarathi-v2 .sarathi-kpi::before {
+  content: "";
+  height: 4px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.sarathi-v2 .sarathi-kpi.info::before,
+.sarathi-v2 .ring-value.info {
+  background: var(--sarathi-blue);
+  stroke: var(--sarathi-blue);
+}
+
+.sarathi-v2 .sarathi-kpi.success::before,
+.sarathi-v2 .ring-value.success {
+  background: var(--sarathi-green);
+  stroke: var(--sarathi-green);
+}
+
+.sarathi-v2 .sarathi-kpi.warning::before,
+.sarathi-v2 .ring-value.warning {
+  background: var(--sarathi-orange);
+  stroke: var(--sarathi-orange);
+}
+
+.sarathi-v2 .sarathi-kpi.critical::before,
+.sarathi-v2 .ring-value.critical {
+  background: var(--sarathi-red);
+  stroke: var(--sarathi-red);
+}
+
+.sarathi-v2 .sarathi-kpi i {
+  background: linear-gradient(135deg, rgba(35, 119, 183, 0.14), rgba(11, 143, 138, 0.06));
+  border-radius: 999px;
+  bottom: -26px;
+  height: 72px;
+  position: absolute;
+  right: -24px;
+  width: 72px;
+}
+
+.sarathi-section {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(207, 218, 230, 0.92);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(26, 43, 62, 0.07);
+  min-width: 0;
+  padding: 16px;
+}
+
+.sarathi-section[data-section-panel] {
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-section[data-section-panel]:hover {
+  border-color: #b9d3e9;
+  box-shadow: 0 16px 38px rgba(26, 43, 62, 0.1);
+}
+
+.sarathi-overview,
+.sarathi-chart-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+}
+
+.sarathi-command-grid,
+.sarathi-mini-charts {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.sarathi-mini-charts {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.sarathi-mini-charts .sarathi-ring {
+  gap: 10px;
+  grid-template-columns: 78px minmax(0, 1fr);
+  min-height: 132px;
+  padding: 12px;
+}
+
+.sarathi-mini-charts .sarathi-ring svg {
+  height: 78px;
+  width: 78px;
+}
+
+.sarathi-mini-charts .sarathi-ring strong {
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-ring {
+  align-items: center;
+  background: linear-gradient(180deg, #f8fbfe, #eef5fa);
+  border: 1px solid #dce7f1;
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 96px minmax(0, 1fr);
+  min-height: 160px;
+  padding: 14px;
+}
+
+.sarathi-ring svg {
+  height: 96px;
+  transform: rotate(-90deg);
+  width: 96px;
+}
+
+.sarathi-ring circle {
+  fill: none;
+  stroke-width: 4;
+}
+
+.sarathi-ring .ring-bg {
+  stroke: #dbe6f0;
+}
+
+.sarathi-ring .ring-value {
+  stroke: var(--sarathi-teal);
+  stroke-linecap: round;
+}
+
+.sarathi-ring strong {
+  color: var(--sarathi-ink);
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.sarathi-ring span,
+.sarathi-ring em {
+  color: var(--sarathi-muted);
+  display: block;
+  font-size: 12px;
+  font-style: normal;
+  margin-top: 6px;
+}
+
+.sarathi-facts {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-facts div,
+.sarathi-facts a {
+  background: #f6f9fc;
+  border: 1px solid #dfe8f1;
+  border-radius: 8px;
+  color: inherit;
+  display: block;
+  min-height: 70px;
+  padding: 10px;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-facts a:hover,
+.sarathi-facts a:focus-visible {
+  border-color: #9ec8eb;
+  box-shadow: 0 10px 24px rgba(20, 45, 73, 0.1);
+  color: inherit;
+  transform: translateY(-1px);
+}
+
+.sarathi-facts span {
+  color: var(--sarathi-muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sarathi-facts strong {
+  color: var(--sarathi-ink);
+  display: block;
+  font-size: 15px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-text-critical {
+  color: var(--sarathi-red);
+}
+
+.sarathi-text-success {
+  color: var(--sarathi-green);
+}
+
+.sarathi-bom-layout {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.48);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 1000;
+}
+
+.sarathi-bom-layout[hidden] {
+  display: none !important;
+}
+
+.sarathi-bom-window {
+  background: #ffffff;
+  border: 1px solid #cddbe8;
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.15fr);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 18px;
+  width: min(1120px, calc(100vw - 32px));
+}
+
+.sarathi-bom-close {
+  align-items: center;
+  background: #eef4fa;
+  border: 1px solid #cddbe8 !important;
+  border-radius: 8px;
+  color: var(--sarathi-navy);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  justify-self: end;
+  padding: 8px 12px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+.sarathi-bom-close:hover,
+.sarathi-bom-close:focus-visible {
+  background: #fee2e2;
+  border-color: #fca5a5 !important;
+  color: #991b1b;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.12);
+  outline: 0;
+}
+
+.sarathi-bom-cards {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 16px;
+}
+
+.sarathi-bom-card {
+  background: #f8fbfe;
+  border: 1px solid #dbe6f0;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  min-height: 154px;
+  overflow: hidden;
+  padding: 14px;
+  position: relative;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-bom-card::before {
+  background: var(--sarathi-blue);
+  content: "";
+  height: 4px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.sarathi-bom-card.success::before {
+  background: var(--sarathi-green);
+}
+
+.sarathi-bom-card.warning::before {
+  background: var(--sarathi-orange);
+}
+
+.sarathi-bom-card.critical::before {
+  background: var(--sarathi-red);
+}
+
+.sarathi-bom-card.active,
+.sarathi-bom-card:hover,
+.sarathi-bom-card:focus-visible {
+  border-color: #8dbfe7;
+  box-shadow: 0 14px 30px rgba(20, 45, 73, 0.12);
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.sarathi-bom-card.active {
+  background: linear-gradient(180deg, #eef7ff, #ffffff);
+}
+
+.sarathi-bom-card>span,
+.sarathi-bom-card em {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.sarathi-bom-card>span {
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sarathi-bom-card strong {
+  color: var(--sarathi-ink);
+  font-size: 16px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-bom-card-fields {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-bom-card-fields b {
+  background: #eef4fa;
+  border-radius: 8px;
+  color: var(--sarathi-ink);
+  display: grid;
+  font-size: 12px;
+  gap: 4px;
+  min-height: 58px;
+  padding: 8px;
+}
+
+.sarathi-bom-card-fields small {
+  color: var(--sarathi-muted);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.sarathi-bom-card-fields span {
+  color: var(--sarathi-ink);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-bom-window>div:last-child {
+  grid-column: 1 / -1;
+}
+
+.sarathi-bom-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-bom-summary div {
+  background: #f6f9fc;
+  border: 1px solid #dfe8f1;
+  border-radius: 8px;
+  min-height: 72px;
+  padding: 10px;
+}
+
+.sarathi-bom-summary span {
+  color: var(--sarathi-muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sarathi-bom-summary strong {
+  color: var(--sarathi-ink);
+  display: block;
+  font-size: 14px;
+  line-height: 1.25;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-v2 .sarathi-analysis {
+  grid-template-columns: repeat(6, minmax(160px, 1fr));
+}
+
+.sarathi-v2 .sarathi-analysis-card {
+  color: inherit;
+  min-height: 156px;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.sarathi-v2 .sarathi-analysis-card:hover,
+.sarathi-v2 .sarathi-machine:hover {
+  box-shadow: 0 16px 34px rgba(20, 45, 73, 0.12);
+  transform: translateY(-2px);
+}
+
+.sarathi-v2 .sarathi-analysis-card b {
+  font-size: 23px;
+}
+
+.sarathi-v2 .sarathi-pipeline-wide {
+  grid-template-columns: repeat(9, minmax(142px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.sarathi-v2 .sarathi-stage {
+  background: #f7fafc;
+  border-color: #d9e4ee;
+  cursor: pointer;
+  min-height: 146px;
+  position: relative;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.sarathi-v2 .sarathi-stage:hover,
+.sarathi-v2 .sarathi-stage:focus-visible {
+  box-shadow: 0 14px 30px rgba(20, 45, 73, 0.12);
+  transform: translateY(-2px);
+}
+
+.sarathi-v2 .sarathi-stage.success {
+  background: linear-gradient(180deg, #f0fbf5, #ffffff);
+}
+
+.sarathi-v2 .sarathi-stage.warning {
+  background: linear-gradient(180deg, #fff7e7, #ffffff);
+}
+
+.sarathi-v2 .sarathi-stage.critical {
+  background: linear-gradient(180deg, #fff0f1, #ffffff);
+}
+
+.sarathi-stage-index {
+  align-items: center;
+  background: #e7eef6;
+  border-radius: 999px;
+  color: var(--sarathi-muted);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.sarathi-v2 .sarathi-progress {
+  height: 10px;
+}
+
+.sarathi-chart-card {
+  display: grid;
+  gap: 14px;
+}
+
+.sarathi-bar-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(210px, 0.85fr) minmax(180px, 1fr) 92px;
+}
+
+.sarathi-bar-row a {
+  color: var(--sarathi-blue);
+  text-decoration: none;
+}
+
+.sarathi-bar-row a:hover {
+  text-decoration: underline;
+}
+
+.sarathi-bar-row strong,
+.sarathi-bar-row span,
+.sarathi-bar-row em {
+  display: block;
+  font-style: normal;
+}
+
+.sarathi-bar-row span {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+}
+
+.sarathi-bar-row em {
+  align-self: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  justify-self: end;
+  padding: 6px 10px;
+}
+
+.sarathi-bar-row em.success {
+  background: #e7f6ee;
+  color: var(--sarathi-green);
+}
+
+.sarathi-bar-row em.critical {
+  background: #fde9ea;
+  color: var(--sarathi-red);
+}
+
+.sarathi-bars {
+  align-self: center;
+  background: #e5edf5;
+  border-radius: 999px;
+  height: 28px;
+  overflow: hidden;
+  position: relative;
+}
+
+.sarathi-bars span {
+  border-radius: 999px;
+  height: 12px;
+  left: 0;
+  position: absolute;
+}
+
+.sarathi-bars .required {
+  background: #f4b04f;
+  top: 3px;
+}
+
+.sarathi-bars .available {
+  background: linear-gradient(90deg, var(--sarathi-teal), var(--sarathi-green));
+  bottom: 3px;
+}
+
+.sarathi-v2 .sarathi-tabs {
+  border: 0;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sarathi-v2 .sarathi-tabs button {
+  background: #eef4fa;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--sarathi-muted);
+  font-weight: 800;
+}
+
+.sarathi-v2 .sarathi-tabs button.active {
+  background: #12314d;
+  border-color: #12314d;
+  color: #fff;
+}
+
+.sarathi-subhead {
+  color: var(--sarathi-ink);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 2px 0 10px;
+  text-transform: uppercase;
+}
+
+.sarathi-v2 .sarathi-table-wrap {
+  border: 1px solid #dce6f0;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.sarathi-v2 .sarathi-table {
+  min-width: 820px;
+}
+
+.sarathi-v2 .sarathi-table th {
+  background: #f4f8fb;
+  border-bottom: 1px solid #d7e2ed;
+  color: #4d5d72;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sarathi-v2 .sarathi-table td {
+  background: #fff;
+}
+
+.sarathi-v2 .sarathi-table tr:hover td {
+  background: #f8fbfe;
+}
+
+.sarathi-v2 .sarathi-card-grid {
+  grid-template-columns: repeat(4, minmax(190px, 1fr));
+}
+
+.sarathi-v2 .sarathi-machine {
+  color: inherit;
+  min-height: 140px;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.sarathi-v2 .sarathi-machine.info {
+  border-color: #9ec8eb;
+}
+
+.sarathi-v2 .sarathi-machine.success {
+  border-color: #9fd8bc;
+}
+
+.sarathi-v2 .sarathi-machine.warning {
+  border-color: #eac77c;
+}
+
+.sarathi-v2 .sarathi-machine.critical {
+  border-color: #e59a9e;
+}
+
+.sarathi-process-board {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(170px, 1fr));
+}
+
+.sarathi-process-card {
+  background: #fff;
+  border: 1px solid #dbe6f0 !important;
+  border-radius: 10px;
+  box-shadow: 0 10px 22px rgba(26, 43, 62, 0.07);
+  color: var(--sarathi-ink);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  min-height: 190px;
+  overflow: hidden;
+  padding: 14px;
+  position: relative;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.sarathi-process-card::before {
+  content: "";
+  height: 5px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.sarathi-process-card:hover {
+  box-shadow: 0 18px 36px rgba(20, 45, 73, 0.15);
+  transform: translateY(-3px);
+}
+
+.sarathi-process-card:focus-visible,
+.sarathi-stage:focus-visible,
+.sarathi-ring[data-dashboard-route]:focus-visible {
+  outline: 3px solid rgba(35, 119, 183, 0.26);
+  outline-offset: 2px;
+}
+
+.sarathi-ring[data-dashboard-route] {
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-ring[data-dashboard-route]:hover {
+  border-color: #9ec8eb;
+  box-shadow: 0 14px 30px rgba(20, 45, 73, 0.1);
+  transform: translateY(-2px);
+}
+
+.sarathi-process-card.tone-blue::before {
+  background: #2377b7;
+}
+
+.sarathi-process-card.tone-teal::before {
+  background: #0b8f8a;
+}
+
+.sarathi-process-card.tone-violet::before {
+  background: #7256d8;
+}
+
+.sarathi-process-card.tone-orange::before {
+  background: #ec7a23;
+}
+
+.sarathi-process-card.tone-green::before {
+  background: #14824f;
+}
+
+.sarathi-process-card.tone-cyan::before {
+  background: #00a6d6;
+}
+
+.sarathi-process-card.tone-red::before {
+  background: #bd2f35;
+}
+
+.sarathi-process-index {
+  align-items: center;
+  background: #edf4fa;
+  border-radius: 999px;
+  color: var(--sarathi-muted);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.sarathi-process-card em {
+  color: var(--sarathi-muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sarathi-process-card strong {
+  color: var(--sarathi-ink);
+  font-size: 17px;
+  line-height: 1.18;
+}
+
+.sarathi-process-card b {
+  color: var(--sarathi-blue);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.sarathi-process-card>span:not(.sarathi-process-index) {
+  color: var(--sarathi-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.sarathi-process-card small {
+  color: var(--sarathi-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sarathi-card-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: auto;
+}
+
+.sarathi-card-actions a,
+.sarathi-card-actions button {
+  background: #eef4fa;
+  border: 1px solid #d8e4ef !important;
+  border-radius: 999px;
+  color: var(--sarathi-ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 8px 10px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sarathi-card-actions a:hover,
+.sarathi-card-actions button:hover {
+  background: var(--sarathi-navy);
+  border-color: var(--sarathi-navy) !important;
+  color: #fff;
+}
+
+.sarathi-process-card.success {
+  background: linear-gradient(180deg, #f2fbf6, #fff);
+}
+
+.sarathi-process-card.info {
+  background: linear-gradient(180deg, #eef7ff, #fff);
+}
+
+.sarathi-process-card.warning {
+  background: linear-gradient(180deg, #fff8e8, #fff);
+}
+
+.sarathi-process-card.critical {
+  background: linear-gradient(180deg, #fff0f1, #fff);
+}
+
+.sarathi-drawer {
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 160ms ease;
+  z-index: 9999;
+}
+
+.sarathi-drawer.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sarathi-drawer-backdrop {
+  background: rgba(9, 20, 35, 0.42);
+  inset: 0;
+  position: absolute;
+}
+
+.sarathi-drawer-panel {
+  background:
+    linear-gradient(180deg, rgba(237, 247, 255, 0.94), rgba(255, 255, 255, 0.98) 210px),
+    #fff;
+  border-left: 1px solid #d8e0ea;
+  box-shadow: -24px 0 60px rgba(9, 20, 35, 0.22);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-left: auto;
+  max-width: 960px;
+  overflow-y: auto;
+  padding: 24px;
+  position: relative;
+  transform: translateX(18px);
+  transition: transform 180ms ease;
+  width: min(960px, 96vw);
+}
+
+.sarathi-drawer.open .sarathi-drawer-panel {
+  transform: translateX(0);
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-backdrop {
+  background: rgba(236, 244, 250, 0.96);
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-panel {
+  border-left: 0;
+  box-shadow: none;
+  margin-left: 0;
+  max-width: none;
+  padding: 28px clamp(18px, 4vw, 56px);
+  transform: translateY(12px);
+  width: 100vw;
+}
+
+.sarathi-drawer.sarathi-fullscreen-form.open .sarathi-drawer-panel {
+  transform: translateY(0);
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-body {
+  margin: 0 auto;
+  max-width: 1280px;
+  width: 100%;
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-close {
+  position: sticky;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-title {
+  max-width: 960px;
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-title h3 {
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-form {
+  padding-bottom: 24px;
+}
+
+.sarathi-native-form-header {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.sarathi-native-title {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sarathi-breadcrumb-path {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.sarathi-native-title strong {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.sarathi-status-pill {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 9999px;
+  color: #ea580c;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  text-transform: uppercase;
+}
+
+.sarathi-native-header-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sarathi-mode-switch {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+}
+
+.sarathi-mode-switch label {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12.5px;
+  font-weight: 600;
+  gap: 7px;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 14px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.sarathi-mode-switch label input {
+  display: none;
+}
+
+.sarathi-mode-switch label:hover:not(.active):not(.disabled) {
+  background: rgba(255, 255, 255, 0.6);
+  color: #0f172a;
+}
+
+.sarathi-mode-switch label.active {
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  color: #0284c7;
+  font-weight: 700;
+}
+
+.sarathi-mode-switch label.disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.sarathi-native-save {
+  align-items: center;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.28);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 13.5px;
+  font-weight: 700;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 22px;
+  transition: all 0.18s ease;
+}
+
+.sarathi-native-save:hover {
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.42);
+  transform: translateY(-1px);
+}
+
+.sarathi-native-save:active {
+  transform: translateY(0);
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-form-section {
+  padding: 24px;
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-form-grid {
+  align-items: start;
+  gap: 18px 22px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-form-grid label.wide {
+  grid-column: 1 / -1;
+}
+
+.sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-actions {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  bottom: 16px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 14px 20px;
+  position: sticky;
+  z-index: 30;
+}
+
+.sarathi-drawer-close {
+  align-self: flex-end;
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  color: #475569;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  transition: all 0.15s ease;
+}
+
+.sarathi-drawer-close:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a;
+}
+
+.sarathi-drawer-body {
+  display: grid;
+  gap: 18px;
+}
+
+.sarathi-drawer-title span {
+  color: #0284c7;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sarathi-drawer-title h3 {
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 4px 0 8px;
+}
+
+.sarathi-drawer-title p {
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.sarathi-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sarathi-form {
+  display: grid;
+  gap: 16px;
+}
+
+.sarathi-form-grid {
+  align-items: start;
+  display: grid;
+  gap: 18px 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  position: relative;
+}
+
+.sarathi-form-grid label.wide {
+  grid-column: 1 / -1;
+}
+
+.sarathi-form-grid span {
+  align-items: center;
+  color: #475569;
+  display: flex;
+  font-size: 11px;
+  font-weight: 750;
+  gap: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sarathi-form-grid span em {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 9999px;
+  color: #dc2626;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  padding: 1.5px 7px;
+}
+
+.sarathi-form-grid input,
+.sarathi-form-grid select,
+.sarathi-form-grid textarea {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-sizing: border-box;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  height: 42px;
+  min-height: 42px;
+  padding: 8px 14px;
+  transition: all 0.16s ease-in-out;
+  width: 100%;
+}
+
+.sarathi-form-grid select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  cursor: pointer;
+  padding-right: 36px;
+}
+
+.sarathi-form-grid textarea {
+  height: auto;
+  line-height: 1.5;
+  min-height: 96px;
+  resize: vertical;
+}
+
+.sarathi-form-grid input:hover,
+.sarathi-form-grid select:hover,
+.sarathi-form-grid textarea:hover {
+  border-color: #94a3b8;
+}
+
+.sarathi-form-grid input:focus,
+.sarathi-form-grid select:focus,
+.sarathi-form-grid textarea:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  outline: 0;
+}
+
+.sarathi-form-grid input:disabled,
+.sarathi-form-grid select:disabled,
+.sarathi-form-grid textarea:disabled {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* Multi-column ERPNext Form Layout */
+.sarathi-form-columns {
+  align-items: start;
+  display: grid;
+  gap: 20px 24px;
+  width: 100%;
+}
+
+.sarathi-form-columns[data-cols="1"] {
+  grid-template-columns: 1fr;
+}
+
+.sarathi-form-columns[data-cols="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-form-columns[data-cols="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sarathi-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+
+  .sarathi-form-columns[data-cols="2"],
+  .sarathi-form-columns[data-cols="3"] {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sarathi-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
+.sarathi-meta-field.wide {
+  grid-column: 1 / -1;
+}
+
+.sarathi-field-label {
+  align-items: center;
+  color: #334155;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 750;
+  gap: 6px;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.sarathi-field-label strong {
+  color: #1e293b;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+.sarathi-badge-req {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 9999px;
+  color: #dc2626;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  padding: 1.5px 7px;
+}
+
+.sarathi-badge-cond {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 9999px;
+  color: #ea580c;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  padding: 1.5px 7px;
+}
+
+.sarathi-badge-ro {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  color: #64748b;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  padding: 1.5px 7px;
+}
+
+.sarathi-field-desc {
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.35;
+  margin-top: 1px;
+}
+
+.sarathi-select-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.sarathi-select-wrap select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") no-repeat right 12px center;
+  background-size: 16px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-sizing: border-box;
+  color: #0f172a;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  height: 42px;
+  min-height: 42px;
+  padding: 8px 36px 8px 14px;
+  transition: all 0.16s ease-in-out;
+  width: 100%;
+}
+
+.sarathi-select-wrap select:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  outline: 0;
+}
+
+/* Link Field with Combobox & Floating Dropdown */
+.sarathi-link-field-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.sarathi-link-input-box {
+  align-items: center;
+  display: flex;
+  position: relative;
+  width: 100%;
+}
+
+.sarathi-link-input-box input {
+  padding-right: 66px !important;
+}
+
+.sarathi-link-input-actions {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
+.sarathi-link-clear-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: none;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s ease;
+  width: 22px;
+}
+
+.sarathi-link-clear-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.sarathi-link-trigger-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.16s ease;
+  width: 28px;
+}
+
+.sarathi-link-trigger-btn:hover {
+  background: #f0f9ff;
+  color: #0284c7;
+}
+
+.sarathi-link-trigger-btn svg {
+  height: 16px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 16px;
+}
+
+.sarathi-link-field-wrap.is-open .sarathi-link-trigger-btn svg {
+  transform: rotate(180deg);
+}
+
+/* CRITICAL: Dropdown is completely hidden by default and only appears when .is-open */
+.sarathi-link-dropdown {
+  animation: sarathiDropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16), 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+  display: none !important;
+  flex-direction: column;
+  gap: 4px;
+  left: 0;
+  max-height: 290px;
+  padding: 6px;
+  position: absolute !important;
+  right: 0;
+  top: calc(100% + 5px) !important;
+  z-index: 1000 !important;
+}
+
+.sarathi-link-field-wrap.is-open .sarathi-link-dropdown {
+  display: flex !important;
+}
+
+.sarathi-combobox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.sarathi-combobox-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  justify-content: space-between;
+  padding: 8px 12px;
+  text-align: left;
+  transition: all 0.12s ease;
+  width: 100%;
+}
+
+.sarathi-combobox-item:hover,
+.sarathi-combobox-item:focus-visible {
+  background: #f0f9ff;
+  color: #0284c7;
+  font-weight: 600;
+  outline: none;
+}
+
+.sarathi-combobox-item.selected {
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 700;
+}
+
+.sarathi-combobox-check {
+  color: #16a34a;
+  flex-shrink: 0;
+  height: 14px;
+  width: 14px;
+}
+
+.sarathi-combobox-empty {
+  color: #94a3b8;
+  font-size: 12px;
+  font-style: italic;
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.sarathi-link-actions {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid #f1f5f9;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 6px 4px 2px;
+}
+
+.sarathi-link-action-btn {
+  align-items: center;
+  border-radius: 6px;
+  color: #0284c7;
+  display: flex;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 8px;
+  padding: 7px 10px;
+  text-decoration: none;
+  transition: all 0.14s ease;
+}
+
+.sarathi-link-action-btn svg {
+  flex-shrink: 0;
+  height: 14px;
+  stroke: currentColor;
+  width: 14px;
+}
+
+.sarathi-link-action-btn:hover {
+  background: #f0f9ff;
+  color: #0369a1;
+  text-decoration: none;
+}
+
+@keyframes sarathiDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Checkbox Card Component - Full width, no squishing */
+.sarathi-meta-field.check-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.sarathi-check-card {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  height: 42px;
+  min-height: 42px;
+  padding: 8px 14px;
+  transition: all 0.16s ease;
+  user-select: none;
+  width: 100%;
+}
+
+.sarathi-check-card:hover {
+  background: #f8fafc;
+  border-color: #0284c7;
+}
+
+.sarathi-check-card.checked,
+.sarathi-check-card:has(input:checked) {
+  background: #f0f9ff;
+  border-color: #0284c7;
+}
+
+.sarathi-check-card input[type="checkbox"] {
+  display: none !important;
+}
+
+.sarathi-check-box {
+  align-items: center;
+  background: #ffffff;
+  border: 1.8px solid #94a3b8;
+  border-radius: 5px;
+  box-sizing: border-box;
+  color: transparent;
+  display: flex;
+  flex-shrink: 0;
+  height: 19px;
+  justify-content: center;
+  transition: all 0.14s ease;
+  width: 19px;
+}
+
+.sarathi-check-card.checked .sarathi-check-box,
+.sarathi-check-card:has(input:checked) .sarathi-check-box {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.sarathi-check-box svg {
+  height: 12px;
+  width: 12px;
+}
+
+.sarathi-check-title {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/* Child Table Note Component */
+.sarathi-child-table-note {
+  align-items: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+  border: 1.5px dashed #7dd3fc;
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 14px;
+  min-height: 72px;
+  padding: 14px 18px;
+  width: 100%;
+}
+
+.sarathi-child-table-icon {
+  align-items: center;
+  background: #e0f2fe;
+  border-radius: 8px;
+  color: #0284c7;
+  display: flex;
+  flex-shrink: 0;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.sarathi-child-table-icon svg {
+  height: 18px;
+  width: 18px;
+}
+
+.sarathi-child-table-info strong {
+  color: #0369a1;
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sarathi-child-table-info span {
+  color: #64748b;
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* Wrapper Tabs */
+.sarathi-wrapper-tabs {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.sarathi-wrapper-tab-list {
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  position: sticky;
+  top: 72px;
+  width: fit-content;
+  z-index: 30;
+}
+
+.sarathi-wrapper-tab-list button {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #64748b;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 34px;
+  padding: 7px 18px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.sarathi-wrapper-tab-list button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.65);
+  color: #0f172a;
+}
+
+.sarathi-wrapper-tab-list button.active {
+  background: #0284c7;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.28);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.sarathi-wrapper-tab-panels {
+  display: grid;
+  width: 100%;
+}
+
+.sarathi-wrapper-tab-panel {
+  display: none;
+  gap: 18px;
+  width: 100%;
+}
+
+.sarathi-wrapper-tab-panel.active {
+  display: grid;
+}
+
+
+.sarathi-form-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  overflow: visible !important;
+  padding: 22px 24px;
+  position: relative;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.sarathi-form-section::before {
+  border-radius: 16px 16px 0 0;
+  content: "";
+  height: 3.5px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.sarathi-form-section.blue::before {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.sarathi-form-section.green::before {
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.sarathi-form-section.orange::before {
+  background: linear-gradient(90deg, #ea580c, #fb923c);
+}
+
+.sarathi-form-section.purple::before {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
+
+.sarathi-form-section.teal::before {
+  background: linear-gradient(90deg, #0d9488, #2dd4bf);
+}
+
+.sarathi-form-section.slate::before {
+  background: linear-gradient(90deg, #475569, #94a3b8);
+}
+
+.sarathi-form-section-title {
+  display: grid;
+  gap: 3px;
+}
+
+.sarathi-form-section-title h4 {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.sarathi-form-section-title p {
+  color: #64748b;
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.sarathi-setup-shortcuts {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sarathi-setup-shortcut {
+  background: #f6f9fc;
+  border: 1px solid #dce8f2;
+  border-radius: 10px;
+  color: var(--sarathi-ink);
+  display: grid;
+  gap: 6px;
+  min-height: 84px;
+  padding: 12px;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-setup-shortcut:hover {
+  border-color: #8dbfe7;
+  box-shadow: 0 14px 28px rgba(35, 119, 183, 0.14);
+  color: var(--sarathi-blue);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.sarathi-setup-shortcut strong {
+  font-size: 13px;
+}
+
+.sarathi-setup-shortcut span {
+  color: var(--sarathi-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.sarathi-form-error {
+  background: #fff0f1;
+  border: 1px solid #e59a9e;
+  border-radius: 8px;
+  color: var(--sarathi-red);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px;
+}
+
+.sarathi-drawer-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sarathi-drawer-stats div {
+  background: #f6f9fc;
+  border: 1px solid #dfe8f1;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.sarathi-drawer-stats span {
+  color: var(--sarathi-muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sarathi-drawer-stats strong {
+  display: block;
+  font-size: 15px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1280px) {
+
+  .sarathi-v2 .sarathi-kpis,
+  .sarathi-v2 .sarathi-analysis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sarathi-v2 .sarathi-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sarathi-employee-summary,
+  .sarathi-employee-queue,
+  .sarathi-organization-list,
+  .sarathi-project-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-process-board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+
+  .sarathi-overview,
+  .sarathi-chart-grid,
+  .sarathi-bom-window,
+  .sarathi-command-grid,
+  .sarathi-mini-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-bom-window>div:last-child {
+    grid-column: auto;
+  }
+
+  .sarathi-v2 .sarathi-kpis,
+  .sarathi-v2 .sarathi-analysis,
+  .sarathi-v2 .sarathi-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-bar-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-bar-row em {
+    justify-self: start;
+  }
+
+  .sarathi-process-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-drawer-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-setup-shortcuts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-form-grid label.wide {
+    grid-column: span 2;
+  }
+
+  .sarathi-form-columns[data-cols="2"],
+  .sarathi-form-columns[data-cols="3"] {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .sarathi-v2 {
+    border-radius: 0;
+    margin: -18px -15px 0;
+    padding: 12px;
+  }
+
+  .sarathi-v2 .sarathi-hero h2 {
+    font-size: 26px;
+  }
+
+  .sarathi-v2 .sarathi-search,
+  .sarathi-command,
+  .sarathi-command .btn,
+  .sarathi-panel-actions,
+  .sarathi-panel-actions .btn {
+    width: 100%;
+  }
+
+  .sarathi-panel-actions {
+    justify-content: flex-start;
+  }
+
+  .sarathi-v2 .sarathi-kpis,
+  .sarathi-v2 .sarathi-analysis,
+  .sarathi-v2 .sarathi-card-grid,
+  .sarathi-employee-summary,
+  .sarathi-employee-queue,
+  .sarathi-organization-list,
+  .sarathi-project-list,
+  .sarathi-process-board,
+  .sarathi-facts,
+  .sarathi-bom-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-setup-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-organization-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sarathi-ring {
+    grid-template-columns: 86px minmax(0, 1fr);
+    min-height: 132px;
+  }
+
+  .sarathi-ring svg {
+    height: 86px;
+    width: 86px;
+  }
+
+  .sarathi-drawer-panel {
+    padding: 14px;
+    width: 100vw;
+  }
+
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-panel {
+    padding: 14px;
+  }
+
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-form-grid,
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-form-grid label.wide,
+  .sarathi-form-columns,
+  .sarathi-form-columns[data-cols="2"],
+  .sarathi-form-columns[data-cols="3"] {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-title h3 {
+    font-size: 28px;
+  }
+
+  .sarathi-drawer.sarathi-fullscreen-form .sarathi-drawer-actions {
+    bottom: 8px;
+  }
+
+  .sarathi-drawer-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Premium industrial theme overrides */
+.sarathi-tower {
+  --sarathi-ink: #101827;
+  --sarathi-muted: #607086;
+  --sarathi-border: #c8d6e4;
+  --sarathi-panel: #ffffff;
+  --sarathi-soft: #f4f7fb;
+  --sarathi-navy: #102c45;
+  --sarathi-blue: #1f75bb;
+  --sarathi-teal: #0f9f95;
+  --sarathi-green: #168a5b;
+  --sarathi-amber: #b7791f;
+  --sarathi-red: #c3383f;
+  gap: 18px;
+}
+
+.sarathi-v2 {
+  background:
+    linear-gradient(180deg, #eef5fb 0, #f8fafc 360px),
+    repeating-linear-gradient(135deg, rgba(16, 44, 69, 0.035) 0 1px, transparent 1px 18px),
+    #f6f8fb;
+  border: 1px solid rgba(200, 214, 228, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.sarathi-hero,
+.sarathi-v2 .sarathi-hero-app {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 22px),
+    linear-gradient(120deg, #102c45 0%, #12606e 52%, #176b50 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 22px 48px rgba(16, 44, 69, 0.25);
+  min-height: 172px;
+  padding: 28px;
+}
+
+.sarathi-v2 .sarathi-hero-app::after {
+  background: linear-gradient(90deg, #d9a441, #1f75bb, #0f9f95);
+  height: 4px;
+  opacity: 0.95;
+}
+
+.sarathi-eyebrow {
+  color: #c8e7ef;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.sarathi-hero h2,
+.sarathi-v2 .sarathi-hero h2 {
+  color: #ffffff;
+  font-size: 36px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+}
+
+.sarathi-meta span {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-weight: 800;
+}
+
+.sarathi-command .btn,
+.sarathi-v2 .btn,
+.sarathi-card-actions a,
+.sarathi-card-actions button,
+.sarathi-native-save {
+  border-radius: 8px;
+  font-weight: 800;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.sarathi-command .btn:hover,
+.sarathi-card-actions a:hover,
+.sarathi-card-actions button:hover {
+  box-shadow: 0 12px 24px rgba(16, 44, 69, 0.15);
+  transform: translateY(-1px);
+}
+
+.sarathi-v2 .sarathi-search,
+.sarathi-search {
+  border: 1px solid rgba(200, 214, 228, 0.85);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(16, 44, 69, 0.1);
+  min-height: 46px;
+  outline: 0;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.sarathi-search:focus {
+  border-color: #54add8;
+  box-shadow: 0 0 0 4px rgba(31, 117, 187, 0.16), 0 12px 28px rgba(16, 44, 69, 0.13);
+}
+
+.sarathi-nav {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(200, 214, 228, 0.88);
+  border-radius: 12px;
+  box-shadow: 0 12px 26px rgba(16, 44, 69, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.sarathi-nav a {
+  border-radius: 8px;
+  font-weight: 850;
+}
+
+.sarathi-nav a:hover,
+.sarathi-nav a:focus-visible {
+  background: #e5f3fb;
+  border-color: #8bc5e7;
+  color: #145f9d;
+  transform: translateY(-1px);
+}
+
+.sarathi-nav a.active {
+  background: linear-gradient(135deg, #102c45, #12606e);
+  border-color: #102c45;
+  color: #ffffff;
+}
+
+.sarathi-section,
+.sarathi-panel,
+.sarathi-kpi,
+.sarathi-analysis-card,
+.sarathi-stage,
+.sarathi-machine,
+.sarathi-ring,
+.sarathi-facts div,
+.sarathi-facts a,
+.sarathi-project-option,
+.sarathi-organization-option,
+.sarathi-employee-card,
+.sarathi-employee-task,
+.sarathi-setup-shortcut {
+  border-radius: 12px;
+  box-shadow: 0 14px 32px rgba(16, 44, 69, 0.07);
+}
+
+.sarathi-section,
+.sarathi-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.96)),
+    #ffffff;
+  border-color: rgba(200, 214, 228, 0.9);
+}
+
+.sarathi-section[data-section-panel]:hover,
+.sarathi-panel:hover {
+  border-color: #a9cce6;
+  box-shadow: 0 20px 44px rgba(16, 44, 69, 0.11);
+}
+
+.sarathi-panel-head {
+  border-bottom: 1px solid rgba(200, 214, 228, 0.72);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+}
+
+.sarathi-panel-head h3 {
+  color: #101827;
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.sarathi-panel-head span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.sarathi-panel-note,
+.sarathi-badge,
+.sarathi-machine em,
+.sarathi-project-option-meta b {
+  border: 1px solid rgba(200, 214, 228, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.sarathi-v2 .sarathi-kpi {
+  background:
+    linear-gradient(180deg, #ffffff, #f7fbff),
+    #ffffff;
+  border: 1px solid rgba(212, 224, 235, 0.88);
+  min-height: 116px;
+  padding: 16px;
+}
+
+.sarathi-v2 .sarathi-kpi:hover,
+.sarathi-v2 .sarathi-kpi:focus-visible {
+  box-shadow: 0 22px 44px rgba(16, 44, 69, 0.14);
+  transform: translateY(-3px);
+}
+
+.sarathi-v2 .sarathi-kpi span {
+  color: #607086;
+  font-weight: 750;
+}
+
+.sarathi-v2 .sarathi-kpi strong {
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.sarathi-v2 .sarathi-kpi i {
+  background:
+    linear-gradient(135deg, rgba(31, 117, 187, 0.16), rgba(15, 159, 149, 0.1)),
+    repeating-linear-gradient(45deg, rgba(16, 44, 69, 0.06) 0 1px, transparent 1px 8px);
+}
+
+.sarathi-organization-option,
+.sarathi-project-option,
+.sarathi-bom-card,
+.sarathi-process-card,
+.sarathi-v2 .sarathi-stage,
+.sarathi-v2 .sarathi-machine,
+.sarathi-v2 .sarathi-analysis-card {
+  background:
+    linear-gradient(180deg, #ffffff, #f6faff),
+    #ffffff;
+  border-color: rgba(204, 218, 231, 0.92) !important;
+}
+
+.sarathi-organization-option::before,
+.sarathi-project-option::before,
+.sarathi-bom-card::before,
+.sarathi-process-card::before {
+  height: 5px;
+}
+
+.sarathi-organization-option:hover,
+.sarathi-organization-option:focus-visible,
+.sarathi-project-option:hover,
+.sarathi-project-option:focus-visible,
+.sarathi-bom-card:hover,
+.sarathi-bom-card:focus-visible,
+.sarathi-process-card:hover,
+.sarathi-process-card:focus-visible,
+.sarathi-v2 .sarathi-stage:hover,
+.sarathi-v2 .sarathi-stage:focus-visible,
+.sarathi-v2 .sarathi-machine:hover,
+.sarathi-v2 .sarathi-machine:focus-visible,
+.sarathi-v2 .sarathi-analysis-card:hover,
+.sarathi-v2 .sarathi-analysis-card:focus-visible,
+.sarathi-employee-card:hover,
+.sarathi-employee-card:focus-visible,
+.sarathi-employee-task:hover,
+.sarathi-employee-task:focus-visible {
+  border-color: #79bce1 !important;
+  box-shadow: 0 24px 48px rgba(16, 44, 69, 0.15);
+  transform: translateY(-3px);
+}
+
+.sarathi-project-option.active,
+.sarathi-bom-card.active {
+  background:
+    linear-gradient(180deg, #eaf6ff, #ffffff),
+    #ffffff;
+  border-color: #1f75bb !important;
+  box-shadow: 0 20px 42px rgba(31, 117, 187, 0.18);
+}
+
+.sarathi-project-option strong,
+.sarathi-bom-card strong,
+.sarathi-process-card strong,
+.sarathi-organization-option strong {
+  color: #0f172a;
+  font-weight: 900;
+}
+
+.sarathi-bom-card-fields b,
+.sarathi-bom-summary div,
+.sarathi-facts div,
+.sarathi-facts a,
+.sarathi-drawer-stats div,
+.sarathi-organization-metrics b {
+  background: linear-gradient(180deg, #f7fbff, #eef5fb);
+  border-color: #d7e4f0;
+}
+
+.sarathi-progress {
+  background: #d9e4ef;
+  box-shadow: inset 0 1px 2px rgba(16, 44, 69, 0.13);
+}
+
+.sarathi-progress i {
+  background: linear-gradient(90deg, #1f75bb, #0f9f95, #168a5b);
+  box-shadow: 0 0 14px rgba(15, 159, 149, 0.28);
+}
+
+.sarathi-analysis-card.success,
+.sarathi-v2 .sarathi-stage.success,
+.sarathi-process-card.success,
+.sarathi-employee-card.success,
+.sarathi-employee-task.success {
+  background: linear-gradient(180deg, #ecfbf3, #ffffff);
+  border-color: #9edabd !important;
+}
+
+.sarathi-analysis-card.info,
+.sarathi-process-card.info {
+  background: linear-gradient(180deg, #eaf6ff, #ffffff);
+  border-color: #9dcced !important;
+}
+
+.sarathi-analysis-card.warning,
+.sarathi-v2 .sarathi-stage.warning,
+.sarathi-process-card.warning {
+  background: linear-gradient(180deg, #fff7e8, #ffffff);
+  border-color: #e8c878 !important;
+}
+
+.sarathi-analysis-card.critical,
+.sarathi-v2 .sarathi-stage.critical,
+.sarathi-process-card.critical {
+  background: linear-gradient(180deg, #fff0f2, #ffffff);
+  border-color: #e79aa0 !important;
+}
+
+.sarathi-stage-index,
+.sarathi-project-option span,
+.sarathi-bom-card>span,
+.sarathi-analysis-card span,
+.sarathi-employee-card span,
+.sarathi-employee-task span {
+  letter-spacing: 0.04em;
+}
+
+.sarathi-v2 .sarathi-tabs {
+  background: #eef4fa;
+  border: 1px solid #d8e4ef;
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.sarathi-v2 .sarathi-tabs button {
+  border-radius: 8px;
+}
+
+.sarathi-v2 .sarathi-tabs button:hover,
+.sarathi-v2 .sarathi-tabs button:focus-visible {
+  background: #dff0fb;
+  color: #145f9d;
+  outline: 0;
+}
+
+.sarathi-v2 .sarathi-tabs button.active {
+  background: linear-gradient(135deg, #102c45, #12606e);
+  border-color: #102c45;
+  box-shadow: 0 10px 22px rgba(16, 44, 69, 0.18);
+}
+
+.sarathi-v2 .sarathi-table-wrap {
+  border-color: #cfdde9;
+  border-radius: 12px;
+  box-shadow: 0 12px 26px rgba(16, 44, 69, 0.06);
+}
+
+.sarathi-v2 .sarathi-table th {
+  background: linear-gradient(180deg, #eef5fb, #e6eff7);
+  color: #45566c;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.sarathi-v2 .sarathi-table td {
+  color: #172033;
+}
+
+.sarathi-v2 .sarathi-table tr:hover td {
+  background: #eef8ff;
+}
+
+.sarathi-link,
+.sarathi-bar-row a {
+  color: #176fb0;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.sarathi-link:hover,
+.sarathi-bar-row a:hover {
+  color: #0f9f95;
+  text-decoration: none;
+}
+
+.sarathi-alert {
+  background: #ffffff;
+  border: 1px solid #d8e4ef;
+  border-left-width: 5px;
+}
+
+.sarathi-alert:hover,
+.sarathi-alert:focus-visible {
+  box-shadow: 0 16px 34px rgba(16, 44, 69, 0.12);
+  transform: translateY(-2px);
+}
+
+.sarathi-bars {
+  background: #dce8f2;
+  box-shadow: inset 0 1px 2px rgba(16, 44, 69, 0.13);
+}
+
+.sarathi-bars .required {
+  background: linear-gradient(90deg, #d9a441, #f0bd5b);
+}
+
+.sarathi-bars .available {
+  background: linear-gradient(90deg, #0f9f95, #168a5b);
+}
+
+.sarathi-bom-layout {
+  background:
+    linear-gradient(180deg, rgba(7, 15, 27, 0.58), rgba(7, 15, 27, 0.68)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 18px);
+}
+
+.sarathi-bom-window,
+.sarathi-drawer-panel {
+  background:
+    linear-gradient(180deg, #ffffff, #f7fbff),
+    #ffffff;
+  border-color: #c8d6e4;
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(7, 15, 27, 0.32);
+}
+
+.sarathi-bom-close,
+.sarathi-drawer-close {
+  background: #edf4fa;
+  border-color: #c8d6e4 !important;
+}
+
+.sarathi-bom-close:hover,
+.sarathi-bom-close:focus-visible,
+.sarathi-drawer-close:hover,
+.sarathi-drawer-close:focus-visible {
+  background: #ffe9ea;
+  border-color: #efa0a5 !important;
+  color: #a32830;
+}
+
+.sarathi-native-form-header,
+.sarathi-drawer-title {
+  border-bottom-color: #d7e4f0;
+}
+
+.sarathi-form input,
+.sarathi-form select,
+.sarathi-form textarea,
+.sarathi-combobox-input-wrap {
+  border-color: #cad8e6;
+  border-radius: 8px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.sarathi-form input:focus,
+.sarathi-form select:focus,
+.sarathi-form textarea:focus,
+.sarathi-combobox-input-wrap:focus-within {
+  border-color: #54add8;
+  box-shadow: 0 0 0 4px rgba(31, 117, 187, 0.14);
+  outline: 0;
+}
+
+.sarathi-empty,
+.sarathi-empty-cell {
+  background: #f4f7fb;
+  border: 1px dashed #c8d6e4;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+@media (max-width: 980px) {
+  .sarathi-v2 {
+    padding: 14px;
+  }
+
+  .sarathi-hero,
+  .sarathi-v2 .sarathi-hero-app {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .sarathi-hero h2,
+  .sarathi-v2 .sarathi-hero h2 {
+    font-size: 28px;
+  }
+
+  .sarathi-section,
+  .sarathi-panel {
+    padding: 14px;
+  }
+
+  .sarathi-bom-layout {
+    padding: 12px;
+  }
+
+  .sarathi-bom-window {
+    max-height: calc(100vh - 24px);
+    width: calc(100vw - 24px);
+  }
+}
+
+/* Sarathi focused header and card polish */
+.sarathi-tower {
+  --sarathi-navy: #102c45;
+  --sarathi-teal: #0f766e;
+  --sarathi-blue: #1f75bb;
+  --sarathi-green: #168a5b;
+  --sarathi-amber: #c47a1f;
+  --sarathi-red: #c3383f;
+  --sarathi-ink: #0f172a;
+  --sarathi-muted: #5d6e84;
+  --sarathi-line: #cbdbe8;
+}
+
+.sarathi-v2 .sarathi-hero.sarathi-hero-app {
+  align-items: stretch;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(125deg, #102c45 0%, #125d6d 50%, #147153 100%);
+  background-size: 28px 28px, 28px 28px, auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 22px 48px rgba(16, 44, 69, 0.24);
+  display: grid;
+  gap: 22px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 530px);
+  min-height: 192px;
+  overflow: visible;
+  padding: 30px;
+  position: relative;
+  z-index: 20;
+}
+
+.sarathi-v2 .sarathi-hero.sarathi-hero-app::after {
+  background: linear-gradient(90deg, #d9a441, #1f75bb, #0f9f95);
+  bottom: 0;
+  content: "";
+  height: 5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.sarathi-hero-copy {
+  align-content: center;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sarathi-v2 .sarathi-hero h2 {
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1.08;
+  margin: 0;
+  max-width: 820px;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.2);
+}
+
+.sarathi-eyebrow {
+  color: #c9e4ee;
+  font-weight: 900;
+}
+
+.sarathi-meta {
+  gap: 8px;
+}
+
+.sarathi-meta span,
+.sarathi-live-dot {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 850;
+  min-height: 30px;
+  padding: 6px 12px;
+}
+
+.sarathi-live-dot::before {
+  background: #35d58c;
+  border-radius: 999px;
+  box-shadow: 0 0 0 4px rgba(53, 213, 140, 0.18);
+  content: "";
+  height: 8px;
+  margin-right: 7px;
+  width: 8px;
+}
+
+.sarathi-hero-command {
+  align-content: center;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sarathi-project-hero-card {
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 16px 30px rgba(3, 17, 31, 0.16);
+  color: #ffffff;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 15px;
+}
+
+.sarathi-project-hero-card[hidden],
+.sarathi-project-hero-card.hidden {
+  display: none !important;
+}
+
+.sarathi-project-hero-card-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sarathi-project-hero-clear {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 3px 8px;
+  text-transform: none;
+  transition: all 0.15s ease;
+}
+
+.sarathi-project-hero-clear:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+}
+
+.sarathi-org-picker {
+  color: #ffffff;
+  min-width: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.sarathi-org-trigger {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 14px 26px rgba(3, 17, 31, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 11px 14px;
+  width: 100%;
+}
+
+.sarathi-org-trigger:hover,
+.sarathi-org-trigger:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.42) !important;
+  box-shadow: 0 16px 30px rgba(3, 17, 31, 0.2);
+  outline: 0;
+}
+
+.sarathi-org-trigger span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sarathi-org-trigger small {
+  color: #c9e4ee;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sarathi-org-trigger strong {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sarathi-org-trigger i {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  display: flex;
+  flex: 0 0 28px;
+  font-style: normal;
+  font-weight: 900;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.sarathi-org-menu {
+  background: #ffffff;
+  border: 1px solid #c7d8e6;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(4, 15, 28, 0.35), 0 4px 14px rgba(4, 15, 28, 0.12);
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  max-height: 440px;
+  padding: 12px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(440px, calc(100vw - 40px));
+  z-index: 10001;
+}
+
+.sarathi-org-menu[hidden] {
+  display: none !important;
+}
+
+.sarathi-org-search-wrap {
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.sarathi-org-search {
+  background: #f8fbfe;
+  border: 1.5px solid #cbdbe8;
+  border-radius: 9px;
+  box-sizing: border-box;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 42px;
+  outline: 0;
+  padding: 10px 14px;
+  width: 100%;
+}
+
+.sarathi-org-search:focus {
+  background: #ffffff;
+  border-color: #1f75bb;
+  box-shadow: 0 0 0 4px rgba(31, 117, 187, 0.16);
+}
+
+.sarathi-org-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.sarathi-org-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sarathi-org-options::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.sarathi-org-options::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.sarathi-org-options::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.sarathi-org-option {
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff, #f6faff);
+  border: 1px solid #d4e1ec !important;
+  border-radius: 10px;
+  color: #0f172a;
+  cursor: pointer;
+  display: grid;
+  gap: 2px 10px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  padding: 10px;
+}
+
+.sarathi-org-option:hover,
+.sarathi-org-option:focus-visible {
+  background: #eef8ff;
+  border-color: #8fc4e5 !important;
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.sarathi-org-option.active {
+  background: linear-gradient(180deg, #eaf6ff, #ffffff);
+  border-color: #1f75bb !important;
+}
+
+.sarathi-org-option span {
+  align-items: center;
+  background: #e8f4ff;
+  border: 1px solid #b9dcf5;
+  border-radius: 9px;
+  color: #145f9d;
+  display: flex;
+  font-size: 12px;
+  font-weight: 900;
+  grid-row: 1 / span 2;
+  height: 42px;
+  justify-content: center;
+  text-transform: uppercase;
+  width: 42px;
+}
+
+.sarathi-org-option strong {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-org-option em {
+  color: #5d6e84;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.sarathi-project-hero-card>span,
+.sarathi-project-hero-card-head>span {
+  color: #cce4ee;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sarathi-project-hero-card strong {
+  color: #ffffff;
+  display: block;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-project-hero-card em {
+  color: #dceff5;
+  display: block;
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-hero-stats {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sarathi-hero-stats b {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  display: grid;
+  gap: 2px;
+  padding: 9px 10px;
+}
+
+.sarathi-hero-stats small {
+  color: #c8dbe6;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sarathi-hero-stats span {
+  color: #ffffff;
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.sarathi-hero-command .sarathi-toolbar,
+.sarathi-hero-command .sarathi-command {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.sarathi-hero-command .sarathi-search {
+  border-radius: 9px;
+  box-shadow: 0 12px 26px rgba(4, 20, 36, 0.18);
+  min-height: 48px;
+  min-width: min(340px, 100%);
+}
+
+.sarathi-v2 .sarathi-kpis {
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+}
+
+.sarathi-v2 .sarathi-kpi {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f7fbff 100%),
+    #ffffff;
+  border: 1px solid rgba(203, 219, 232, 0.96);
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(16, 44, 69, 0.1);
+  display: grid;
+  gap: 5px 12px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  min-height: 150px;
+  padding: 17px 16px 15px;
+  position: relative;
+}
+
+.sarathi-v2 .sarathi-kpi::before {
+  border-radius: 12px 12px 0 0;
+  height: 4px;
+}
+
+.sarathi-v2 .sarathi-kpi:hover,
+.sarathi-v2 .sarathi-kpi:focus-visible {
+  border-color: #8fc4e5;
+  box-shadow: 0 22px 44px rgba(16, 44, 69, 0.16);
+  transform: translateY(-4px);
+}
+
+.sarathi-v2 .sarathi-kpi .sarathi-kpi-icon {
+  align-items: center;
+  background: #e8f4ff;
+  border: 1px solid #bddcf2;
+  border-radius: 10px;
+  color: #145f9d;
+  display: flex;
+  font-size: 13px;
+  font-weight: 900;
+  grid-row: 1 / span 4;
+  height: 42px;
+  justify-content: center;
+  line-height: 1;
+  width: 42px;
+}
+
+.sarathi-v2 .sarathi-kpi .sarathi-kpi-label {
+  color: #51637a;
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.sarathi-v2 .sarathi-kpi strong {
+  color: #0f172a;
+  display: block;
+  font-size: 32px;
+  font-weight: 950;
+  line-height: 1;
+  margin: 2px 0 0;
+}
+
+.sarathi-v2 .sarathi-kpi em {
+  color: #243246;
+  display: block;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.sarathi-v2 .sarathi-kpi small {
+  align-self: end;
+  color: #176fb0;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.sarathi-v2 .sarathi-kpi>i {
+  opacity: 0.6;
+}
+
+.sarathi-kpi.success .sarathi-kpi-icon {
+  background: #eaf8f0;
+  border-color: #b8dec8;
+  color: #168a5b;
+}
+
+.sarathi-kpi.warning .sarathi-kpi-icon {
+  background: #fff4df;
+  border-color: #e9c984;
+  color: #9c6513;
+}
+
+.sarathi-kpi.critical .sarathi-kpi-icon {
+  background: #fff0f1;
+  border-color: #eab0b4;
+  color: #b62d35;
+}
+
+.sarathi-project-option,
+.sarathi-bom-card,
+.sarathi-analysis-card,
+.sarathi-employee-card,
+.sarathi-process-card,
+.sarathi-organization-option {
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(16, 44, 69, 0.08);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.sarathi-project-option:hover,
+.sarathi-project-option:focus-visible,
+.sarathi-bom-card:hover,
+.sarathi-bom-card:focus-visible,
+.sarathi-analysis-card:hover,
+.sarathi-analysis-card:focus-visible,
+.sarathi-employee-card:hover,
+.sarathi-employee-card:focus-visible,
+.sarathi-process-card:hover,
+.sarathi-process-card:focus-visible,
+.sarathi-organization-option:hover,
+.sarathi-organization-option:focus-visible {
+  border-color: #8fc4e5 !important;
+  box-shadow: 0 22px 44px rgba(16, 44, 69, 0.14);
+  outline: 0;
+  transform: translateY(-3px);
+}
+
+.sarathi-project-option.active,
+.sarathi-bom-card.active,
+.sarathi-organization-option.active {
+  background: linear-gradient(180deg, #eaf6ff, #ffffff);
+  border-color: #1f75bb !important;
+  box-shadow: 0 22px 44px rgba(31, 117, 187, 0.2);
+}
+
+.sarathi-panel,
+.sarathi-section {
+  border-radius: 12px;
+}
+
+@media (max-width: 1180px) {
+  .sarathi-v2 .sarathi-hero.sarathi-hero-app {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .sarathi-v2 .sarathi-hero.sarathi-hero-app {
+    padding: 22px;
+  }
+
+  .sarathi-v2 .sarathi-hero h2 {
+    font-size: 30px;
+  }
+
+  .sarathi-hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .sarathi-hero-command .sarathi-search,
+  .sarathi-hero-command .btn {
+    width: 100%;
+  }
+
+  .sarathi-v2 .sarathi-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sarathi KPI one-line icon strip */
+.sarathi-v2 .sarathi-kpis {
+  align-items: stretch;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.sarathi-v2 .sarathi-kpi {
+  align-content: start;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%),
+    #ffffff;
+  border: 1px solid rgba(197, 214, 228, 0.98);
+  border-radius: 11px;
+  box-shadow: 0 12px 26px rgba(16, 44, 69, 0.09);
+  display: grid;
+  gap: 4px 10px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  min-height: 112px;
+  padding: 14px 12px 12px;
+}
+
+.sarathi-v2 .sarathi-kpi::before {
+  border-radius: 11px 11px 0 0;
+  height: 4px;
+}
+
+.sarathi-v2 .sarathi-kpi:hover,
+.sarathi-v2 .sarathi-kpi:focus-visible {
+  border-color: #7dbbe0;
+  box-shadow: 0 20px 38px rgba(16, 44, 69, 0.15);
+  transform: translateY(-3px);
+}
+
+.sarathi-v2 .sarathi-kpi .sarathi-kpi-icon {
+  align-items: center;
+  align-self: start;
+  border-radius: 10px;
+  display: flex;
+  grid-row: 1 / span 4;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.sarathi-v2 .sarathi-kpi .sarathi-kpi-icon svg {
+  display: block;
+  fill: none;
+  height: 21px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.1;
+  width: 21px;
+}
+
+.sarathi-v2 .sarathi-kpi .sarathi-kpi-label {
+  color: #45566c;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.15;
+  min-height: 28px;
+  overflow-wrap: anywhere;
+}
+
+.sarathi-v2 .sarathi-kpi strong {
+  color: #07111f;
+  display: block;
+  font-size: 28px;
+  font-weight: 950;
+  line-height: 1;
+  margin: 0;
+}
+
+.sarathi-v2 .sarathi-kpi em {
+  color: #53657b;
+  display: block;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.25;
+  max-height: 28px;
+  overflow: hidden;
+}
+
+.sarathi-v2 .sarathi-kpi small {
+  align-items: center;
+  color: #176fb0;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.sarathi-v2 .sarathi-kpi small::after {
+  content: ">";
+  font-size: 12px;
+  margin-left: 5px;
+  transform: translateY(-1px);
+}
+
+.sarathi-v2 .sarathi-kpi>i {
+  bottom: -22px;
+  height: 58px;
+  opacity: 0.42;
+  right: -22px;
+  width: 58px;
+}
+
+.sarathi-v2 .sarathi-kpi.info .sarathi-kpi-icon {
+  background: #e8f4ff;
+  border: 1px solid #b9dcf5;
+  color: #145f9d;
+}
+
+.sarathi-v2 .sarathi-kpi.success .sarathi-kpi-icon {
+  background: #eaf8f0;
+  border: 1px solid #b8dec8;
+  color: #168a5b;
+}
+
+.sarathi-v2 .sarathi-kpi.warning .sarathi-kpi-icon {
+  background: #fff4df;
+  border: 1px solid #e9c984;
+  color: #9c6513;
+}
+
+.sarathi-v2 .sarathi-kpi.critical .sarathi-kpi-icon {
+  background: #fff0f1;
+  border: 1px solid #eab0b4;
+  color: #b62d35;
+}
+
+@media (max-width: 1500px) {
+  .sarathi-v2 .sarathi-kpis {
+    gap: 10px;
+  }
+
+  .sarathi-v2 .sarathi-kpi {
+    grid-template-columns: 34px minmax(0, 1fr);
+    min-height: 108px;
+    padding: 13px 10px 11px;
+  }
+
+  .sarathi-v2 .sarathi-kpi .sarathi-kpi-icon {
+    height: 34px;
+    width: 34px;
+  }
+
+  .sarathi-v2 .sarathi-kpi .sarathi-kpi-icon svg {
+    height: 19px;
+    width: 19px;
+  }
+
+  .sarathi-v2 .sarathi-kpi strong {
+    font-size: 25px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .sarathi-v2 .sarathi-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .sarathi-v2 .sarathi-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .sarathi-v2 .sarathi-kpis {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "format:PPC-.#####",
+  "creation": "2026-09-05 00:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "project",
+    "company",
+    "customer",
+    "sales_order",
+    "project_manager",
+    "status",
+    "progress",
+    "start_date",
+    "end_date",
+    "pipeline_weights_json",
+    "notes"
+  ],
+  "fields": [
+    {
+      "fieldname": "project",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Project",
+      "options": "Project",
+      "reqd": 1
+    },
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Company",
+      "options": "Company"
+    },
+    {
+      "fieldname": "customer",
+      "fieldtype": "Link",
+      "label": "Customer",
+      "options": "Customer"
+    },
+    {
+      "fieldname": "sales_order",
+      "fieldtype": "Link",
+      "label": "Sales Order",
+      "options": "Sales Order"
+    },
+    {
+      "fieldname": "project_manager",
+      "fieldtype": "Link",
+      "label": "Project Manager",
+      "options": "User"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Status",
+      "options": "Open\nWorking\nPending Review\nCompleted\nBlocked\nDelayed"
+    },
+    {
+      "fieldname": "progress",
+      "fieldtype": "Percent",
+      "in_list_view": 1,
+      "label": "Progress"
+    },
+    {
+      "fieldname": "start_date",
+      "fieldtype": "Date",
+      "label": "Start Date"
+    },
+    {
+      "fieldname": "end_date",
+      "fieldtype": "Date",
+      "label": "End Date"
+    },
+    {
+      "description": "Optional JSON list overriding dashboard stage weights.",
+      "fieldname": "pipeline_weights_json",
+      "fieldtype": "Code",
+      "label": "Pipeline Weights JSON",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "notes",
+      "fieldtype": "Small Text",
+      "label": "Notes"
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2026-09-05 00:00:00.000000",
+  "module": "Sarathi Visibility",
+  "name": "Sarathi Project Controller",
+  "naming_rule": "Expression",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}
+

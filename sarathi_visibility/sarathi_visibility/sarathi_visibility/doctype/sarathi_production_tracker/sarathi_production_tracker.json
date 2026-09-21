@@ -1,0 +1,129 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "format:PPT-.#####",
+  "creation": "2026-09-05 00:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "project",
+    "work_order",
+    "bom",
+    "item_code",
+    "operation",
+    "workstation",
+    "planned_qty",
+    "completed_qty",
+    "status",
+    "planned_start_date",
+    "planned_end_date",
+    "actual_start_date",
+    "actual_end_date"
+  ],
+  "fields": [
+    {
+      "fieldname": "project",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Project",
+      "options": "Project",
+      "reqd": 1
+    },
+    {
+      "fieldname": "work_order",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Work Order",
+      "options": "Work Order"
+    },
+    {
+      "fieldname": "bom",
+      "fieldtype": "Link",
+      "label": "BOM",
+      "options": "BOM"
+    },
+    {
+      "fieldname": "item_code",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Item",
+      "options": "Item"
+    },
+    {
+      "fieldname": "operation",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Operation",
+      "options": "Operation"
+    },
+    {
+      "fieldname": "workstation",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Workstation",
+      "options": "Workstation"
+    },
+    {
+      "fieldname": "planned_qty",
+      "fieldtype": "Float",
+      "label": "Planned Qty"
+    },
+    {
+      "fieldname": "completed_qty",
+      "fieldtype": "Float",
+      "label": "Completed Qty"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Status",
+      "options": "Pending\nIn Progress\nCompleted\nBlocked\nRework\nHold"
+    },
+    {
+      "fieldname": "planned_start_date",
+      "fieldtype": "Datetime",
+      "label": "Planned Start Date"
+    },
+    {
+      "fieldname": "planned_end_date",
+      "fieldtype": "Datetime",
+      "label": "Planned End Date"
+    },
+    {
+      "fieldname": "actual_start_date",
+      "fieldtype": "Datetime",
+      "label": "Actual Start Date"
+    },
+    {
+      "fieldname": "actual_end_date",
+      "fieldtype": "Datetime",
+      "label": "Actual End Date"
+    }
+  ],
+  "links": [],
+  "modified": "2026-09-05 00:00:00.000000",
+  "module": "Sarathi Visibility",
+  "name": "Sarathi Production Tracker",
+  "naming_rule": "Expression",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}
+

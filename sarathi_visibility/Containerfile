@@ -1,0 +1,20 @@
+ARG ERPNEXT_VERSION=v16.33.0
+FROM frappe/erpnext:${ERPNEXT_VERSION}
+
+USER root
+# Preserve the browser origin: the site folder name can differ from the HTTP host.
+RUN sed -i '1i map $http_origin $sarathi_socket_origin { default $http_origin; "" $proxy_x_forwarded_proto://$http_host; }' /templates/nginx/frappe.conf.template \
+  && sed -i 's|proxy_set_header Origin .*;|proxy_set_header Origin $sarathi_socket_origin;|' /templates/nginx/frappe.conf.template
+COPY --chown=frappe:frappe sarathi_visibility /home/frappe/frappe-bench/apps/sarathi_visibility
+RUN /home/frappe/frappe-bench/env/bin/python /home/frappe/frappe-bench/apps/sarathi_visibility/patch_socket_backend.py
+
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+
+RUN ls -1 apps > sites/apps.txt \
+  && /home/frappe/frappe-bench/env/bin/pip install --no-deps -e apps/sarathi_visibility \
+  && mkdir -p assets/sarathi_visibility \
+  && cp -R apps/sarathi_visibility/sarathi_visibility/public/. assets/sarathi_visibility/
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["start.sh"]

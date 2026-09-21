@@ -1,0 +1,20 @@
+[project]
+name = "sarathi_visibility"
+authors = [
+  { name = "Sarathi AI Labs" }
+]
+description = "ERPNext-backed manufacturing control tower for Sarathi projects"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+  "frappe"
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "sarathi_visibility"
+
