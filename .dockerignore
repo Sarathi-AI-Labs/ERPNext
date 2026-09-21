@@ -1,4 +1,14 @@
 README.md
 LICENSE
 .gitignore
+.git
 compose*.yaml
+pwd.yml
+*.png
+*.jpg
+*.jpeg
+docs/
+devcontainer-example/
+development/
+tests/
+

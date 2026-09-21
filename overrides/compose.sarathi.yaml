@@ -1,0 +1,4 @@
+services:
+  websocket:
+    environment:
+      SARATHI_SOCKET_BACKEND_URL: http://backend:8000
