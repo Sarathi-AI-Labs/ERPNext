@@ -3,11 +3,22 @@ frappe.SarathiIndustrialDashboard = class {
     this.page = frappe.ui.make_app_page({parent: wrapper, title: "Sarathi Industrial Dashboard", single_column: true});
     this.root = $(frappe.render_template("sarathicontroltower", {})).appendTo(this.page.main)[0];
     this.filters = {}; this.sequence = 0; this.detailSequence = 0; this.tab = "overview";
+    this.view = "";
+    this.subFilters = {cost_granularity: "monthly", company: "", supplier: "", project: "", status: "", from_date: "", to_date: ""};
+    this.subData = null;
+    this.subSearch = "";
+    this.subOrdersPage = 0;
+    this.subMaterialsPage = 0;
+    this.subSelectedStage = "";
+    this.subSelectedStatus = "";
     this.search = ""; this.customerPage = this.projectPage = 0;
     this.tabs = {overview: "Overview", sales: "Sales", production: "Production", engineering: "Engineering & BOM", materials: "Materials & Stock", procurement: "Procurement", quality: "Quality & Rework", fulfillment: "Delivery & Billing", reports: "Reports", integrations: "Integrations"};
     this.tabReports = {sales: ["orders", "order_items"], procurement: ["requests", "purchases", "receipts", "purchase_invoices", "procurement_exceptions"], quality: ["quality", "job_cards", "job_logs", "job_suboperations"], fulfillment: ["deliveries", "sales_invoices"], production: ["part_production", "live_activity", "production_summary", "operation_balance", "work_orders", "job_cards", "workstations", "tasks"], engineering: ["tracking_setup", "boms", "components", "operations"], materials: ["material_history", "stock_details", "stock_ledger", "reservations", "wip_stock", "materials", "stock", "finished"], integrations: ["integrations"]};
     this.root.addEventListener("click", e => this.click(e));
-    this.root.addEventListener("change", e => { if (e.target.dataset.filter) this.filterChanged(e.target); });
+    this.root.addEventListener("change", e => {
+      if (e.target.dataset.filter) this.filterChanged(e.target);
+      if (e.target.dataset.subFilter) this.subFilterChanged(e.target);
+    });
     this.el("[data-search]").addEventListener("input", e => { this.search = e.target.value.toLowerCase(); this.customerPage = this.projectPage = 0; this.renderCards(); });
     window.addEventListener("popstate", () => { if (this.visible) { this.readUrl(); this.load(); } });
     document.addEventListener("visibilitychange", () => { if (!document.hidden && this.visible) this.load(true); });
@@ -29,11 +40,13 @@ frappe.SarathiIndustrialDashboard = class {
     const q = new URLSearchParams(location.search);
     for (const k of ["company", "customer", "project", "from_date", "to_date", "status"]) this.filters[k] = q.get(k) || "";
     this.tab = this.tabs[q.get("tab")] ? q.get("tab") : "overview";
+    this.view = q.get("view") || "";
   }
   writeUrl(replace = false) {
     const url = new URL(location.href); url.search = "";
     for (const [k, v] of Object.entries(this.filters)) if (v) url.searchParams.set(k, v);
     if (this.tab !== "overview") url.searchParams.set("tab", this.tab);
+    if (this.view) url.searchParams.set("view", this.view);
     history[replace ? "replaceState" : "pushState"]({}, "", url);
   }
   show() { if (this.visible) return; this.visible = true; this.readUrl(); this.load(); this.timer = setInterval(() => { if (!document.hidden) this.load(true); }, 30000); }
@@ -63,6 +76,14 @@ frappe.SarathiIndustrialDashboard = class {
   }
   render(silent) {
     const d = this.data;
+    this.renderSubcontractingCard();
+    if (this.view === "subcontracting") {
+      this.showSubcontractingView();
+      if (silent) this.loadSubcontractingData(true);
+      return;
+    } else {
+      this.hideSubcontractingView();
+    }
     this.el('[data-filter="company"]').innerHTML = `<option value="">All organizations</option>` + d.companies.map(c => `<option value="${this.esc(c.name)}">${this.esc(c.company_name || c.name)}</option>`).join("");
     for (const n of this.root.querySelectorAll("[data-filter]")) n.value = this.filters[n.dataset.filter];
     const customer = d.customers.find(c => c.name === this.filters.customer);
@@ -191,6 +212,20 @@ frappe.SarathiIndustrialDashboard = class {
   click(event) {
     const b = event.target.closest("button"); if (!b || b.disabled) return; const d = b.dataset;
     if (d.inspect) this.inspect(d.doctype, d.inspect);
+    else if (d.action === "open-subcontracting") this.openSubcontractingView();
+    else if (d.action === "close-subcontracting") this.closeSubcontractingView();
+    else if (d.action === "refresh-subcontracting") this.loadSubcontractingData();
+    else if (d.action === "apply-sub-filters") this.applySubFilters();
+    else if (d.action === "reset-sub-filters") this.resetSubFilters();
+    else if (d.quickDate) this.setQuickDate(d.quickDate);
+    else if (d.costGranularity) this.setCostGranularity(d.costGranularity);
+    else if (d.pipeStage) this.setPipeStage(d.pipeStage);
+    else if (d.subStatusFilter) this.setSubStatusFilter(d.subStatusFilter);
+    else if (d.subSupplierFilter) this.setSubSupplierFilter(d.subSupplierFilter);
+    else if (d.subProjectFilter) this.setSubProjectFilter(d.subProjectFilter);
+    else if (d.subOrdersPage !== undefined) { this.subOrdersPage = Number(d.subOrdersPage); this.renderSubOrdersTable(); }
+    else if (d.subMaterialsPage !== undefined) { this.subMaterialsPage = Number(d.subMaterialsPage); this.renderSubMaterialsTable(); }
+    else if (d.action === "clear-stage-filter") { this.subSelectedStage = ""; this.renderSubcontractingDetailView(); }
     else if (d.customer) this.navigate({customer: d.customer, project: ""});
     else if (d.project) this.navigate({project: d.project});
     else if (d.nav) this.navigate(d.nav === "organization" ? {customer: "", project: ""} : {project: ""});
@@ -245,4 +280,813 @@ frappe.SarathiIndustrialDashboard = class {
       frappe.set_route("Form", doctype, doc.name);
     });
   }
+
+  formatCompact(v, prefix = "₹") {
+    const n = Number(v || 0);
+    const sign = n < 0 ? "-" : "";
+    const abs = Math.abs(n);
+    if (abs >= 10000000) return `${sign}${prefix}${(abs / 10000000).toFixed(2)} Cr`;
+    if (abs >= 100000) return `${sign}${prefix}${(abs / 100000).toFixed(2)} L`;
+    if (abs >= 1000) return `${sign}${prefix}${(abs / 1000).toFixed(1)} k`;
+    return `${sign}${prefix}${abs.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
+  }
+
+  renderSubcontractingCard() {
+    const container = this.el("[data-subcontracting-cards]");
+    if (!container) return;
+    const s = this.data?.subcontracting_summary || {active_subcontracts: 0, material_with_suppliers: 0, pending_subcontracts: 0, currency: "INR"};
+    const sym = s.currency === "INR" ? "₹" : (s.currency ? s.currency + " " : "₹");
+    container.innerHTML = `
+      <button class="sd-card sd-subcontracting-main-card" data-action="open-subcontracting" title="Click to open Subcontracting Control Tower">
+        <span class="sd-card-icon">🔧</span>
+        <h3>Subcontracting</h3>
+        <div>
+          <span class="sd-pill sd-status-blue">${s.active_subcontracts} Active</span>
+          <span class="sd-pill sd-status-amber">${s.pending_subcontracts} Pending</span>
+        </div>
+        <p><b>${s.active_subcontracts}</b> Active Subcontracts · <b>${s.pending_subcontracts}</b> Pending Delivery</p>
+        <p class="sd-sub-card-mat">Material with Suppliers: <b>${this.formatCompact(s.material_with_suppliers, sym)}</b></p>
+        <small>Open Subcontracting Control Tower →</small>
+      </button>
+    `;
+  }
+
+  showSubcontractingView() {
+    const hideSelectors = [
+      ".sd-hero", ".sd-controls", ".sd-breadcrumb", ".sd-scope-note",
+      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]",
+      "[data-customer-panel]", "[data-project-panel]", "[data-project-summary]",
+      ".sd-tabs", "[data-content]"
+    ];
+    hideSelectors.forEach(sel => { const n = this.el(sel); if (n) n.hidden = true; });
+    const viewEl = this.el("[data-subcontracting-view]");
+    if (viewEl) viewEl.hidden = false;
+    if (this.filters.company && !this.subFilters.company) this.subFilters.company = this.filters.company;
+    if (this.filters.project && !this.subFilters.project) this.subFilters.project = this.filters.project;
+    this.loadSubcontractingData();
+  }
+
+  hideSubcontractingView() {
+    const viewEl = this.el("[data-subcontracting-view]");
+    if (viewEl) viewEl.hidden = true;
+    const showSelectors = [
+      ".sd-hero", ".sd-controls", ".sd-breadcrumb", ".sd-scope-note",
+      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]",
+      ".sd-tabs", "[data-content]"
+    ];
+    showSelectors.forEach(sel => { const n = this.el(sel); if (n) n.hidden = false; });
+    if (this.el("[data-customer-panel]")) this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
+    if (this.el("[data-project-panel]")) this.el("[data-project-panel]").hidden = !!this.filters.project;
+    if (this.el("[data-project-summary]")) this.el("[data-project-summary]").hidden = !this.filters.project;
+  }
+
+  openSubcontractingView() {
+    this.view = "subcontracting";
+    this.writeUrl();
+    this.showSubcontractingView();
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  closeSubcontractingView() {
+    this.view = "";
+    this.writeUrl();
+    this.hideSubcontractingView();
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  subFilterChanged(target) {
+    this.subFilters[target.dataset.subFilter] = target.value;
+  }
+
+  applySubFilters() {
+    for (const sel of ["company", "supplier", "project", "status", "from_date", "to_date"]) {
+      const inp = this.el(`[data-sub-filter="${sel}"]`);
+      if (inp) this.subFilters[sel] = inp.value;
+    }
+    this.subOrdersPage = 0;
+    this.subMaterialsPage = 0;
+    this.loadSubcontractingData();
+  }
+
+  resetSubFilters() {
+    this.subFilters = {cost_granularity: "monthly", company: "", supplier: "", project: "", status: "", from_date: "", to_date: ""};
+    this.subSearch = "";
+    this.subSelectedStage = "";
+    this.subSelectedStatus = "";
+    this.subOrdersPage = 0;
+    this.subMaterialsPage = 0;
+    this.loadSubcontractingData();
+  }
+
+  setQuickDate(period) {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    const format = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const todayStr = format(now);
+    let from = "", to = todayStr;
+    if (period === "today") {
+      from = todayStr;
+    } else if (period === "this_week") {
+      const day = now.getDay() || 7;
+      const mon = new Date(now); mon.setDate(now.getDate() - day + 1);
+      from = format(mon);
+    } else if (period === "this_month") {
+      from = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+    } else if (period === "this_quarter") {
+      const qMonth = Math.floor(now.getMonth() / 3) * 3 + 1;
+      from = `${now.getFullYear()}-${pad(qMonth)}-01`;
+    } else if (period === "this_year") {
+      from = `${now.getFullYear()}-01-01`;
+    } else if (period === "all") {
+      from = ""; to = "";
+    }
+    this.subFilters.from_date = from;
+    this.subFilters.to_date = to;
+    this.loadSubcontractingData();
+  }
+
+  setCostGranularity(granularity) {
+    this.subFilters.cost_granularity = granularity;
+    this.loadSubcontractingData();
+  }
+
+  setPipeStage(stage) {
+    this.subSelectedStage = (this.subSelectedStage === stage ? "" : stage);
+    this.subOrdersPage = 0;
+    this.renderSubcontractingDetailView();
+  }
+
+  setSubStatusFilter(status) {
+    this.subSelectedStatus = (this.subSelectedStatus === status ? "" : status);
+    this.subOrdersPage = 0;
+    this.renderSubcontractingDetailView();
+  }
+
+  setSubSupplierFilter(supplier) {
+    this.subFilters.supplier = supplier;
+    this.subOrdersPage = 0;
+    this.loadSubcontractingData();
+  }
+
+  setSubProjectFilter(project) {
+    this.subFilters.project = project;
+    this.subOrdersPage = 0;
+    this.loadSubcontractingData();
+  }
+
+  async loadSubcontractingData(silent = false) {
+    const viewEl = this.el("[data-subcontracting-view]");
+    if (!viewEl) return;
+    if (!silent && !this.subData) {
+      viewEl.innerHTML = `<div class="sd-sub-loading"><div class="sd-sub-spinner"></div><span>Loading Subcontracting Control Tower…</span></div>`;
+    }
+    try {
+      const res = await frappe.call({
+        method: "sarathi_visibility.api.subcontracting.get_subcontracting_dashboard",
+        args: {filters: JSON.stringify(this.subFilters)},
+        silent: true,
+      });
+      this.subData = res.message;
+      this.renderSubcontractingDetailView();
+    } catch (err) {
+      console.error("Subcontracting load error:", err);
+      viewEl.innerHTML = `
+        <div class="sd-sub-error">
+          <h3>Unable to load Subcontracting Control Tower</h3>
+          <p>Please ensure you have read permissions for Subcontracting Order and Stock Entry.</p>
+          <button class="sd-button" data-action="close-subcontracting">← Back to Dashboard</button>
+          <button class="sd-button sd-primary" data-action="refresh-subcontracting">↻ Try Again</button>
+        </div>
+      `;
+    }
+  }
+
+  renderSubcontractingDetailView() {
+    const viewEl = this.el("[data-subcontracting-view]");
+    if (!viewEl || !this.subData) return;
+    const d = this.subData;
+    const f = this.subFilters;
+    const sym = d.currency === "INR" ? "₹" : (d.currency ? d.currency + " " : "₹");
+    const k = d.kpis || {};
+
+    const companies = this.data?.companies || [];
+    const suppliers = d.suppliers || [];
+    const projects = d.projects || [];
+
+    const statusOptions = [
+      "", "Draft", "Open", "Material Transferred", "Partial Material Transferred",
+      "Partially Received", "Completed", "Closed", "Cancelled"
+    ];
+
+    viewEl.innerHTML = `
+      <header class="sd-sub-header">
+        <div class="sd-sub-header-left">
+          <button class="sd-button sd-sub-back-btn" data-action="close-subcontracting" title="Return to Main Dashboard">
+            ← Back to Dashboard
+          </button>
+          <div class="sd-sub-title-group">
+            <div class="sd-eyebrow">SARATHI INDUSTRIAL CONTROL TOWER · OPERATIONS</div>
+            <h1>🔧 Subcontracting Control Tower</h1>
+            <p>Outsourced manufacturing tracking, supplier materials, PO links, quality inspections and reconciliation</p>
+          </div>
+        </div>
+        <div class="sd-sub-header-right">
+          <span class="sd-sub-live-indicator"><span class="sd-sub-live-dot"></span> Live ERPNext Data</span>
+          <button class="sd-button sd-sub-refresh-btn" data-action="refresh-subcontracting" title="Refresh Live Data">
+            🔄 Refresh
+          </button>
+        </div>
+      </header>
+
+      <section class="sd-controls sd-sub-controls" aria-label="Subcontracting filters">
+        <label>Organization
+          <select data-sub-filter="company" aria-label="Organization">
+            <option value="">All organizations</option>
+            ${companies.map(c => `<option value="${this.esc(c.name)}" ${f.company === c.name ? "selected" : ""}>${this.esc(c.company_name || c.name)}</option>`).join("")}
+          </select>
+        </label>
+        <label>Supplier
+          <select data-sub-filter="supplier" aria-label="Supplier">
+            <option value="">All Suppliers</option>
+            ${suppliers.map(s => `<option value="${this.esc(s.name)}" ${f.supplier === s.name ? "selected" : ""}>${this.esc(s.supplier_name || s.name)}</option>`).join("")}
+          </select>
+        </label>
+        <label>Project
+          <select data-sub-filter="project" aria-label="Project">
+            <option value="">All Projects</option>
+            ${projects.map(p => `<option value="${this.esc(p.name)}" ${f.project === p.name ? "selected" : ""}>${this.esc(p.project_name || p.name)}</option>`).join("")}
+          </select>
+        </label>
+        <label>Status
+          <select data-sub-filter="status" aria-label="Status">
+            ${statusOptions.map(st => `<option value="${this.esc(st)}" ${f.status === st ? "selected" : ""}>${st || "All Statuses"}</option>`).join("")}
+          </select>
+        </label>
+        <label>From date
+          <input type="date" data-sub-filter="from_date" value="${this.esc(f.from_date)}" aria-label="From date">
+        </label>
+        <label>To date
+          <input type="date" data-sub-filter="to_date" value="${this.esc(f.to_date)}" aria-label="To date">
+        </label>
+        <label class="sd-search">Search
+          <input type="search" data-sub-search value="${this.esc(this.subSearch)}" placeholder="Search orders, suppliers, items…" aria-label="Search subcontracting">
+        </label>
+        <button class="sd-button sd-primary" data-action="apply-sub-filters">Apply Filters</button>
+        <button class="sd-button" data-action="reset-sub-filters">Reset</button>
+      </section>
+
+      <div class="sd-sub-quick-filters">
+        <span class="sd-sub-quick-label">Quick Filters:</span>
+        <button class="sd-button sd-sub-quick-pill" data-quick-date="today">Today</button>
+        <button class="sd-button sd-sub-quick-pill" data-quick-date="this_week">This Week</button>
+        <button class="sd-button sd-sub-quick-pill" data-quick-date="this_month">This Month</button>
+        <button class="sd-button sd-sub-quick-pill" data-quick-date="this_quarter">This Quarter</button>
+        <button class="sd-button sd-sub-quick-pill" data-quick-date="this_year">This Year</button>
+        <button class="sd-button sd-sub-quick-pill" data-quick-date="all">All</button>
+      </div>
+
+      <section class="sd-kpis sd-sub-kpis" aria-label="Subcontracting KPIs">
+        <div class="sd-kpi sd-tone-0">
+          <span>Total Subcontract Orders</span>
+          <strong>${this.num(k.total_subcontract_orders || 0)}</strong>
+          <small>All registered orders</small>
+        </div>
+        <div class="sd-kpi sd-tone-1">
+          <span>Active / In-Progress Orders</span>
+          <strong>${this.num(k.active_orders || 0)}</strong>
+          <small>Currently in processing</small>
+        </div>
+        <div class="sd-kpi sd-tone-2">
+          <span>Material Value at Subcontractors</span>
+          <strong>${this.formatCompact(k.material_value_at_subcontractors, sym)}</strong>
+          <small>Raw material in supplier field</small>
+        </div>
+        <div class="sd-kpi sd-tone-3">
+          <span>Pending Scrap / Reconciliation</span>
+          <strong>${this.num(k.pending_scrap_reconciliation || 0)}</strong>
+          <small>Items pending return or write-off</small>
+        </div>
+        <div class="sd-kpi sd-tone-4">
+          <span>Orders Pending Delivery</span>
+          <strong>${this.num(k.orders_pending_delivery || 0)}</strong>
+          <small>Awaiting finished goods receipt</small>
+        </div>
+        <div class="sd-kpi sd-tone-5">
+          <span>On-Time Delivery Rate</span>
+          <strong>${this.esc(k.on_time_delivery_rate || "100%")}</strong>
+          <small>Receipts before required date</small>
+        </div>
+        <div class="sd-kpi sd-tone-1">
+          <span>Total Subcontracting Spend</span>
+          <strong>${this.formatCompact(k.total_subcontracting_spend, sym)}</strong>
+          <small>Service + consumed material</small>
+        </div>
+        <div class="sd-kpi sd-tone-0">
+          <span>Rejected / Rework Quantity</span>
+          <strong>${this.num(k.rejected_rework_quantity || 0)}</strong>
+          <small>Units failed inspection</small>
+        </div>
+      </section>
+
+      <section class="sd-panel sd-sub-pipeline-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Subcontracting Pipeline & Lifecycle</h2>
+            <p>Interactive tracking across all 7 manufacturing stages · Click stage to filter orders</p>
+          </div>
+          ${this.subSelectedStage ? `<button class="sd-text-button" data-action="clear-stage-filter">Clear Stage Filter (${this.esc(this.subSelectedStage)})</button>` : ''}
+        </div>
+        <div class="sd-sub-pipeline-flow">
+          ${(d.pipeline || []).map((p, idx) => `
+            <button class="sd-sub-pipe-node ${this.subSelectedStage === p.key ? 'active' : ''}" data-pipe-stage="${this.esc(p.key)}" title="${this.esc(p.description)}">
+              <div class="sd-sub-pipe-head">
+                <span class="sd-sub-pipe-num">${idx + 1}</span>
+                <span class="sd-sub-pipe-label">${this.esc(p.label)}</span>
+              </div>
+              <strong class="sd-sub-pipe-count">${this.num(p.count)}</strong>
+              <small class="sd-sub-pipe-desc">${this.esc(p.description)}</small>
+            </button>
+            ${idx < (d.pipeline || []).length - 1 ? '<div class="sd-sub-pipe-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></div>' : ''}
+          `).join("")}
+        </div>
+      </section>
+
+      <div class="sd-sub-grid-2">
+        <article class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Subcontracting Status Breakdown</h2>
+              <p>Distribution of orders across operational lifecycle statuses</p>
+            </div>
+            ${this.subSelectedStatus ? `<button class="sd-text-button" data-action="clear-status-filter">Clear Status Filter (${this.esc(this.subSelectedStatus)})</button>` : ''}
+          </div>
+          ${this.renderSubDonutChart(d.status_distribution || {labels: [], values: []})}
+        </article>
+
+        <article class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Subcontracting Cost Trends</h2>
+              <p>Service cost and raw material expenditure over time</p>
+            </div>
+            <div class="sd-sub-granularity-toggle">
+              <button class="sd-button ${f.cost_granularity === 'daily' ? 'active' : ''}" data-cost-granularity="daily">Daily</button>
+              <button class="sd-button ${(!f.cost_granularity || f.cost_granularity === 'monthly') ? 'active' : ''}" data-cost-granularity="monthly">Monthly</button>
+              <button class="sd-button ${f.cost_granularity === 'yearly' ? 'active' : ''}" data-cost-granularity="yearly">Yearly</button>
+            </div>
+          </div>
+          ${this.renderSubCostChart(d.cost_trends || {labels: [], total: [], service: [], material: []}, sym)}
+        </article>
+      </div>
+
+      <div class="sd-sub-grid-2">
+        <article class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Supplier Subcontracting Analysis</h2>
+              <p>Active workload, financial spend and overdue volume by supplier</p>
+            </div>
+          </div>
+          <div class="sd-table-wrap">
+            <table class="sd-table">
+              <thead>
+                <tr>
+                  <th>Supplier</th>
+                  <th>Orders</th>
+                  <th>Completed</th>
+                  <th>Overdue</th>
+                  <th>Material Val</th>
+                  <th>Service Cost</th>
+                  <th>Total Spend</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(d.supplier_analysis || []).map(sa => `
+                  <tr class="sd-sub-clickable-row" data-sub-supplier-filter="${this.esc(sa.supplier)}" title="Click to filter by ${this.esc(sa.supplier)}">
+                    <td><strong>${this.esc(sa.supplier)}</strong></td>
+                    <td>${sa.orders}</td>
+                    <td><span class="sd-pill sd-status-green">${sa.completed}</span></td>
+                    <td>${sa.overdue ? `<span class="sd-pill sd-status-red">${sa.overdue}</span>` : '0'}</td>
+                    <td>${this.formatCompact(sa.material_value, sym)}</td>
+                    <td>${this.formatCompact(sa.service_cost, sym)}</td>
+                    <td><strong>${this.formatCompact(sa.total_cost, sym)}</strong></td>
+                  </tr>
+                `).join("") || '<tr><td colspan="7" class="sd-empty">No supplier subcontracting records in this selection.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Project Subcontracting Analysis</h2>
+              <p>Outsourced production tracking tied to manufacturing projects</p>
+            </div>
+          </div>
+          <div class="sd-table-wrap">
+            <table class="sd-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Suppliers</th>
+                  <th>Orders</th>
+                  <th>Received Qty</th>
+                  <th>Pending Qty</th>
+                  <th>Total Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(d.project_analysis || []).map(pa => `
+                  <tr class="sd-sub-clickable-row" data-sub-project-filter="${this.esc(pa.project)}" title="Click to filter by ${this.esc(pa.project)}">
+                    <td><strong>${this.esc(pa.project)}</strong></td>
+                    <td><small>${this.esc(pa.supplier)}</small></td>
+                    <td>${pa.orders}</td>
+                    <td>${this.num(pa.received)}</td>
+                    <td>${this.num(pa.pending)}</td>
+                    <td><strong>${this.formatCompact(pa.total_cost, sym)}</strong></td>
+                  </tr>
+                `).join("") || '<tr><td colspan="6" class="sd-empty">No project subcontracting records in this selection.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <section class="sd-panel" data-sub-materials-panel>
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Material With Subcontractors</h2>
+            <p>Raw materials dispatched to supplier reserve warehouses awaiting consumption or return</p>
+          </div>
+        </div>
+        <div data-sub-materials-table-area></div>
+      </section>
+
+      <section class="sd-panel" data-sub-orders-panel>
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Subcontracting Orders</h2>
+            <p>Live registry of Subcontracting Orders with Purchase Order links, fulfillment and actions</p>
+          </div>
+        </div>
+        <div data-sub-orders-table-area></div>
+      </section>
+
+      <div class="sd-sub-grid-2">
+        <article class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Overdue / Attention Required</h2>
+              <p>Operational bottlenecks, delivery delays and pending dispatches</p>
+            </div>
+          </div>
+          <div class="sd-table-wrap">
+            <table class="sd-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Supplier</th>
+                  <th>Issue / Bottleneck</th>
+                  <th>Delay</th>
+                  <th>Severity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(d.attention_required || []).map(att => {
+                  const isCrit = att.days_pending > 7 || att.issue.includes("Overdue");
+                  return `
+                    <tr>
+                      <td>${this.link("Subcontracting Order", att.subcontracting_order)}</td>
+                      <td>${this.esc(att.supplier)}</td>
+                      <td>${this.esc(att.issue)}</td>
+                      <td>${att.days_pending ? `<b>${att.days_pending} d</b>` : '—'}</td>
+                      <td><span class="sd-pill sd-status-${isCrit ? 'red' : 'amber'}">${isCrit ? 'Critical' : 'Attention'}</span></td>
+                      <td><button class="sd-inspect" data-inspect="${this.esc(att.subcontracting_order)}" data-doctype="Subcontracting Order">Inspect</button></td>
+                    </tr>
+                  `;
+                }).join("") || '<tr><td colspan="6" class="sd-empty">No overdue orders or critical bottlenecks found.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Supplier Performance</h2>
+              <p>Vendor fulfillment velocity, average lead times and quality rating</p>
+            </div>
+          </div>
+          <div class="sd-table-wrap">
+            <table class="sd-table">
+              <thead>
+                <tr>
+                  <th>Supplier</th>
+                  <th>Orders</th>
+                  <th>Completed</th>
+                  <th>Overdue</th>
+                  <th>Avg Lead Time</th>
+                  <th>Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(d.supplier_performance || []).map(sp => {
+                  const rating = sp.overdue === 0 && sp.completed > 0 ? "Excellent" : (sp.overdue > 2 ? "Needs Attention" : "Good");
+                  const rCol = rating === "Excellent" ? "green" : (rating === "Good" ? "blue" : "red");
+                  return `
+                    <tr>
+                      <td><strong>${this.esc(sp.supplier)}</strong></td>
+                      <td>${sp.total_orders}</td>
+                      <td><span class="sd-pill sd-status-green">${sp.completed}</span></td>
+                      <td>${sp.overdue ? `<span class="sd-pill sd-status-red">${sp.overdue}</span>` : '0'}</td>
+                      <td>${this.esc(sp.average_processing_time)}</td>
+                      <td><span class="sd-pill sd-status-${rCol}">${rating}</span></td>
+                    </tr>
+                  `;
+                }).join("") || '<tr><td colspan="6" class="sd-empty">No supplier performance history in this selection.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <section class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Live Subcontracting Activity</h2>
+            <p>Real-time audit log of subcontracting transactions, dispatches and receipts</p>
+          </div>
+          <button class="sd-button" data-action="refresh-subcontracting">🔄 Refresh Feed</button>
+        </div>
+        <div class="sd-sub-activity-feed">
+          ${(d.live_activity || []).map(act => {
+            const icon = act.doctype === "Subcontracting Receipt" ? "📦" : (act.doctype === "Stock Entry" ? "🚚" : "📄");
+            return `
+              <div class="sd-sub-activity-item">
+                <span class="sd-sub-activity-icon">${icon}</span>
+                <div class="sd-sub-activity-body">
+                  <div class="sd-sub-activity-title">
+                    <strong>${this.esc(act.activity)}</strong> · ${this.link(act.doctype, act.name)}
+                  </div>
+                  <div class="sd-sub-activity-meta">
+                    <span>Supplier: <b>${this.esc(act.supplier)}</b></span>
+                    ${act.project !== "—" ? `<span>· Project: <b>${this.esc(act.project)}</b></span>` : ''}
+                  </div>
+                </div>
+                <time class="sd-sub-activity-time">${frappe.datetime.str_to_user(act.timestamp)}</time>
+              </div>
+            `;
+          }).join("") || this.empty("No recent subcontracting activity recorded.")}
+        </div>
+      </section>
+    `;
+
+    // Render nested tables
+    this.renderSubMaterialsTable();
+    this.renderSubOrdersTable();
+
+    // Attach search input listener
+    const sInput = viewEl.querySelector("[data-sub-search]");
+    if (sInput) {
+      sInput.addEventListener("input", e => {
+        this.subSearch = e.target.value.toLowerCase();
+        this.subOrdersPage = 0;
+        this.subMaterialsPage = 0;
+        this.renderSubMaterialsTable();
+        this.renderSubOrdersTable();
+      });
+    }
+  }
+
+  renderSubDonutChart(dist) {
+    const labels = dist.labels || [];
+    const values = dist.values || [];
+    const total = values.reduce((a, b) => a + b, 0);
+    if (!labels.length || total === 0) {
+      return this.empty("No subcontracting orders for this chart.");
+    }
+    const statusPalette = {
+      blue: "#2563eb", green: "#059669", violet: "#8b5cf6",
+      orange: "#ea7041", amber: "#e39a14", red: "#dc4263"
+    };
+    const colors = labels.map(l => statusPalette[this.statusColor(l)] || "#64748b");
+    let offset = 0;
+    const gradient = values.map((v, i) => {
+      const start = offset;
+      offset += (v / total) * 100;
+      return `${colors[i]} ${start}% ${offset}%`;
+    }).join(",");
+
+    return `
+      <div class="sd-donut-wrap">
+        <div class="sd-donut" style="background:conic-gradient(${gradient})" role="img" aria-label="${this.esc(labels.map((l, i) => `${l}: ${values[i]}`).join(', '))}">
+          <span>${total}<small>Total Orders</small></span>
+        </div>
+        <div class="sd-chart-legend">
+          ${labels.map((l, i) => `
+            <button class="sd-sub-legend-pill ${this.subSelectedStatus === l ? 'active' : ''}" data-sub-status-filter="${this.esc(l)}">
+              <i style="background:${colors[i]}"></i>${this.esc(l)} <b>${values[i]}</b> (${Math.round((values[i]/total)*100)}%)
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  renderSubCostChart(costTrends, sym) {
+    const labels = costTrends.labels || [];
+    const totals = costTrends.total || [];
+    const services = costTrends.service || [];
+    if (!labels.length) {
+      return this.empty("No cost history available for this time window.");
+    }
+    const max = Math.max(100, ...totals);
+    const n = labels.length;
+    const getX = i => n > 1 ? 40 + (i * 420 / (n - 1)) : 250;
+    const getY = v => 150 - (Math.max(0, v) / max * 110);
+
+    const totalPoints = totals.map((v, i) => `${getX(i)},${getY(v)}`).join(" ");
+    const servicePoints = services.map((v, i) => `${getX(i)},${getY(v)}`).join(" ");
+
+    return `
+      <svg class="sd-line-chart" viewBox="0 0 500 185" role="img" aria-label="Subcontracting Cost Trends">
+        <line x1="40" y1="40" x2="480" y2="40" stroke="#f1f5f9" stroke-dasharray="4"/>
+        <line x1="40" y1="95" x2="480" y2="95" stroke="#f1f5f9" stroke-dasharray="4"/>
+        <line x1="40" y1="150" x2="480" y2="150" stroke="#cbd5e1"/>
+        
+        <polyline points="${totalPoints}" fill="none" stroke="#2563eb" stroke-width="3"/>
+        <polyline points="${servicePoints}" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="3"/>
+
+        ${totals.map((v, i) => `
+          <circle cx="${getX(i)}" cy="${getY(v)}" r="4" fill="#2563eb">
+            <title>${this.esc(labels[i])} Total Spend: ${this.formatCompact(v, sym)}</title>
+          </circle>
+        `).join("")}
+
+        <text x="40" y="175" font-size="11" fill="#64748b">${this.esc(labels[0])}</text>
+        ${n > 2 ? `<text x="${getX(Math.floor(n/2)) - 20}" y="175" font-size="11" fill="#64748b">${this.esc(labels[Math.floor(n/2)])}</text>` : ''}
+        <text x="420" y="175" font-size="11" fill="#64748b">${this.esc(labels[n - 1])}</text>
+      </svg>
+      <div class="sd-chart-legend">
+        <span><i style="background:#2563eb"></i>Total Spend</span>
+        <span><i style="background:#059669"></i>Service Cost</span>
+      </div>
+    `;
+  }
+
+  renderSubMaterialsTable() {
+    const area = this.el("[data-sub-materials-table-area]");
+    if (!area || !this.subData) return;
+    const sym = this.subData.currency === "INR" ? "₹" : (this.subData.currency ? this.subData.currency + " " : "₹");
+    let rows = this.subData.materials_with_subcontractors || [];
+
+    if (this.subSearch) {
+      rows = rows.filter(r => 
+        Object.values(r).some(v => String(v).toLowerCase().includes(this.subSearch))
+      );
+    }
+
+    const pageSize = 10;
+    const total = rows.length;
+    const page = Math.min(this.subMaterialsPage, Math.max(0, Math.ceil(total / pageSize) - 1));
+    const pageRows = rows.slice(page * pageSize, (page + 1) * pageSize);
+
+    area.innerHTML = `
+      <div class="sd-table-wrap">
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Raw Material Item</th>
+              <th>Reserve Warehouse</th>
+              <th>Sent Qty</th>
+              <th>Consumed Qty</th>
+              <th>Remaining Qty</th>
+              <th>Unit Rate</th>
+              <th>Material Value</th>
+              <th>Subcontracting Order</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageRows.map(m => `
+              <tr>
+                <td><strong>${this.esc(m.supplier)}</strong></td>
+                <td>${this.link("Item", m.item_code, m.item)}</td>
+                <td><small>${this.esc(m.warehouse)}</small></td>
+                <td>${this.num(m.sent_quantity)} ${this.esc(m.uom)}</td>
+                <td>${this.num(m.consumed_quantity)} ${this.esc(m.uom)}</td>
+                <td><strong>${this.num(m.remaining_quantity)} ${this.esc(m.uom)}</strong></td>
+                <td>${this.formatCompact(m.rate, sym)}</td>
+                <td><strong>${this.formatCompact(m.material_value, sym)}</strong></td>
+                <td>${this.link("Subcontracting Order", m.subcontracting_order)}</td>
+                <td><span class="sd-pill sd-status-${m.remaining_quantity > 0 ? 'blue' : 'green'}">${this.esc(m.status)}</span></td>
+              </tr>
+            `).join("") || '<tr><td colspan="10" class="sd-empty">No materials currently stationed with subcontractors.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+      ${total > pageSize ? `
+        <div class="sd-pagination">
+          <button class="sd-button" data-sub-materials-page="${page - 1}" ${!page ? "disabled" : ""}>Previous</button>
+          <span>${page * pageSize + 1}–${Math.min(total, (page + 1) * pageSize)} of ${total}</span>
+          <button class="sd-button" data-sub-materials-page="${page + 1}" ${(page + 1) * pageSize >= total ? "disabled" : ""}>Next</button>
+        </div>
+      ` : ''}
+    `;
+  }
+
+  renderSubOrdersTable() {
+    const area = this.el("[data-sub-orders-table-area]");
+    if (!area || !this.subData) return;
+    const sym = this.subData.currency === "INR" ? "₹" : (this.subData.currency ? this.subData.currency + " " : "₹");
+    let rows = this.subData.orders || [];
+
+    if (this.subSearch) {
+      rows = rows.filter(r => 
+        Object.values(r).some(v => String(v).toLowerCase().includes(this.subSearch))
+      );
+    }
+    if (this.subSelectedStatus) {
+      rows = rows.filter(r => r.status === this.subSelectedStatus);
+    }
+    if (this.subSelectedStage) {
+      const stg = this.subSelectedStage;
+      if (stg === "po") rows = rows.filter(r => r.purchase_order && r.purchase_order !== "—");
+      else if (stg === "stock_transfer") rows = rows.filter(r => (r.material_sent || "").includes("Sent") || (r.material_sent || "").includes("Transferred"));
+      else if (stg === "in_production") rows = rows.filter(r => ["Material Transferred", "Partial Material Transferred", "Partially Received"].includes(r.status));
+      else if (stg === "receipt") rows = rows.filter(r => Number(r.received_qty || 0) > 0);
+      else if (stg === "billing" || stg === "completed") rows = rows.filter(r => r.status === "Completed");
+    }
+
+    const pageSize = 10;
+    const total = rows.length;
+    const page = Math.min(this.subOrdersPage, Math.max(0, Math.ceil(total / pageSize) - 1));
+    const pageRows = rows.slice(page * pageSize, (page + 1) * pageSize);
+
+    area.innerHTML = `
+      <div class="sd-table-wrap">
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Purchase Order</th>
+              <th>Supplier</th>
+              <th>Project</th>
+              <th>Finished Goods Item</th>
+              <th>Ordered Qty</th>
+              <th>Fulfillment Progress</th>
+              <th>Material Dispatched</th>
+              <th>Service Cost</th>
+              <th>Expected Delivery</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageRows.map(o => {
+              const pct = o.ordered_qty ? Math.round((o.received_qty / o.ordered_qty) * 100) : 0;
+              const isOverdue = o.expected_date && o.expected_date < frappe.datetime.get_today() && !["Completed", "Cancelled", "Closed"].includes(o.status);
+              return `
+                <tr>
+                  <td><strong>${this.link("Subcontracting Order", o.subcontracting_order)}</strong></td>
+                  <td>${o.purchase_order !== "—" ? this.link("Purchase Order", o.purchase_order) : "—"}</td>
+                  <td>${this.esc(o.supplier)}</td>
+                  <td>${o.project !== "—" ? this.link("Project", o.project) : "—"}</td>
+                  <td>${this.esc(o.item)}</td>
+                  <td>${this.num(o.ordered_qty)}</td>
+                  <td>
+                    <div class="sd-progress-cell">
+                      <span>${this.num(o.received_qty)} / ${this.num(o.ordered_qty)} (${pct}%)</span>
+                      <div class="sd-progress"><i style="width:${Math.min(100, pct)}%"></i></div>
+                    </div>
+                  </td>
+                  <td><span class="sd-pill sd-status-blue">${this.esc(o.material_sent)}</span></td>
+                  <td>${this.formatCompact(o.service_cost, sym)}</td>
+                  <td class="${isOverdue ? 'sd-sub-overdue-date' : ''}">
+                    ${this.esc(o.expected_date || "—")}
+                    ${isOverdue ? ' <span class="sd-pill sd-status-red">Overdue</span>' : ''}
+                  </td>
+                  <td>${this.badge(o.status)}</td>
+                  <td>
+                    <button class="sd-inspect" data-inspect="${this.esc(o.subcontracting_order)}" data-doctype="Subcontracting Order">Inspect</button>
+                  </td>
+                </tr>
+              `;
+            }).join("") || '<tr><td colspan="12" class="sd-empty">No Subcontracting Orders match current filters.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+      ${total > pageSize ? `
+        <div class="sd-pagination">
+          <button class="sd-button" data-sub-orders-page="${page - 1}" ${!page ? "disabled" : ""}>Previous</button>
+          <span>${page * pageSize + 1}–${Math.min(total, (page + 1) * pageSize)} of ${total}</span>
+          <button class="sd-button" data-sub-orders-page="${page + 1}" ${(page + 1) * pageSize >= total ? "disabled" : ""}>Next</button>
+        </div>
+      ` : ''}
+    `;
+  }
 };
+
