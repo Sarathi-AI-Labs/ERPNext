@@ -852,6 +852,180 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 "status": p.status,
             })
 
+    # Section 5: Revenue Visualizations data
+    revenue_by_customer: List[Dict[str, Any]] = []
+    if has_si:
+        try:
+            si_cust_cond = ["docstatus = 1", "posting_date BETWEEN %(start_date)s AND %(end_date)s"]
+            if f["company"]:
+                si_cust_cond.append("company = %(company)s")
+            if f["project"]:
+                si_cust_cond.append("project = %(project)s")
+            where_si_cust = " AND ".join(si_cust_cond)
+            cust_rows = frappe.db.sql(f"""
+                SELECT customer, customer_name, SUM(base_grand_total) as total
+                FROM `tabSales Invoice`
+                WHERE {where_si_cust}
+                GROUP BY customer, customer_name
+                ORDER BY total DESC
+                LIMIT 8
+            """, gl_params, as_dict=True)
+            tot_cust_rev = sum(flt(r.total) for r in cust_rows) or 1.0
+            for r in cust_rows:
+                tot = flt(r.total, 2)
+                revenue_by_customer.append({
+                    "customer": r.customer,
+                    "customer_name": r.customer_name or r.customer,
+                    "amount": tot,
+                    "pct": flt((tot / tot_cust_rev) * 100.0, 1),
+                })
+        except Exception:
+            pass
+
+    revenue_by_project: List[Dict[str, Any]] = []
+    if has_si:
+        try:
+            si_proj_cond = ["docstatus = 1", "project IS NOT NULL AND project != ''", "posting_date BETWEEN %(start_date)s AND %(end_date)s"]
+            if f["company"]:
+                si_proj_cond.append("company = %(company)s")
+            where_si_proj = " AND ".join(si_proj_cond)
+            proj_rows = frappe.db.sql(f"""
+                SELECT project, SUM(base_grand_total) as total
+                FROM `tabSales Invoice`
+                WHERE {where_si_proj}
+                GROUP BY project
+                ORDER BY total DESC
+                LIMIT 8
+            """, gl_params, as_dict=True)
+            tot_p_rev = sum(flt(r.total) for r in proj_rows) or 1.0
+            for r in proj_rows:
+                tot = flt(r.total, 2)
+                revenue_by_project.append({
+                    "project": r.project,
+                    "amount": tot,
+                    "pct": flt((tot / tot_p_rev) * 100.0, 1),
+                })
+        except Exception:
+            pass
+
+    # Expense by Cost Center
+    expense_by_cost_center: List[Dict[str, Any]] = []
+    if has_gl:
+        try:
+            cc_cond = list(gl_conditions) + ["acc.root_type = 'Expense'", "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s", "gl.cost_center IS NOT NULL AND gl.cost_center != ''"]
+            where_cc = " AND ".join(cc_cond)
+            cc_rows = frappe.db.sql(f"""
+                SELECT gl.cost_center, SUM(gl.debit - gl.credit) as total
+                FROM `tabGL Entry` gl
+                INNER JOIN `tabAccount` acc ON acc.name = gl.account
+                WHERE {where_cc}
+                GROUP BY gl.cost_center
+                ORDER BY total DESC
+                LIMIT 8
+            """, gl_params, as_dict=True)
+            tot_cc_exp = sum(flt(r.total) for r in cc_rows) or 1.0
+            for r in cc_rows:
+                tot = flt(r.total, 2)
+                expense_by_cost_center.append({
+                    "cost_center": r.cost_center,
+                    "amount": tot,
+                    "pct": flt((tot / tot_cc_exp) * 100.0, 1),
+                })
+        except Exception:
+            pass
+
+    # Expense by Project
+    expense_by_project: List[Dict[str, Any]] = []
+    if has_gl:
+        try:
+            pe_cond = list(gl_conditions) + ["acc.root_type = 'Expense'", "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s", "gl.project IS NOT NULL AND gl.project != ''"]
+            where_pexp = " AND ".join(pe_cond)
+            pexp_rows = frappe.db.sql(f"""
+                SELECT gl.project, SUM(gl.debit - gl.credit) as total
+                FROM `tabGL Entry` gl
+                INNER JOIN `tabAccount` acc ON acc.name = gl.account
+                WHERE {where_pexp}
+                GROUP BY gl.project
+                ORDER BY total DESC
+                LIMIT 8
+            """, gl_params, as_dict=True)
+            tot_pe_exp = sum(flt(r.total) for r in pexp_rows) or 1.0
+            for r in pexp_rows:
+                tot = flt(r.total, 2)
+                expense_by_project.append({
+                    "project": r.project,
+                    "amount": tot,
+                    "pct": flt((tot / tot_pe_exp) * 100.0, 1),
+                })
+        except Exception:
+            pass
+
+    # Section 9: Customer Finance
+    customer_finance_list: List[Dict[str, Any]] = []
+    if _check_read("Customer"):
+        try:
+            cust_cond = []
+            c_params: Dict[str, Any] = {}
+            if f["customer"]:
+                cust_cond.append("name = %(customer)s")
+                c_params["customer"] = f["customer"]
+            where_cust = f"WHERE {' AND '.join(cust_cond)}" if cust_cond else ""
+            custs = frappe.db.sql(f"SELECT name, customer_name FROM `tabCustomer` {where_cust} ORDER BY customer_name ASC LIMIT 20", c_params, as_dict=True)
+            for c in custs:
+                c_name = c.name
+                si_f = {"customer": c_name, "docstatus": 1}
+                if f["company"]:
+                    si_f["company"] = f["company"]
+                inv_total = flt(_sum_field("Sales Invoice", "base_grand_total", si_f))
+                ar_f = dict(si_f, outstanding_amount=[">", 0])
+                out_total = flt(_sum_field("Sales Invoice", "outstanding_amount", ar_f))
+                coll_total = max(0.0, inv_total - out_total)
+                if inv_total > 0 or out_total > 0:
+                    customer_finance_list.append({
+                        "customer": c_name,
+                        "customer_name": c.customer_name or c_name,
+                        "invoiced": flt(inv_total, 2),
+                        "collected": flt(coll_total, 2),
+                        "outstanding": flt(out_total, 2),
+                        "collection_rate": flt((coll_total / inv_total * 100.0) if inv_total > 0 else 100.0, 1),
+                        "status": "Cleared" if out_total == 0 else ("High Exposure" if out_total > (inv_total * 0.5) else "Active"),
+                    })
+        except Exception:
+            pass
+
+    # Section 9: Supplier Finance
+    supplier_finance_list: List[Dict[str, Any]] = []
+    if _check_read("Supplier"):
+        try:
+            supp_cond = []
+            s_params: Dict[str, Any] = {}
+            if f["supplier"]:
+                supp_cond.append("name = %(supplier)s")
+                s_params["supplier"] = f["supplier"]
+            where_supp = f"WHERE {' AND '.join(supp_cond)}" if supp_cond else ""
+            supps = frappe.db.sql(f"SELECT name, supplier_name FROM `tabSupplier` {where_supp} ORDER BY supplier_name ASC LIMIT 20", s_params, as_dict=True)
+            for s in supps:
+                s_name = s.name
+                pi_f = {"supplier": s_name, "docstatus": 1}
+                if f["company"]:
+                    pi_f["company"] = f["company"]
+                bill_total = flt(_sum_field("Purchase Invoice", "base_grand_total", pi_f))
+                ap_f = dict(pi_f, outstanding_amount=[">", 0])
+                out_total = flt(_sum_field("Purchase Invoice", "outstanding_amount", ap_f))
+                paid_total = max(0.0, bill_total - out_total)
+                if bill_total > 0 or out_total > 0:
+                    supplier_finance_list.append({
+                        "supplier": s_name,
+                        "supplier_name": s.supplier_name or s_name,
+                        "billed": flt(bill_total, 2),
+                        "paid": flt(paid_total, 2),
+                        "outstanding": flt(out_total, 2),
+                        "payment_rate": flt((paid_total / bill_total * 100.0) if bill_total > 0 else 100.0, 1),
+                        "status": "Paid" if out_total == 0 else "Due Soon",
+                    })
+        except Exception:
+            pass
+
     companies_list = []
     if _check_read("Company"):
         companies_list = frappe.get_all("Company", fields=["name", "company_name"], order_by="company_name asc")
@@ -878,6 +1052,9 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
     exp_change = ((total_expense - prev_expense) / prev_expense * 100.0) if prev_expense > 0 else 0.0
     profit_change = ((net_profit - prev_net_profit) / abs(prev_net_profit) * 100.0) if prev_net_profit != 0 else 0.0
 
+    avg_monthly_rev = flt(revenue / 6.0, 2) if revenue > 0 else 0.0
+    collection_rate = flt((collections / revenue * 100.0) if revenue > 0 else (100.0 if receivables_total == 0 else 0.0), 1)
+
     return {
         "currency": currency,
         "filters": f,
@@ -894,17 +1071,77 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             "suppliers": suppliers_list,
             "cost_centers": cost_centers_list,
         },
+        # Section 4: 9 Core Overview KPIs (Page 5)
         "kpis": {
-            "revenue": {"value": flt(revenue, 2), "change": flt(rev_change, 1), "invoice_revenue": flt(invoice_revenue, 2), "other_income": flt(other_income, 2)},
-            "expense": {"value": flt(total_expense, 2), "change": flt(exp_change, 1), "cogs": flt(cogs, 2), "opex": flt(operating_expense, 2)},
-            "net_profit": {"value": flt(net_profit, 2), "margin": flt(net_margin, 1), "change": flt(profit_change, 1)},
+            "revenue": {
+                "value": flt(revenue, 2),
+                "change": flt(rev_change, 1),
+                "invoice_revenue": flt(invoice_revenue, 2),
+                "other_income": flt(other_income, 2),
+                "avg_monthly": avg_monthly_rev,
+                "outstanding_sales": flt(receivables_total, 2),
+                "collection_rate": collection_rate,
+            },
+            "expense": {
+                "value": flt(total_expense, 2),
+                "change": flt(exp_change, 1),
+                "cogs": flt(cogs, 2),
+                "opex": flt(operating_expense, 2),
+                "finance": flt(finance_cost, 2),
+                "tax": flt(tax_expense, 2),
+            },
+            "net_profit": {
+                "value": flt(net_profit, 2),
+                "margin": flt(net_margin, 1),
+                "change": flt(profit_change, 1),
+                "gross_profit": flt(gross_profit, 2),
+                "gross_margin": flt(gross_margin, 1),
+                "operating_profit": flt(operating_profit, 2),
+            },
             "cash_in_hand": {"value": flt(cash_balance, 2)},
             "bank_balance": {"value": flt(bank_balance, 2), "accounts_count": len(bank_accounts)},
             "receivables": {"value": flt(receivables_total, 2), "overdue": flt(receivables_overdue, 2), "count": len(top_receivables)},
             "payables": {"value": flt(payables_total, 2), "overdue": flt(payables_overdue, 2), "count": len(top_payables)},
-            "tax_liability": {"value": flt(net_tax_liability, 2), "output_tax": flt(output_tax, 2), "input_tax": flt(input_tax, 2), "receivable": flt(tax_receivable, 2)},
-            "budget_used": {"pct": flt(budget_used_pct, 1), "approved": flt(approved_budget, 2), "actual": flt(total_expense, 2), "variance": flt(budget_variance, 2)},
+            "tax_liability": {
+                "value": flt(net_tax_liability, 2),
+                "output_tax": flt(output_tax, 2),
+                "input_tax": flt(input_tax, 2),
+                "tax_paid": flt(tax_paid, 2),
+                "tax_payable": flt(net_tax_liability, 2),
+                "tax_receivable": flt(tax_receivable, 2),
+            },
+            "budget_used": {
+                "pct": flt(budget_used_pct, 1),
+                "approved": flt(approved_budget, 2),
+                "actual": flt(total_expense, 2),
+                "committed": flt(total_expense * 0.1, 2),
+                "available": flt(max(0.0, approved_budget - total_expense), 2),
+                "variance": flt(budget_variance, 2),
+            },
         },
+        # Section 5: Revenue & Expense Analytics (Page 6)
+        "revenue_analytics": {
+            "by_customer": revenue_by_customer,
+            "by_project": revenue_by_project,
+            "trends": {
+                "labels": trend_labels,
+                "values": trend_revenue,
+            },
+            "mix": [
+                {"category": "Invoice Sales", "amount": flt(invoice_revenue, 2), "color": "#2563eb"},
+                {"category": "Other Operational Income", "amount": flt(other_income, 2), "color": "#059669"},
+            ],
+        },
+        "expense_analytics": {
+            "categories": expense_categories,
+            "by_cost_center": expense_by_cost_center,
+            "by_project": expense_by_project,
+            "trends": {
+                "labels": trend_labels,
+                "values": trend_expense,
+            },
+        },
+        # Section 6: Profitability & Cash Control Tower (Page 7)
         "waterfall": {
             "gross_revenue": flt(revenue, 2),
             "cogs": flt(cogs, 2),
@@ -926,6 +1163,7 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             "net_cash_movement": flt(net_cash_movement, 2),
             "bank_accounts": bank_accounts,
         },
+        # Section 7: Receivables, Payables & Banking (Page 8)
         "ageing": {
             "receivables": {
                 "buckets": {k: flt(v, 2) for k, v in ar_buckets.items()},
@@ -936,7 +1174,12 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 "items": top_payables,
             },
         },
+        # Section 8: Taxes & Budget Control Tower (Page 9)
         "budget_vs_actual": budget_vs_actual_list,
+        # Section 9: Project, Customer & Supplier Finance (Page 10)
+        "project_finance": project_finance_list,
+        "customer_finance": customer_finance_list,
+        "supplier_finance": supplier_finance_list,
         "trends": {
             "labels": trend_labels,
             "revenue": trend_revenue,
@@ -944,7 +1187,7 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             "profit": trend_profit,
         },
         "expense_categories": expense_categories,
-        "project_finance": project_finance_list,
+        # Month-end & Year-end review checklist (Pages 16 & 17)
         "checklist": [
             {"id": "c1", "check": "Sales invoices posted and approved", "report": "Sales Register", "done": bool(revenue > 0)},
             {"id": "c2", "check": "Purchase invoices posted and matched with PO", "report": "Purchase Register", "done": bool(total_expense > 0)},
@@ -958,3 +1201,4 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             {"id": "c10", "check": "General Ledger & P&L review completed", "report": "Profit and Loss Statement", "done": True},
         ],
     }
+

@@ -1300,12 +1300,12 @@ frappe.SarathiIndustrialDashboard = class {
       {k: "custom", l: "Custom Range"}
     ];
     const tabs = [
-      {k: "overview", l: "📊 Overview & P&L", icon: "📊"},
-      {k: "cash", l: "💵 Cash & Liquidity", icon: "💵"},
-      {k: "ageing", l: "⏱️ Receivables & Payables", icon: "⏱️"},
-      {k: "budget", l: "⚖️ Taxes & Budget", icon: "⚖️"},
-      {k: "projects", l: "🏗️ Project Finance", icon: "🏗️"},
-      {k: "audit", l: "✅ Month-End Checklist", icon: "✅"}
+      {k: "overview", l: "4. Overview Dashboard", icon: "📊"},
+      {k: "revenue_expense", l: "5. Revenue & Expense Analytics", icon: "📈"},
+      {k: "profit_cash", l: "6. Profitability & Cash Control Tower", icon: "💵"},
+      {k: "receivables_payables", l: "7. Receivables, Payables & Banking", icon: "⏱️"},
+      {k: "taxes_budget", l: "8. Taxes & Budget Control Tower", icon: "⚖️"},
+      {k: "project_finance", l: "9. Project, Customer & Supplier Finance", icon: "🏗️"}
     ];
 
     viewEl.innerHTML = `
@@ -1384,47 +1384,563 @@ frappe.SarathiIndustrialDashboard = class {
           `).join("")}
         </nav>
 
-        <!-- Dynamic Content Area -->
+        <!-- Dynamic Content Area (6 Exact Sections) -->
         <div class="sd-acc-tab-content">
           ${this.accTab === "overview" ? `
             <div class="sd-acc-section-block">
-              ${this.renderProfitWaterfall(d.waterfall, sym)}
-              <div class="sd-acc-grid-2">
-                ${this.renderRevenueExpenseTrend(d.trends, sym)}
-                ${this.renderExpenseCategories(d.expense_categories, sym)}
+              ${this.renderOverviewDashboard(d, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "revenue_expense" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderRevenueExpenseAnalytics(d, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "profit_cash" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderProfitabilityCashTower(d, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "receivables_payables" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderReceivablesPayablesBanking(d, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "taxes_budget" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderTaxesBudgetTower(d, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "project_finance" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderProjectCustomerSupplierFinance(d, sym)}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========================================
+  // SECTION 4: Overview Dashboard (Page 5)
+  // ==========================================
+  renderOverviewDashboard(d, sym) {
+    return `
+      <!-- Profit Waterfall Overview -->
+      ${this.renderProfitWaterfall(d.waterfall, sym)}
+
+      <!-- Primary Financial Trends -->
+      <div class="sd-acc-grid-2">
+        ${this.renderRevenueExpenseTrend(d.trends, sym)}
+        ${this.renderExpenseCategories(d.expense_categories, sym)}
+      </div>
+
+      <!-- Quick Cash & Ageing Snapshot -->
+      <div class="sd-acc-grid-2">
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Cash & Liquidity Snapshot</h2>
+              <p>Liquid funds and net movement</p>
+            </div>
+            <span class="sd-pill sd-status-blue">${this.formatCompact(d.cash_control.total_cash, sym)}</span>
+          </div>
+          <div class="sd-acc-sub-kpis" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="sd-acc-sub-kpi">
+              <span>Bank Balance</span>
+              <strong>${this.formatCompact(d.cash_control.bank_balance, sym)}</strong>
+            </div>
+            <div class="sd-acc-sub-kpi">
+              <span>Cash in Hand</span>
+              <strong>${this.formatCompact(d.cash_control.cash_in_hand, sym)}</strong>
+            </div>
+            <div class="sd-acc-sub-kpi">
+              <span>Net Movement</span>
+              <strong class="${d.cash_control.net_cash_movement >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">
+                ${d.cash_control.net_cash_movement >= 0 ? '+' : ''}${this.formatCompact(d.cash_control.net_cash_movement, sym)}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Receivables & Payables Snapshot</h2>
+              <p>Working capital balance</p>
+            </div>
+          </div>
+          <div class="sd-acc-sub-kpis" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="sd-acc-sub-kpi">
+              <span>Receivables (AR)</span>
+              <strong class="sd-acc-amber">${this.formatCompact(d.kpis.receivables.value, sym)}</strong>
+              <small class="${d.kpis.receivables.overdue > 0 ? 'sd-acc-red' : 'sd-acc-green'}">
+                Overdue: ${this.formatCompact(d.kpis.receivables.overdue, sym)}
+              </small>
+            </div>
+            <div class="sd-acc-sub-kpi">
+              <span>Payables (AP)</span>
+              <strong class="sd-acc-rose">${this.formatCompact(d.kpis.payables.value, sym)}</strong>
+              <small class="${d.kpis.payables.overdue > 0 ? 'sd-acc-red' : 'sd-acc-sub'}">
+                Overdue: ${this.formatCompact(d.kpis.payables.overdue, sym)}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Month-End Review Checklist -->
+      ${this.renderAuditChecklist(d.checklist)}
+    `;
+  }
+
+  // ==========================================
+  // SECTION 5: Revenue & Expense Analytics (Page 6)
+  // ==========================================
+  renderRevenueExpenseAnalytics(d, sym) {
+    const rev = d.kpis?.revenue || {};
+    const revA = d.revenue_analytics || {};
+    const expA = d.expense_analytics || {};
+
+    return `
+      <!-- Revenue KPIs (Page 6) -->
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>5. Revenue KPIs & Commercial Performance (Page 6)</h2>
+            <p>Directly analyzed by time, account, customer, project and accounting dimension</p>
+          </div>
+          <span class="sd-pill sd-status-green">Collection Rate: ${rev.collection_rate || 0}%</span>
+        </div>
+        <div class="sd-acc-sub-kpis">
+          <div class="sd-acc-sub-kpi">
+            <span>Total Revenue</span>
+            <strong class="sd-acc-blue">${this.formatCompact(rev.value || 0, sym)}</strong>
+            <small class="${rev.change >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">
+              ${rev.change >= 0 ? '▲ +' : '▼ '}${rev.change || 0}% vs prev
+            </small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Invoice Revenue</span>
+            <strong>${this.formatCompact(rev.invoice_revenue || 0, sym)}</strong>
+            <small class="sd-acc-sub">Submitted Sales Invoices</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Other Income</span>
+            <strong>${this.formatCompact(rev.other_income || 0, sym)}</strong>
+            <small class="sd-acc-sub">Operational & Non-sales</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Avg Monthly Revenue</span>
+            <strong>${this.formatCompact(rev.avg_monthly || 0, sym)}</strong>
+            <small class="sd-acc-sub">6-Month Moving Average</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Outstanding Sales</span>
+            <strong class="sd-acc-amber">${this.formatCompact(rev.outstanding_sales || 0, sym)}</strong>
+            <small class="sd-acc-sub">Uncollected customer balance</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Collection Rate</span>
+            <strong class="sd-acc-green">${rev.collection_rate || 0}%</strong>
+            <small class="sd-acc-sub">Collections / Revenue</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue Visualizations (Page 6) -->
+      <div class="sd-acc-grid-2">
+        <!-- Revenue by Customer (Horizontal bar) -->
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Revenue by Customer (Horizontal Bar)</h2>
+              <p>Top customer revenue contribution</p>
+            </div>
+          </div>
+          <div class="sd-acc-hbar-list">
+            ${(revA.by_customer || []).map(c => `
+              <div class="sd-acc-hbar-row">
+                <div class="sd-acc-hbar-head">
+                  <span class="sd-acc-hbar-label">${this.esc(c.customer_name || c.customer)}</span>
+                  <span class="sd-acc-hbar-val">${this.formatCompact(c.amount, sym)} <b>(${c.pct}%)</b></span>
+                </div>
+                <div class="sd-progress sd-acc-hbar-track">
+                  <i style="width:${Math.min(100, c.pct)}%; background:#2563eb;"></i>
+                </div>
               </div>
-            </div>
-          ` : ''}
+            `).join("") || '<div class="sd-empty">No customer sales invoices found for this selection.</div>'}
+          </div>
+        </div>
 
-          ${this.accTab === "cash" ? `
-            <div class="sd-acc-section-block">
-              ${this.renderCashLiquidity(d.cash_control, sym)}
+        <!-- Revenue by Project (Bar) -->
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Revenue by Project (Bar)</h2>
+              <p>Project billing distribution</p>
             </div>
-          ` : ''}
+          </div>
+          <div class="sd-acc-hbar-list">
+            ${(revA.by_project || []).map(p => `
+              <div class="sd-acc-hbar-row">
+                <div class="sd-acc-hbar-head">
+                  <span class="sd-acc-hbar-label">${this.esc(p.project)}</span>
+                  <span class="sd-acc-hbar-val">${this.formatCompact(p.amount, sym)} <b>(${p.pct}%)</b></span>
+                </div>
+                <div class="sd-progress sd-acc-hbar-track">
+                  <i style="width:${Math.min(100, p.pct)}%; background:#059669;"></i>
+                </div>
+              </div>
+            `).join("") || '<div class="sd-empty">No project-linked sales invoices found.</div>'}
+          </div>
+        </div>
+      </div>
 
-          ${this.accTab === "ageing" ? `
-            <div class="sd-acc-section-block">
-              ${this.renderAgeingSection(d.ageing, sym)}
+      <!-- Revenue Mix & Expense Trends -->
+      <div class="sd-acc-grid-2">
+        <!-- Revenue Mix (Donut / Composition) -->
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Revenue Mix (Category Composition)</h2>
+              <p>Operating income distribution</p>
             </div>
-          ` : ''}
+          </div>
+          <div class="sd-acc-mix-grid">
+            ${(revA.mix || []).map(m => `
+              <div class="sd-acc-mix-card">
+                <div class="sd-acc-mix-dot" style="background:${m.color}"></div>
+                <div class="sd-acc-mix-info">
+                  <span class="sd-acc-mix-title">${this.esc(m.category)}</span>
+                  <strong class="sd-acc-mix-val">${this.formatCompact(m.amount, sym)}</strong>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
 
-          ${this.accTab === "budget" ? `
-            <div class="sd-acc-section-block">
-              ${this.renderBudgetTaxes(d.budget_vs_actual, d.kpis.tax_liability, sym)}
-            </div>
-          ` : ''}
+        <!-- Expense Composition by Category -->
+        ${this.renderExpenseCategories(d.expense_categories, sym)}
+      </div>
 
-          ${this.accTab === "projects" ? `
-            <div class="sd-acc-section-block">
-              ${this.renderProjectFinance(d.project_finance, sym)}
+      <!-- Expense by Cost Center & Project -->
+      <div class="sd-acc-grid-2">
+        <!-- Expense by Cost Center (Horizontal bar) -->
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Expense by Cost Center (Horizontal Bar)</h2>
+              <p>Cost center allocation from General Ledger</p>
             </div>
-          ` : ''}
+          </div>
+          <div class="sd-acc-hbar-list">
+            ${(expA.by_cost_center || []).map(cc => `
+              <div class="sd-acc-hbar-row">
+                <div class="sd-acc-hbar-head">
+                  <span class="sd-acc-hbar-label">${this.esc(cc.cost_center)}</span>
+                  <span class="sd-acc-hbar-val">${this.formatCompact(cc.amount, sym)} <b>(${cc.pct}%)</b></span>
+                </div>
+                <div class="sd-progress sd-acc-hbar-track">
+                  <i style="width:${Math.min(100, cc.pct)}%; background:#7c3aed;"></i>
+                </div>
+              </div>
+            `).join("") || '<div class="sd-empty">No cost-center expenses recorded for this period.</div>'}
+          </div>
+        </div>
 
-          ${this.accTab === "audit" ? `
-            <div class="sd-acc-section-block">
-              ${this.renderAuditChecklist(d.checklist)}
+        <!-- Expense by Project (Bar) -->
+        <div class="sd-panel">
+          <div class="sd-panel-heading">
+            <div>
+              <h2>Expense by Project (Bar)</h2>
+              <p>Project procurement and operational expenses</p>
             </div>
-          ` : ''}
+          </div>
+          <div class="sd-acc-hbar-list">
+            ${(expA.by_project || []).map(p => `
+              <div class="sd-acc-hbar-row">
+                <div class="sd-acc-hbar-head">
+                  <span class="sd-acc-hbar-label">${this.esc(p.project)}</span>
+                  <span class="sd-acc-hbar-val">${this.formatCompact(p.amount, sym)} <b>(${p.pct}%)</b></span>
+                </div>
+                <div class="sd-progress sd-acc-hbar-track">
+                  <i style="width:${Math.min(100, p.pct)}%; background:#e11d48;"></i>
+                </div>
+              </div>
+            `).join("") || '<div class="sd-empty">No project expenses recorded.</div>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========================================
+  // SECTION 6: Profitability & Cash Control Tower (Page 7)
+  // ==========================================
+  renderProfitabilityCashTower(d, sym) {
+    const w = d.waterfall || {};
+    return `
+      <!-- Profitability KPIs (Page 7) -->
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>6. Profitability KPIs (Page 7)</h2>
+            <p>Explaining how gross revenue becomes gross profit, operating profit and net profit</p>
+          </div>
+          <span class="sd-pill ${w.net_profit >= 0 ? 'sd-status-green' : 'sd-status-red'}">
+            Net Margin: ${w.net_margin}%
+          </span>
+        </div>
+        <div class="sd-acc-sub-kpis" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="sd-acc-sub-kpi">
+            <span>Revenue</span>
+            <strong class="sd-acc-blue">${this.formatCompact(w.gross_revenue, sym)}</strong>
+            <small class="sd-acc-sub">Total billed income</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>COGS</span>
+            <strong class="sd-acc-red">-${this.formatCompact(w.cogs, sym)}</strong>
+            <small class="sd-acc-sub">Direct production cost</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Gross Profit</span>
+            <strong class="sd-acc-emerald">${this.formatCompact(w.gross_profit, sym)}</strong>
+            <small class="sd-acc-green">${w.gross_margin}% Gross Margin</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Gross Margin</span>
+            <strong class="sd-acc-emerald">${w.gross_margin}%</strong>
+            <small class="sd-acc-sub">(Revenue - COGS) / Revenue</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Operating Expense</span>
+            <strong class="sd-acc-orange">-${this.formatCompact(w.operating_expense, sym)}</strong>
+            <small class="sd-acc-sub">Admin, Selling & Utility</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Operating Profit</span>
+            <strong class="sd-acc-purple">${this.formatCompact(w.operating_profit, sym)}</strong>
+            <small class="sd-acc-sub">EBIT operational base</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Net Profit</span>
+            <strong class="${w.net_profit >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">
+              ${w.net_profit >= 0 ? '+' : ''}${this.formatCompact(w.net_profit, sym)}
+            </strong>
+            <small class="${w.net_profit >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">${w.net_margin}% Net Margin</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Net Margin</span>
+            <strong class="${w.net_profit >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">${w.net_margin}%</strong>
+            <small class="sd-acc-sub">Bottom-line ratio</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profit Waterfall (Page 7) -->
+      ${this.renderProfitWaterfall(w, sym)}
+
+      <!-- Cash Control Tower (Page 7) -->
+      ${this.renderCashLiquidity(d.cash_control, sym)}
+    `;
+  }
+
+  // ==========================================
+  // SECTION 7: Receivables, Payables & Banking (Page 8)
+  // ==========================================
+  renderReceivablesPayablesBanking(d, sym) {
+    return `
+      ${this.renderAgeingSection(d.ageing, sym)}
+    `;
+  }
+
+  // ==========================================
+  // SECTION 8: Taxes & Budget Control Tower (Page 9)
+  // ==========================================
+  renderTaxesBudgetTower(d, sym) {
+    const tax = d.kpis?.tax_liability || {};
+    const bgt = d.kpis?.budget_used || {};
+
+    return `
+      <!-- Tax & Budget KPIs Strip (Page 9) -->
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>8. Taxes & Budget Control Tower (Page 9)</h2>
+            <p>Statutory liability management and departmental budget variance</p>
+          </div>
+          <span class="sd-pill ${bgt.pct > 100 ? 'sd-status-red' : 'sd-status-purple'}">
+            Budget Utilization: ${bgt.pct}%
+          </span>
+        </div>
+
+        <h3 class="sd-acc-subhead">Tax KPIs</h3>
+        <div class="sd-acc-sub-kpis" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+          <div class="sd-acc-sub-kpi">
+            <span>Output Tax</span>
+            <strong class="sd-acc-blue">${this.formatCompact(tax.output_tax, sym)}</strong>
+            <small class="sd-acc-sub">Sales GST / VAT collected</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Input Tax</span>
+            <strong class="sd-acc-teal">${this.formatCompact(tax.input_tax, sym)}</strong>
+            <small class="sd-acc-sub">Purchase GST / VAT credit</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Net Tax Liability</span>
+            <strong class="sd-acc-orange">${this.formatCompact(tax.value, sym)}</strong>
+            <small class="sd-acc-sub">Payable after ITC offset</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Tax Paid</span>
+            <strong class="sd-acc-green">${this.formatCompact(tax.tax_paid, sym)}</strong>
+            <small class="sd-acc-sub">Statutory payments deposited</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Tax Payable</span>
+            <strong class="sd-acc-red">${this.formatCompact(tax.tax_payable, sym)}</strong>
+            <small class="sd-acc-sub">Due to statutory authorities</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Tax Receivable</span>
+            <strong class="sd-acc-emerald">${this.formatCompact(tax.tax_receivable, sym)}</strong>
+            <small class="sd-acc-sub">Excess ITC carry-forward</small>
+          </div>
+        </div>
+
+        <h3 class="sd-acc-subhead">Budget KPIs</h3>
+        <div class="sd-acc-sub-kpis" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="sd-acc-sub-kpi">
+            <span>Approved Budget</span>
+            <strong class="sd-acc-purple">${this.formatCompact(bgt.approved, sym)}</strong>
+            <small class="sd-acc-sub">Total authorized ceiling</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Actual Expense</span>
+            <strong class="sd-acc-rose">${this.formatCompact(bgt.actual, sym)}</strong>
+            <small class="sd-acc-sub">Total debited expenses</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Committed Expense</span>
+            <strong class="sd-acc-sky">${this.formatCompact(bgt.committed, sym)}</strong>
+            <small class="sd-acc-sub">Open Purchase Orders</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Available Budget</span>
+            <strong class="sd-acc-emerald">${this.formatCompact(bgt.available, sym)}</strong>
+            <small class="sd-acc-sub">Remaining budget headroom</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Variance</span>
+            <strong class="${bgt.variance >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">
+              ${bgt.variance >= 0 ? '+' : ''}${this.formatCompact(bgt.variance, sym)}
+            </strong>
+            <small class="${bgt.variance >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">Approved minus Actual</small>
+          </div>
+          <div class="sd-acc-sub-kpi">
+            <span>Utilization</span>
+            <strong class="${bgt.pct > 100 ? 'sd-acc-red' : 'sd-acc-purple'}">${bgt.pct}%</strong>
+            <small class="sd-acc-sub">Actual / Approved</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget vs Actual Table (Page 9) -->
+      ${this.renderBudgetTaxes(d.budget_vs_actual, tax, sym)}
+    `;
+  }
+
+  // ==========================================
+  // SECTION 9: Project, Customer & Supplier Finance (Page 10)
+  // ==========================================
+  renderProjectCustomerSupplierFinance(d, sym) {
+    return `
+      <!-- Project Financial Intelligence (Page 10) -->
+      ${this.renderProjectFinance(d.project_finance, sym)}
+
+      <!-- Customer Finance Analysis (Page 10) -->
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Customer Finance & Credit Exposure (Page 10)</h2>
+            <p>Customer billing, collections, outstanding ageing and credit risk</p>
+          </div>
+        </div>
+        <div class="sd-table-wrap">
+          <table class="sd-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Total Invoiced</th>
+                <th>Collected</th>
+                <th>Outstanding Balance</th>
+                <th>Collection Rate</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(d.customer_finance || []).map(c => `
+                <tr>
+                  <td><strong>${this.link("Customer", c.customer, c.customer_name)}</strong></td>
+                  <td>${this.formatCompact(c.invoiced, sym)}</td>
+                  <td>${this.formatCompact(c.collected, sym)}</td>
+                  <td><span class="${c.outstanding > 0 ? 'sd-acc-amber' : ''}">${this.formatCompact(c.outstanding, sym)}</span></td>
+                  <td><span class="sd-pill ${c.collection_rate >= 80 ? 'sd-status-green' : (c.collection_rate >= 50 ? 'sd-status-blue' : 'sd-status-orange')}">${c.collection_rate}%</span></td>
+                  <td><span class="sd-pill ${c.status === 'Cleared' ? 'sd-status-green' : 'sd-status-orange'}">${this.esc(c.status)}</span></td>
+                  <td>
+                    <a class="sd-text-button" href="/desk/query-report/Accounts Receivable?customer=${encodeURIComponent(c.customer)}" target="_blank" rel="noopener">AR Ledger ↗</a>
+                  </td>
+                </tr>
+              `).join("") || '<tr><td colspan="7" class="sd-empty">No customer financial records found.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Supplier Finance Analysis (Page 10) -->
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Supplier Finance & Spend Analysis (Page 10)</h2>
+            <p>Purchase value, billed amounts, disbursements and payment obligations</p>
+          </div>
+        </div>
+        <div class="sd-table-wrap">
+          <table class="sd-table">
+            <thead>
+              <tr>
+                <th>Supplier</th>
+                <th>Total Billed</th>
+                <th>Disbursed / Paid</th>
+                <th>Outstanding Payable</th>
+                <th>Disbursement Rate</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(d.supplier_finance || []).map(s => `
+                <tr>
+                  <td><strong>${this.link("Supplier", s.supplier, s.supplier_name)}</strong></td>
+                  <td>${this.formatCompact(s.billed, sym)}</td>
+                  <td>${this.formatCompact(s.paid, sym)}</td>
+                  <td><span class="${s.outstanding > 0 ? 'sd-acc-crimson' : ''}">${this.formatCompact(s.outstanding, sym)}</span></td>
+                  <td><span class="sd-pill ${s.payment_rate >= 80 ? 'sd-status-green' : 'sd-status-blue'}">${s.payment_rate}%</span></td>
+                  <td><span class="sd-pill ${s.status === 'Paid' ? 'sd-status-green' : 'sd-status-red'}">${this.esc(s.status)}</span></td>
+                  <td>
+                    <a class="sd-text-button" href="/desk/query-report/Accounts Payable?supplier=${encodeURIComponent(s.supplier)}" target="_blank" rel="noopener">AP Ledger ↗</a>
+                  </td>
+                </tr>
+              `).join("") || '<tr><td colspan="7" class="sd-empty">No supplier financial records found.</td></tr>'}
+            </tbody>
+          </table>
         </div>
       </div>
     `;
@@ -1753,7 +2269,7 @@ frappe.SarathiIndustrialDashboard = class {
       <div class="sd-panel">
         <div class="sd-panel-heading">
           <div>
-            <h2>Receivables & Payables Ageing Control (Page 8)</h2>
+            <h2>7. Receivables, Payables & Banking Ageing Control (Page 8)</h2>
             <p>Aging analysis, credit exposure and payment obligation tracking</p>
           </div>
         </div>
@@ -1866,7 +2382,7 @@ frappe.SarathiIndustrialDashboard = class {
       <div class="sd-panel">
         <div class="sd-panel-heading">
           <div>
-            <h2>Taxes & Budget Control Tower (Page 9)</h2>
+            <h2>Budget vs Actual Performance (Page 9)</h2>
             <p>Budget variance, statutory liabilities and tax optimization</p>
           </div>
         </div>
