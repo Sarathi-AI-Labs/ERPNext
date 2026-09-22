@@ -807,3 +807,698 @@
   margin: 0 4px;
 }
 
+/* ==========================================================================
+   SARATHI ACCOUNTING CONTROL TOWER - COLORFUL & ATTRACTIVE STYLES
+   Adhering to Page 13 & 14 Color Semantics & Standards
+   ========================================================================== */
+
+/* Main Dashboard Accounting Card */
+.sd-accounting-main-card {
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sd-accounting-main-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px -6px rgba(37, 99, 235, 0.15), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+  border-color: #93c5fd;
+}
+.sd-acc-card-top-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #059669, #7c3aed, #ea580c);
+}
+.sd-acc-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sd-acc-card-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sd-acc-card-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+.sd-acc-card-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #2563eb;
+  margin-bottom: 2px;
+}
+.sd-acc-card-title-wrap h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.sd-acc-card-main-val {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+}
+.sd-acc-card-main-val small {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sd-acc-card-main-val strong {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.sd-acc-positive {
+  color: #059669;
+}
+.sd-acc-negative {
+  color: #dc2626;
+}
+
+/* Stat Chips Grid on Main Card */
+.sd-acc-card-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+@media (max-width: 768px) {
+  .sd-acc-card-chips {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.sd-acc-chip {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  transition: transform 0.15s;
+}
+.sd-acc-chip:hover {
+  transform: scale(1.02);
+}
+.sd-acc-chip span {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.sd-acc-chip b {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.sd-acc-chip-blue {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+.sd-acc-chip-rose {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+}
+.sd-acc-chip-amber {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+.sd-acc-chip-crimson {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+.sd-acc-chip-teal {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #115e59;
+}
+.sd-acc-chip-purple {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #6b21a8;
+}
+
+.sd-acc-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  font-size: 11px;
+  color: #64748b;
+}
+.sd-acc-card-footer small {
+  color: #2563eb;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sd-accounting-main-card:hover .sd-acc-card-footer small {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Accounting Control Tower Detail View
+   ========================================================================== */
+.sd-acc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.sd-acc-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%) !important;
+  color: #ffffff !important;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+}
+.sd-acc-hero h1, .sd-acc-hero p, .sd-acc-hero .sd-eyebrow {
+  color: #ffffff !important;
+}
+.sd-acc-hero .sd-eyebrow {
+  color: #93c5fd !important;
+  font-weight: 700;
+}
+.sd-acc-back-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(8px);
+  font-weight: 600;
+}
+.sd-acc-back-btn:hover {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Filter Section */
+.sd-acc-filter-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sd-acc-period-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sd-acc-period-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sd-acc-period-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sd-acc-period-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sd-acc-period-pill:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.sd-acc-period-pill.active {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+.sd-acc-controls {
+  margin: 0 !important;
+  padding: 12px 0 0 0 !important;
+  border-top: 1px solid #f1f5f9;
+}
+.sd-acc-date-badge {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sd-acc-date-badge b {
+  color: #0f172a;
+}
+
+/* 9 Core KPI Strip (Page 5 & 14) */
+.sd-acc-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.sd-acc-kpi-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 16px 14px 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+.sd-acc-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+.sd-acc-kpi-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+/* Colors matching Page 14 Color Semantics */
+.sd-acc-kpi-blue .sd-acc-kpi-bar { background: #2563eb; }
+.sd-acc-kpi-rose .sd-acc-kpi-bar { background: #e11d48; }
+.sd-acc-kpi-emerald .sd-acc-kpi-bar { background: #059669; }
+.sd-acc-kpi-sky .sd-acc-kpi-bar { background: #0284c7; }
+.sd-acc-kpi-amber .sd-acc-kpi-bar { background: #d97706; }
+.sd-acc-kpi-crimson .sd-acc-kpi-bar { background: #dc2626; }
+.sd-acc-kpi-orange .sd-acc-kpi-bar { background: #ea580c; }
+.sd-acc-kpi-purple .sd-acc-kpi-bar { background: #7c3aed; }
+.sd-acc-kpi-teal .sd-acc-kpi-bar { background: #0d9488; }
+
+.sd-acc-kpi-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sd-acc-kpi-icon {
+  font-size: 18px;
+}
+.sd-acc-kpi-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+.sd-acc-kpi-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 4px 0 6px 0;
+}
+.sd-acc-kpi-sub {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.sd-acc-green { color: #059669; }
+.sd-acc-red { color: #dc2626; }
+.sd-acc-orange { color: #ea580c; }
+.sd-acc-amber { color: #d97706; }
+.sd-acc-purple { color: #7c3aed; }
+.sd-acc-sub { color: #64748b; }
+
+.sd-acc-kpi-link {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  display: inline-block;
+}
+.sd-acc-kpi-link:hover {
+  text-decoration: underline;
+}
+
+/* Sub-Tabs */
+.sd-acc-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+  overflow-x: auto;
+}
+.sd-acc-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.sd-acc-tab-btn:hover {
+  color: #0f172a;
+  background: #f8fafc;
+  border-radius: 8px 8px 0 0;
+}
+.sd-acc-tab-btn.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* Detail View Layout Sections */
+.sd-acc-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.sd-acc-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media (max-width: 1024px) {
+  .sd-acc-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Profitability Waterfall (Page 7) */
+.sd-acc-waterfall-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+.sd-acc-waterfall-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 16px 4px;
+}
+.sd-acc-wf-step {
+  flex: 1;
+  min-width: 140px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+.sd-acc-wf-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+.sd-acc-wf-val {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.sd-acc-wf-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.sd-acc-wf-step small {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.sd-acc-wf-inflow {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+.sd-acc-wf-inflow .sd-acc-wf-val { color: #1e40af; }
+
+.sd-acc-wf-outflow {
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+.sd-acc-wf-outflow .sd-acc-wf-val { color: #be123c; }
+
+.sd-acc-wf-subtotal {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+.sd-acc-wf-subtotal .sd-acc-wf-val { color: #0f172a; }
+
+.sd-acc-wf-final.positive {
+  border: 2px solid #10b981;
+  background: #ecfdf5;
+}
+.sd-acc-wf-final.positive .sd-acc-wf-val { color: #047857; font-size: 20px; }
+
+.sd-acc-wf-final.negative {
+  border: 2px solid #ef4444;
+  background: #fef2f2;
+}
+.sd-acc-wf-final.negative .sd-acc-wf-val { color: #b91c1c; font-size: 20px; }
+
+.sd-acc-wf-connector {
+  font-size: 18px;
+  color: #94a3b8;
+  font-weight: bold;
+}
+
+/* Revenue vs Expense SVG Chart */
+.sd-acc-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+.sd-acc-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sd-acc-leg-item i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.sd-acc-svg-wrap {
+  width: 100%;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+.sd-acc-trend-svg {
+  width: 100%;
+  height: auto;
+  min-width: 500px;
+}
+
+/* Expense Categories */
+.sd-acc-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 0;
+}
+.sd-acc-cat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sd-acc-cat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.sd-acc-cat-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+.sd-acc-cat-val {
+  font-size: 12px;
+  color: #475569;
+}
+.sd-acc-cat-bar {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+.sd-acc-cat-bar i {
+  height: 100%;
+  border-radius: 6px;
+  display: block;
+  transition: width 0.3s ease;
+}
+
+/* Cash Strip */
+.sd-acc-cash-strip {
+  margin-bottom: 24px;
+}
+.sd-acc-subhead {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 16px 0 10px 0;
+}
+
+/* Ageing Buckets */
+.sd-acc-sub-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sd-acc-buckets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+.sd-acc-bucket-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sd-acc-bucket-box span {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+}
+.sd-acc-bucket-box strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Taxes */
+.sd-acc-tax-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 8px 0;
+}
+.sd-acc-tax-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sd-acc-tax-card span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+.sd-acc-tax-card strong {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.sd-acc-tax-highlight {
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
+/* Month-End Checklist (Page 16 & 17) */
+.sd-acc-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+  padding: 10px 0;
+}
+.sd-acc-check-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.15s;
+}
+.sd-acc-check-item.checked {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.sd-acc-check-box {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  background: #e2e8f0;
+  color: #64748b;
+  flex-shrink: 0;
+}
+.sd-acc-check-item.checked .sd-acc-check-box {
+  background: #059669;
+  color: #ffffff;
+}
+.sd-acc-check-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sd-acc-check-text strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+.sd-acc-check-text a {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+}
+.sd-acc-check-text a:hover {
+  text-decoration: underline;
+}
+

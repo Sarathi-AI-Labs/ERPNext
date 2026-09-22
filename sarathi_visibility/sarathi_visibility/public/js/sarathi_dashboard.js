@@ -11,6 +11,10 @@ frappe.SarathiIndustrialDashboard = class {
     this.subMaterialsPage = 0;
     this.subSelectedStage = "";
     this.subSelectedStatus = "";
+    this.accFilters = {period: "this_month", company: "", project: "", customer: "", supplier: "", cost_center: "", account: "", from_date: "", to_date: ""};
+    this.accData = null;
+    this.accSearch = "";
+    this.accTab = "overview";
     this.search = ""; this.customerPage = this.projectPage = 0;
     this.tabs = {overview: "Overview", sales: "Sales", production: "Production", engineering: "Engineering & BOM", materials: "Materials & Stock", procurement: "Procurement", quality: "Quality & Rework", fulfillment: "Delivery & Billing", reports: "Reports", integrations: "Integrations"};
     this.tabReports = {sales: ["orders", "order_items"], procurement: ["requests", "purchases", "receipts", "purchase_invoices", "procurement_exceptions"], quality: ["quality", "job_cards", "job_logs", "job_suboperations"], fulfillment: ["deliveries", "sales_invoices"], production: ["part_production", "live_activity", "production_summary", "operation_balance", "work_orders", "job_cards", "workstations", "tasks"], engineering: ["tracking_setup", "boms", "components", "operations"], materials: ["material_history", "stock_details", "stock_ledger", "reservations", "wip_stock", "materials", "stock", "finished"], integrations: ["integrations"]};
@@ -18,6 +22,7 @@ frappe.SarathiIndustrialDashboard = class {
     this.root.addEventListener("change", e => {
       if (e.target.dataset.filter) this.filterChanged(e.target);
       if (e.target.dataset.subFilter) this.subFilterChanged(e.target);
+      if (e.target.dataset.accFilter) this.accFilterChanged(e.target);
     });
     this.el("[data-search]").addEventListener("input", e => { this.search = e.target.value.toLowerCase(); this.customerPage = this.projectPage = 0; this.renderCards(); });
     window.addEventListener("popstate", () => { if (this.visible) { this.readUrl(); this.load(); } });
@@ -77,12 +82,20 @@ frappe.SarathiIndustrialDashboard = class {
   render(silent) {
     const d = this.data;
     this.renderSubcontractingCard();
+    this.renderAccountingCard();
     if (this.view === "subcontracting") {
+      this.hideAccountingView();
       this.showSubcontractingView();
       if (silent) this.loadSubcontractingData(true);
       return;
+    } else if (this.view === "accounting") {
+      this.hideSubcontractingView();
+      this.showAccountingView();
+      if (silent) this.loadAccountingData(true);
+      return;
     } else {
       this.hideSubcontractingView();
+      this.hideAccountingView();
     }
     this.el('[data-filter="company"]').innerHTML = `<option value="">All organizations</option>` + d.companies.map(c => `<option value="${this.esc(c.name)}">${this.esc(c.company_name || c.name)}</option>`).join("");
     for (const n of this.root.querySelectorAll("[data-filter]")) n.value = this.filters[n.dataset.filter];
@@ -217,6 +230,13 @@ frappe.SarathiIndustrialDashboard = class {
     else if (d.action === "refresh-subcontracting") this.loadSubcontractingData();
     else if (d.action === "apply-sub-filters") this.applySubFilters();
     else if (d.action === "reset-sub-filters") this.resetSubFilters();
+    else if (d.action === "open-accounting") this.openAccountingView();
+    else if (d.action === "close-accounting") this.closeAccountingView();
+    else if (d.action === "refresh-accounting") this.loadAccountingData();
+    else if (d.action === "apply-acc-filters") this.applyAccFilters();
+    else if (d.action === "reset-acc-filters") this.resetAccFilters();
+    else if (d.accPeriod) this.setAccPeriod(d.accPeriod);
+    else if (d.accTab) this.setAccTab(d.accTab);
     else if (d.quickDate) this.setQuickDate(d.quickDate);
     else if (d.costGranularity) this.setCostGranularity(d.costGranularity);
     else if (d.pipeStage) this.setPipeStage(d.pipeStage);
@@ -314,7 +334,7 @@ frappe.SarathiIndustrialDashboard = class {
   showSubcontractingView() {
     const hideSelectors = [
       ".sd-hero", ".sd-controls", ".sd-breadcrumb", ".sd-scope-note",
-      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]",
+      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]", "[data-accounting-card-panel]",
       "[data-customer-panel]", "[data-project-panel]", "[data-project-summary]",
       ".sd-tabs", "[data-content]"
     ];
@@ -331,7 +351,7 @@ frappe.SarathiIndustrialDashboard = class {
     if (viewEl) viewEl.hidden = true;
     const showSelectors = [
       ".sd-hero", ".sd-controls", ".sd-breadcrumb", ".sd-scope-note",
-      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]",
+      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]", "[data-accounting-card-panel]",
       ".sd-tabs", "[data-content]"
     ];
     showSelectors.forEach(sel => { const n = this.el(sel); if (n) n.hidden = false; });
@@ -1086,6 +1106,905 @@ frappe.SarathiIndustrialDashboard = class {
           <button class="sd-button" data-sub-orders-page="${page + 1}" ${(page + 1) * pageSize >= total ? "disabled" : ""}>Next</button>
         </div>
       ` : ''}
+    `;
+  }
+
+  // ==========================================
+  // SARATHI ACCOUNTING CONTROL TOWER
+  // ==========================================
+
+  renderAccountingCard() {
+    const container = this.el("[data-accounting-cards]");
+    if (!container) return;
+    const a = this.data?.accounting_summary || {
+      currency: "INR", revenue: 0, expense: 0, net_profit: 0, net_margin: 0,
+      receivables: 0, payables: 0, cash_and_bank: 0, budget_used_pct: 0
+    };
+    const sym = a.currency === "INR" ? "₹" : (a.currency ? a.currency + " " : "₹");
+    const isProfit = a.net_profit >= 0;
+    const profitSign = isProfit ? "+" : "";
+    container.innerHTML = `
+      <button class="sd-card sd-accounting-main-card" data-action="open-accounting" title="Click to open Accounting Control Tower">
+        <div class="sd-acc-card-top-strip"></div>
+        <div class="sd-acc-card-header">
+          <div class="sd-acc-card-title-wrap">
+            <span class="sd-acc-card-icon">🏛️</span>
+            <div>
+              <div class="sd-acc-card-tag">FINANCE & ACCOUNTING</div>
+              <h3>Accounting Control Tower</h3>
+            </div>
+          </div>
+          <span class="sd-pill ${isProfit ? 'sd-status-green' : 'sd-status-red'}">
+            ${isProfit ? '▲ Net Profit' : '▼ Net Loss'} ${profitSign}${this.formatCompact(a.net_profit, sym)} (${a.net_margin}%)
+          </span>
+        </div>
+        <div class="sd-acc-card-main-val">
+          <small>Net Financial Result</small>
+          <strong class="${isProfit ? 'sd-acc-positive' : 'sd-acc-negative'}">${profitSign}${this.formatCompact(a.net_profit, sym)}</strong>
+        </div>
+        <div class="sd-acc-card-chips">
+          <div class="sd-acc-chip sd-acc-chip-blue" title="Gross Income / Sales">
+            <span>Revenue</span>
+            <b>${this.formatCompact(a.revenue, sym)}</b>
+          </div>
+          <div class="sd-acc-chip sd-acc-chip-rose" title="Total Expenses">
+            <span>Expenses</span>
+            <b>${this.formatCompact(a.expense, sym)}</b>
+          </div>
+          <div class="sd-acc-chip sd-acc-chip-amber" title="Receivables (AR)">
+            <span>AR</span>
+            <b>${this.formatCompact(a.receivables, sym)}</b>
+          </div>
+          <div class="sd-acc-chip sd-acc-chip-crimson" title="Payables (AP)">
+            <span>AP</span>
+            <b>${this.formatCompact(a.payables, sym)}</b>
+          </div>
+          <div class="sd-acc-chip sd-acc-chip-teal" title="Cash & Bank Balances">
+            <span>Bank & Cash</span>
+            <b>${this.formatCompact(a.cash_and_bank, sym)}</b>
+          </div>
+          <div class="sd-acc-chip sd-acc-chip-purple" title="Budget Utilization">
+            <span>Budget</span>
+            <b>${a.budget_used_pct}%</b>
+          </div>
+        </div>
+        <div class="sd-acc-card-footer">
+          <span>Traceable to ERPNext GL & Payment Ledger</span>
+          <small>Open Accounting Control Tower →</small>
+        </div>
+      </button>
+    `;
+  }
+
+  showAccountingView() {
+    const hideSelectors = [
+      ".sd-hero", ".sd-controls", ".sd-breadcrumb", ".sd-scope-note",
+      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]", "[data-accounting-card-panel]",
+      "[data-customer-panel]", "[data-project-panel]", "[data-project-summary]",
+      ".sd-tabs", "[data-content]"
+    ];
+    hideSelectors.forEach(sel => { const n = this.el(sel); if (n) n.hidden = true; });
+    const viewEl = this.el("[data-accounting-view]");
+    if (viewEl) viewEl.hidden = false;
+    if (this.filters.company && !this.accFilters.company) this.accFilters.company = this.filters.company;
+    if (this.filters.project && !this.accFilters.project) this.accFilters.project = this.filters.project;
+    this.loadAccountingData();
+  }
+
+  hideAccountingView() {
+    const viewEl = this.el("[data-accounting-view]");
+    if (viewEl) viewEl.hidden = true;
+    const showSelectors = [
+      ".sd-hero", ".sd-controls", ".sd-breadcrumb", ".sd-scope-note",
+      ".sd-kpis", "[data-live-projects]", "[data-subcontracting-card-panel]", "[data-accounting-card-panel]",
+      ".sd-tabs", "[data-content]"
+    ];
+    showSelectors.forEach(sel => { const n = this.el(sel); if (n) n.hidden = false; });
+    if (this.el("[data-customer-panel]")) this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
+    if (this.el("[data-project-panel]")) this.el("[data-project-panel]").hidden = !!this.filters.project;
+    if (this.el("[data-project-summary]")) this.el("[data-project-summary]").hidden = !this.filters.project;
+  }
+
+  openAccountingView() {
+    this.view = "accounting";
+    this.writeUrl();
+    this.showAccountingView();
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  closeAccountingView() {
+    this.view = "";
+    this.writeUrl();
+    this.hideAccountingView();
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  accFilterChanged(target) {
+    this.accFilters[target.dataset.accFilter] = target.value;
+  }
+
+  applyAccFilters() {
+    for (const sel of ["company", "project", "customer", "supplier", "cost_center", "from_date", "to_date"]) {
+      const inp = this.el(`[data-acc-filter="${sel}"]`);
+      if (inp) this.accFilters[sel] = inp.value;
+    }
+    this.loadAccountingData();
+  }
+
+  resetAccFilters() {
+    this.accFilters = {period: "this_month", company: "", project: "", customer: "", supplier: "", cost_center: "", account: "", from_date: "", to_date: ""};
+    this.accSearch = "";
+    this.loadAccountingData();
+  }
+
+  setAccPeriod(period) {
+    this.accFilters.period = period;
+    if (period !== "custom") {
+      this.accFilters.from_date = "";
+      this.accFilters.to_date = "";
+    }
+    this.loadAccountingData();
+  }
+
+  setAccTab(tab) {
+    this.accTab = tab;
+    this.renderAccountingDetailView();
+  }
+
+  async loadAccountingData(silent = false) {
+    const viewEl = this.el("[data-accounting-view]");
+    if (!viewEl) return;
+    if (!silent) {
+      viewEl.innerHTML = `
+        <div class="sd-sub-loading">
+          <div class="sd-sub-spinner"></div>
+          <span>Loading Sarathi Accounting Intelligence…</span>
+        </div>
+      `;
+    }
+    try {
+      const r = await frappe.call({
+        method: "sarathi_visibility.api.accounting.get_accounting_dashboard",
+        args: {filters: JSON.stringify(this.accFilters)},
+        silent: true
+      });
+      this.accData = r.message;
+      this.renderAccountingDetailView();
+    } catch (e) {
+      console.error("Failed to load accounting data:", e);
+      viewEl.innerHTML = `
+        <div class="sd-sub-error">
+          <h3>Accounting Data Unavailable</h3>
+          <p>Could not fetch accounting intelligence records. Check permissions for General Ledger and accounts.</p>
+          <button class="sd-button" data-action="refresh-accounting">Retry</button>
+          <button class="sd-button" data-action="close-accounting">← Return to Dashboard</button>
+        </div>
+      `;
+    }
+  }
+
+  renderAccountingDetailView() {
+    const viewEl = this.el("[data-accounting-view]");
+    if (!viewEl || !this.accData) return;
+    const d = this.accData;
+    const sym = d.currency === "INR" ? "₹" : (d.currency ? d.currency + " " : "₹");
+    const periods = [
+      {k: "today", l: "Today"},
+      {k: "yesterday", l: "Yesterday"},
+      {k: "this_week", l: "This Week"},
+      {k: "this_month", l: "This Month"},
+      {k: "last_month", l: "Last Month"},
+      {k: "this_quarter", l: "This Quarter"},
+      {k: "this_year", l: "This Year"},
+      {k: "last_year", l: "Last Year"},
+      {k: "custom", l: "Custom Range"}
+    ];
+    const tabs = [
+      {k: "overview", l: "📊 Overview & P&L", icon: "📊"},
+      {k: "cash", l: "💵 Cash & Liquidity", icon: "💵"},
+      {k: "ageing", l: "⏱️ Receivables & Payables", icon: "⏱️"},
+      {k: "budget", l: "⚖️ Taxes & Budget", icon: "⚖️"},
+      {k: "projects", l: "🏗️ Project Finance", icon: "🏗️"},
+      {k: "audit", l: "✅ Month-End Checklist", icon: "✅"}
+    ];
+
+    viewEl.innerHTML = `
+      <div class="sd-acc-container">
+        <!-- Hero Header -->
+        <header class="sd-hero sd-acc-hero">
+          <div>
+            <div class="sd-eyebrow">SARATHI AI LABS · FINANCE → ACCOUNTING CONTROL TOWER</div>
+            <h1>Accounting Control Tower</h1>
+            <p>Executive management intelligence · ERPNext General Ledger & Payment Ledger system of record</p>
+          </div>
+          <div class="sd-hero-actions">
+            <button class="sd-button sd-acc-back-btn" data-action="close-accounting">← Back to Dashboard</button>
+            <button class="sd-button" data-action="refresh-accounting">↻ Refresh</button>
+          </div>
+        </header>
+
+        <!-- Global Filter Bar -->
+        <section class="sd-acc-filter-section" aria-label="Accounting Filters">
+          <div class="sd-acc-period-bar">
+            <span class="sd-acc-period-label">Period:</span>
+            <div class="sd-acc-period-pills">
+              ${periods.map(p => `
+                <button class="sd-acc-period-pill ${this.accFilters.period === p.k ? 'active' : ''}" data-acc-period="${p.k}">
+                  ${p.l}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="sd-controls sd-acc-controls">
+            <label>Organization
+              <select data-acc-filter="company">
+                <option value="">All organizations</option>
+                ${(d.options?.companies || []).map(c => `<option value="${this.esc(c.name)}" ${this.accFilters.company === c.name ? "selected" : ""}>${this.esc(c.company_name || c.name)}</option>`).join("")}
+              </select>
+            </label>
+            <label>Project
+              <select data-acc-filter="project">
+                <option value="">All projects</option>
+                ${(d.options?.projects || []).map(p => `<option value="${this.esc(p.name)}" ${this.accFilters.project === p.name ? "selected" : ""}>${this.esc(p.project_name || p.name)}</option>`).join("")}
+              </select>
+            </label>
+            <label>Cost Center
+              <select data-acc-filter="cost_center">
+                <option value="">All cost centers</option>
+                ${(d.options?.cost_centers || []).map(cc => `<option value="${this.esc(cc.name)}" ${this.accFilters.cost_center === cc.name ? "selected" : ""}>${this.esc(cc.cost_center_name || cc.name)}</option>`).join("")}
+              </select>
+            </label>
+            <label>From Date
+              <input type="date" data-acc-filter="from_date" value="${this.esc(this.accFilters.from_date || d.period_dates.start_date)}">
+            </label>
+            <label>To Date
+              <input type="date" data-acc-filter="to_date" value="${this.esc(this.accFilters.to_date || d.period_dates.end_date)}">
+            </label>
+            <button class="sd-button sd-primary" data-action="apply-acc-filters">Apply Filters</button>
+            <button class="sd-button" data-action="reset-acc-filters">Reset</button>
+          </div>
+          <div class="sd-acc-date-badge">
+            <span>Active Range: <b>${this.esc(d.period_dates.start_date)}</b> to <b>${this.esc(d.period_dates.end_date)}</b></span>
+            <span>· Comparison Base: <b>${this.esc(d.period_dates.prev_start)}</b> to <b>${this.esc(d.period_dates.prev_end)}</b></span>
+          </div>
+        </section>
+
+        <!-- 9 Core Overview KPI Strip (Page 5 & 14) -->
+        <section class="sd-acc-kpis-grid" aria-label="9 Core Accounting KPIs">
+          ${this.renderAccountingKpis(d.kpis, sym)}
+        </section>
+
+        <!-- Navigation Sub-Tabs -->
+        <nav class="sd-acc-tabs" role="tablist">
+          ${tabs.map(t => `
+            <button class="sd-acc-tab-btn ${this.accTab === t.k ? 'active' : ''}" data-acc-tab="${t.k}">
+              ${t.l}
+            </button>
+          `).join("")}
+        </nav>
+
+        <!-- Dynamic Content Area -->
+        <div class="sd-acc-tab-content">
+          ${this.accTab === "overview" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderProfitWaterfall(d.waterfall, sym)}
+              <div class="sd-acc-grid-2">
+                ${this.renderRevenueExpenseTrend(d.trends, sym)}
+                ${this.renderExpenseCategories(d.expense_categories, sym)}
+              </div>
+            </div>
+          ` : ''}
+
+          ${this.accTab === "cash" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderCashLiquidity(d.cash_control, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "ageing" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderAgeingSection(d.ageing, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "budget" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderBudgetTaxes(d.budget_vs_actual, d.kpis.tax_liability, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "projects" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderProjectFinance(d.project_finance, sym)}
+            </div>
+          ` : ''}
+
+          ${this.accTab === "audit" ? `
+            <div class="sd-acc-section-block">
+              ${this.renderAuditChecklist(d.checklist)}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  renderAccountingKpis(k, sym) {
+    if (!k) return "";
+    const items = [
+      {
+        id: "rev", label: "Total Revenue", val: this.formatCompact(k.revenue.value, sym),
+        sub: `${k.revenue.change >= 0 ? '▲ +' : '▼ '}${k.revenue.change}% vs prev period`,
+        subClass: k.revenue.change >= 0 ? "sd-acc-green" : "sd-acc-red",
+        accent: "blue", icon: "📈",
+        report: "Sales Invoice", reportLink: "/desk/query-report/General Ledger?account_type=Income Account"
+      },
+      {
+        id: "exp", label: "Total Expenses", val: this.formatCompact(k.expense.value, sym),
+        sub: `COGS: ${this.formatCompact(k.expense.cogs, sym)} · OpEx: ${this.formatCompact(k.expense.opex, sym)}`,
+        subClass: "sd-acc-sub",
+        accent: "rose", icon: "📉",
+        report: "Purchase Invoice", reportLink: "/desk/query-report/General Ledger?account_type=Expense Account"
+      },
+      {
+        id: "np", label: "Net Profit", val: this.formatCompact(k.net_profit.value, sym),
+        sub: `Net Margin: ${k.net_profit.margin}% · ${k.net_profit.change >= 0 ? '▲ +' : '▼ '}${k.net_profit.change}%`,
+        subClass: k.net_profit.value >= 0 ? "sd-acc-green" : "sd-acc-red",
+        accent: "emerald", icon: "💎",
+        report: "Profit and Loss", reportLink: "/desk/query-report/Profit and Loss Statement"
+      },
+      {
+        id: "cash", label: "Cash in Hand", val: this.formatCompact(k.cash_in_hand.value, sym),
+        sub: "Liquid cash account balance",
+        subClass: "sd-acc-sub",
+        accent: "sky", icon: "💵",
+        report: "GL Entry", reportLink: "/desk/query-report/General Ledger?account_type=Cash"
+      },
+      {
+        id: "ar", label: "Receivables (AR)", val: this.formatCompact(k.receivables.value, sym),
+        sub: `Overdue: ${this.formatCompact(k.receivables.overdue, sym)} (${k.receivables.count} invoices)`,
+        subClass: k.receivables.overdue > 0 ? "sd-acc-orange" : "sd-acc-green",
+        accent: "amber", icon: "📥",
+        report: "Accounts Receivable", reportLink: "/desk/query-report/Accounts Receivable"
+      },
+      {
+        id: "ap", label: "Payables (AP)", val: this.formatCompact(k.payables.value, sym),
+        sub: `Overdue: ${this.formatCompact(k.payables.overdue, sym)} (${k.payables.count} bills)`,
+        subClass: k.payables.overdue > 0 ? "sd-acc-red" : "sd-acc-sub",
+        accent: "crimson", icon: "📤",
+        report: "Accounts Payable", reportLink: "/desk/query-report/Accounts Payable"
+      },
+      {
+        id: "tax", label: "Tax Liability", val: this.formatCompact(k.tax_liability.value, sym),
+        sub: `Output: ${this.formatCompact(k.tax_liability.output_tax, sym)} · Input: ${this.formatCompact(k.tax_liability.input_tax, sym)}`,
+        subClass: "sd-acc-sub",
+        accent: "orange", icon: "⚖️",
+        report: "Tax Detail", reportLink: "/desk/query-report/General Ledger?account_type=Tax"
+      },
+      {
+        id: "bgt", label: "Budget Used", val: `${k.budget_used.pct}%`,
+        sub: `Approved: ${this.formatCompact(k.budget_used.approved, sym)}`,
+        subClass: k.budget_used.pct > 100 ? "sd-acc-red" : "sd-acc-purple",
+        accent: "purple", icon: "🎯",
+        report: "Budget Variance", reportLink: "/desk/query-report/Budget Variance Report"
+      },
+      {
+        id: "bank", label: "Bank Balance", val: this.formatCompact(k.bank_balance.value, sym),
+        sub: `${k.bank_balance.accounts_count} active bank account(s)`,
+        subClass: "sd-acc-sub",
+        accent: "teal", icon: "🏦",
+        report: "Bank Clearance", reportLink: "/desk/query-report/Bank Clearance Summary"
+      }
+    ];
+
+    return items.map(it => `
+      <div class="sd-acc-kpi-card sd-acc-kpi-${it.accent}">
+        <div class="sd-acc-kpi-bar"></div>
+        <div class="sd-acc-kpi-head">
+          <span class="sd-acc-kpi-icon">${it.icon}</span>
+          <span class="sd-acc-kpi-label">${it.label}</span>
+        </div>
+        <div class="sd-acc-kpi-value">${it.val}</div>
+        <div class="sd-acc-kpi-sub ${it.subClass}">${it.sub}</div>
+        <a class="sd-acc-kpi-link" href="${it.reportLink}" target="_blank" rel="noopener">Trace to Ledger ↗</a>
+      </div>
+    `).join("");
+  }
+
+  renderProfitWaterfall(w, sym) {
+    if (!w) return "";
+    const isProfit = w.net_profit >= 0;
+    return `
+      <div class="sd-panel sd-acc-waterfall-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Profitability Waterfall Architecture (Page 7)</h2>
+            <p>Explaining how Revenue translates into Gross Profit, Operating Profit and Net Profit</p>
+          </div>
+          <span class="sd-pill ${isProfit ? 'sd-status-green' : 'sd-status-red'}">
+            Net Margin: ${w.net_margin}%
+          </span>
+        </div>
+        <div class="sd-acc-waterfall-container">
+          <div class="sd-acc-wf-step sd-acc-wf-inflow">
+            <div class="sd-acc-wf-badge">1. INFLOW</div>
+            <div class="sd-acc-wf-val">+${this.formatCompact(w.gross_revenue, sym)}</div>
+            <div class="sd-acc-wf-title">Gross Revenue</div>
+            <small>Sales Invoices & Income</small>
+          </div>
+          <div class="sd-acc-wf-connector">➔</div>
+
+          <div class="sd-acc-wf-step sd-acc-wf-outflow">
+            <div class="sd-acc-wf-badge">2. DIRECT</div>
+            <div class="sd-acc-wf-val">-${this.formatCompact(w.cogs, sym)}</div>
+            <div class="sd-acc-wf-title">COGS</div>
+            <small>Direct Material & Production</small>
+          </div>
+          <div class="sd-acc-wf-connector">➔</div>
+
+          <div class="sd-acc-wf-step sd-acc-wf-subtotal">
+            <div class="sd-acc-wf-badge">3. SUB-RESULT</div>
+            <div class="sd-acc-wf-val">${this.formatCompact(w.gross_profit, sym)}</div>
+            <div class="sd-acc-wf-title">Gross Profit</div>
+            <small>${w.gross_margin}% Margin</small>
+          </div>
+          <div class="sd-acc-wf-connector">➔</div>
+
+          <div class="sd-acc-wf-step sd-acc-wf-outflow">
+            <div class="sd-acc-wf-badge">4. OVERHEAD</div>
+            <div class="sd-acc-wf-val">-${this.formatCompact(w.operating_expense, sym)}</div>
+            <div class="sd-acc-wf-title">Operating Expenses</div>
+            <small>Admin, Selling, Utilities</small>
+          </div>
+          <div class="sd-acc-wf-connector">➔</div>
+
+          <div class="sd-acc-wf-step sd-acc-wf-subtotal">
+            <div class="sd-acc-wf-badge">5. OPERATING</div>
+            <div class="sd-acc-wf-val">${this.formatCompact(w.operating_profit, sym)}</div>
+            <div class="sd-acc-wf-title">Operating Profit</div>
+            <small>EBIT Operational Base</small>
+          </div>
+          <div class="sd-acc-wf-connector">➔</div>
+
+          <div class="sd-acc-wf-step sd-acc-wf-outflow">
+            <div class="sd-acc-wf-badge">6. DEDUCTIONS</div>
+            <div class="sd-acc-wf-val">-${this.formatCompact(w.finance_cost + w.tax_expense, sym)}</div>
+            <div class="sd-acc-wf-title">Finance & Taxes</div>
+            <small>Interest, GST/VAT & Taxes</small>
+          </div>
+          <div class="sd-acc-wf-connector">➔</div>
+
+          <div class="sd-acc-wf-step sd-acc-wf-final ${isProfit ? 'positive' : 'negative'}">
+            <div class="sd-acc-wf-badge">7. BOTTOM LINE</div>
+            <div class="sd-acc-wf-val">${isProfit ? '+' : ''}${this.formatCompact(w.net_profit, sym)}</div>
+            <div class="sd-acc-wf-title">Net Profit</div>
+            <small>${w.net_margin}% Net Margin</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderRevenueExpenseTrend(trends, sym) {
+    if (!trends || !trends.labels || !trends.labels.length) return "";
+    const maxVal = Math.max(...trends.revenue, ...trends.expense, 100);
+    const n = trends.labels.length;
+    const w = 620, h = 200, padLeft = 45, padRight = 20, padTop = 20, padBottom = 30;
+    const plotW = w - padLeft - padRight;
+    const plotH = h - padTop - padBottom;
+
+    const getX = i => padLeft + (i / (n - 1 || 1)) * plotW;
+    const getY = v => padTop + plotH - (Math.max(0, v) / maxVal) * plotH;
+
+    const revPoints = trends.revenue.map((v, i) => `${getX(i)},${getY(v)}`).join(" ");
+    const expPoints = trends.expense.map((v, i) => `${getX(i)},${getY(v)}`).join(" ");
+    const profitPoints = trends.profit.map((v, i) => `${getX(i)},${getY(v)}`).join(" ");
+
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Revenue vs Expense Trend (Last 6 Months)</h2>
+            <p>Monthly performance from submitted GL entries</p>
+          </div>
+          <div class="sd-acc-chart-legend">
+            <span class="sd-acc-leg-item"><i style="background:#2563eb"></i> Revenue</span>
+            <span class="sd-acc-leg-item"><i style="background:#e11d48"></i> Expenses</span>
+            <span class="sd-acc-leg-item"><i style="background:#059669"></i> Profit</span>
+          </div>
+        </div>
+        <div class="sd-acc-svg-wrap">
+          <svg class="sd-acc-trend-svg" viewBox="0 0 ${w} ${h}">
+            <!-- Grid Lines -->
+            <line x1="${padLeft}" y1="${padTop}" x2="${w - padRight}" y2="${padTop}" stroke="#f1f5f9" stroke-width="1" />
+            <line x1="${padLeft}" y1="${padTop + plotH / 2}" x2="${w - padRight}" y2="${padTop + plotH / 2}" stroke="#f1f5f9" stroke-width="1" />
+            <line x1="${padLeft}" y1="${padTop + plotH}" x2="${w - padRight}" y2="${padTop + plotH}" stroke="#e2e8f0" stroke-width="1" />
+
+            <!-- Polylines -->
+            <polyline fill="none" stroke="#2563eb" stroke-width="3" points="${revPoints}" />
+            <polyline fill="none" stroke="#e11d48" stroke-width="3" stroke-dasharray="4" points="${expPoints}" />
+            <polyline fill="none" stroke="#059669" stroke-width="3" points="${profitPoints}" />
+
+            <!-- Circles -->
+            ${trends.revenue.map((v, i) => `<circle cx="${getX(i)}" cy="${getY(v)}" r="4" fill="#2563eb"><title>Revenue: ${this.formatCompact(v, sym)}</title></circle>`).join("")}
+            ${trends.expense.map((v, i) => `<circle cx="${getX(i)}" cy="${getY(v)}" r="4" fill="#e11d48"><title>Expense: ${this.formatCompact(v, sym)}</title></circle>`).join("")}
+            ${trends.profit.map((v, i) => `<circle cx="${getX(i)}" cy="${getY(v)}" r="4" fill="#059669"><title>Profit: ${this.formatCompact(v, sym)}</title></circle>`).join("")}
+
+            <!-- X Labels -->
+            ${trends.labels.map((l, i) => `<text x="${getX(i)}" y="${h - 8}" text-anchor="middle" font-size="11" fill="#64748b">${this.esc(l)}</text>`).join("")}
+          </svg>
+        </div>
+      </div>
+    `;
+  }
+
+  renderExpenseCategories(categories, sym) {
+    if (!categories || !categories.length) return "";
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Expense Composition by Category (Page 6)</h2>
+            <p>Operational cost allocation across accounting groups</p>
+          </div>
+        </div>
+        <div class="sd-acc-categories-list">
+          ${categories.map(c => `
+            <div class="sd-acc-cat-row">
+              <div class="sd-acc-cat-header">
+                <span class="sd-acc-cat-name">${this.esc(c.category)}</span>
+                <span class="sd-acc-cat-val">${this.formatCompact(c.amount, sym)} <b>(${c.pct}%)</b></span>
+              </div>
+              <div class="sd-progress sd-acc-cat-bar">
+                <i style="width:${Math.min(100, c.pct)}%; background:${c.color};"></i>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  renderCashLiquidity(cash, sym) {
+    if (!cash) return "";
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Cash & Liquidity Control Tower (Page 7)</h2>
+            <p>Cash movement, active bank balances and real-time reconciliation</p>
+          </div>
+          <span class="sd-pill sd-status-blue">Total Liquid Funds: ${this.formatCompact(cash.total_cash, sym)}</span>
+        </div>
+
+        <div class="sd-acc-kpis-grid sd-acc-cash-strip">
+          <div class="sd-acc-kpi-card sd-acc-kpi-teal">
+            <div class="sd-acc-kpi-bar"></div>
+            <div class="sd-acc-kpi-label">Bank Balances</div>
+            <div class="sd-acc-kpi-value">${this.formatCompact(cash.bank_balance, sym)}</div>
+            <small class="sd-acc-sub">Across all connected accounts</small>
+          </div>
+          <div class="sd-acc-kpi-card sd-acc-kpi-sky">
+            <div class="sd-acc-kpi-bar"></div>
+            <div class="sd-acc-kpi-label">Cash in Hand</div>
+            <div class="sd-acc-kpi-value">${this.formatCompact(cash.cash_in_hand, sym)}</div>
+            <small class="sd-acc-sub">Petty cash & physical drawers</small>
+          </div>
+          <div class="sd-acc-kpi-card sd-acc-kpi-emerald">
+            <div class="sd-acc-kpi-bar"></div>
+            <div class="sd-acc-kpi-label">Customer Collections</div>
+            <div class="sd-acc-kpi-value">${this.formatCompact(cash.collections, sym)}</div>
+            <small class="sd-acc-green">Payment Entries received</small>
+          </div>
+          <div class="sd-acc-kpi-card sd-acc-kpi-crimson">
+            <div class="sd-acc-kpi-bar"></div>
+            <div class="sd-acc-kpi-label">Supplier Payments</div>
+            <div class="sd-acc-kpi-value">${this.formatCompact(cash.supplier_payments, sym)}</div>
+            <small class="sd-acc-red">Payment Entries disbursed</small>
+          </div>
+          <div class="sd-acc-kpi-card ${cash.net_cash_movement >= 0 ? 'sd-acc-kpi-emerald' : 'sd-acc-kpi-rose'}">
+            <div class="sd-acc-kpi-bar"></div>
+            <div class="sd-acc-kpi-label">Net Cash Movement</div>
+            <div class="sd-acc-kpi-value">${cash.net_cash_movement >= 0 ? '+' : ''}${this.formatCompact(cash.net_cash_movement, sym)}</div>
+            <small class="${cash.net_cash_movement >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">Inflow minus Outflow</small>
+          </div>
+        </div>
+
+        <h3 class="sd-acc-subhead">Bank Accounts Ledger Status</h3>
+        <div class="sd-table-wrap">
+          <table class="sd-table">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Currency</th>
+                <th>Current Balance</th>
+                <th>Reconciliation</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(cash.bank_accounts || []).map(b => `
+                <tr>
+                  <td><strong>${this.link("Account", b.account, b.account_name || b.account)}</strong></td>
+                  <td>${this.esc(b.account_type)}</td>
+                  <td><span class="sd-pill">${this.esc(b.currency)}</span></td>
+                  <td><b>${this.formatCompact(b.balance, sym)}</b></td>
+                  <td><span class="sd-pill sd-status-green">● ${this.esc(b.reconciliation_status)}</span></td>
+                  <td>
+                    <a class="sd-text-button" href="/desk/query-report/General Ledger?account=${encodeURIComponent(b.account)}" target="_blank" rel="noopener">Ledger ↗</a>
+                  </td>
+                </tr>
+              `).join("") || '<tr><td colspan="6" class="sd-empty">No Bank/Cash accounts found for this selection.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  renderAgeingSection(ageing, sym) {
+    if (!ageing) return "";
+    const ar = ageing.receivables || {buckets: {}, items: []};
+    const ap = ageing.payables || {buckets: {}, items: []};
+
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Receivables & Payables Ageing Control (Page 8)</h2>
+            <p>Aging analysis, credit exposure and payment obligation tracking</p>
+          </div>
+        </div>
+
+        <div class="sd-acc-grid-2">
+          <!-- Receivables Ageing Buckets -->
+          <div class="sd-acc-sub-panel">
+            <h3 class="sd-acc-subhead">📥 Accounts Receivable (AR) Ageing</h3>
+            <div class="sd-acc-buckets-grid">
+              <div class="sd-acc-bucket-box">
+                <span>Current</span>
+                <strong>${this.formatCompact(ar.buckets.current, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>1–30 Days</span>
+                <strong class="sd-acc-amber">${this.formatCompact(ar.buckets.days_1_30, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>31–60 Days</span>
+                <strong class="sd-acc-orange">${this.formatCompact(ar.buckets.days_31_60, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>61–90 Days</span>
+                <strong class="sd-acc-red">${this.formatCompact(ar.buckets.days_61_90, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>90+ Days</span>
+                <strong class="sd-acc-red">${this.formatCompact(ar.buckets.days_90_plus, sym)}</strong>
+              </div>
+            </div>
+            <div class="sd-table-wrap">
+              <table class="sd-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Invoice</th>
+                    <th>Due Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(ar.items || []).slice(0, 8).map(it => `
+                    <tr>
+                      <td>${this.esc(it.party)}</td>
+                      <td>${this.link("Sales Invoice", it.document)}</td>
+                      <td>${this.esc(it.due_date)}</td>
+                      <td><b>${this.formatCompact(it.amount, sym)}</b></td>
+                      <td><span class="sd-pill ${it.is_overdue ? 'sd-status-red' : 'sd-status-green'}">${it.status}</span></td>
+                    </tr>
+                  `).join("") || '<tr><td colspan="5" class="sd-empty">No outstanding customer invoices.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Payables Ageing Buckets -->
+          <div class="sd-acc-sub-panel">
+            <h3 class="sd-acc-subhead">📤 Accounts Payable (AP) Ageing</h3>
+            <div class="sd-acc-buckets-grid">
+              <div class="sd-acc-bucket-box">
+                <span>Due This Week</span>
+                <strong>${this.formatCompact(ap.buckets.due_week, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>Due This Month</span>
+                <strong class="sd-acc-amber">${this.formatCompact(ap.buckets.due_month, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>31–60 Days</span>
+                <strong class="sd-acc-orange">${this.formatCompact(ap.buckets.days_31_60, sym)}</strong>
+              </div>
+              <div class="sd-acc-bucket-box">
+                <span>90+ Days</span>
+                <strong class="sd-acc-red">${this.formatCompact(ap.buckets.days_90_plus, sym)}</strong>
+              </div>
+            </div>
+            <div class="sd-table-wrap">
+              <table class="sd-table">
+                <thead>
+                  <tr>
+                    <th>Supplier</th>
+                    <th>Bill</th>
+                    <th>Due Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(ap.items || []).slice(0, 8).map(it => `
+                    <tr>
+                      <td>${this.esc(it.party)}</td>
+                      <td>${this.link("Purchase Invoice", it.document)}</td>
+                      <td>${this.esc(it.due_date)}</td>
+                      <td><b>${this.formatCompact(it.amount, sym)}</b></td>
+                      <td><span class="sd-pill ${it.is_overdue ? 'sd-status-red' : 'sd-status-blue'}">${it.status}</span></td>
+                    </tr>
+                  `).join("") || '<tr><td colspan="5" class="sd-empty">No outstanding supplier payables.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderBudgetTaxes(bva, taxes, sym) {
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Taxes & Budget Control Tower (Page 9)</h2>
+            <p>Budget variance, statutory liabilities and tax optimization</p>
+          </div>
+        </div>
+
+        <div class="sd-acc-grid-2">
+          <!-- Tax KPIs -->
+          <div class="sd-acc-sub-panel">
+            <h3 class="sd-acc-subhead">Statutory & Tax Liability</h3>
+            <div class="sd-acc-tax-cards">
+              <div class="sd-acc-tax-card">
+                <span>Output Tax (Sales GST/VAT)</span>
+                <strong>${this.formatCompact(taxes?.output_tax || 0, sym)}</strong>
+              </div>
+              <div class="sd-acc-tax-card">
+                <span>Input Tax (Purchases GST/VAT)</span>
+                <strong>${this.formatCompact(taxes?.input_tax || 0, sym)}</strong>
+              </div>
+              <div class="sd-acc-tax-card sd-acc-tax-highlight">
+                <span>Net Tax Liability</span>
+                <strong class="sd-acc-orange">${this.formatCompact(taxes?.value || 0, sym)}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget vs Actual Table -->
+          <div class="sd-acc-sub-panel">
+            <h3 class="sd-acc-subhead">Budget vs Actual Utilization</h3>
+            <div class="sd-table-wrap">
+              <table class="sd-table">
+                <thead>
+                  <tr>
+                    <th>Cost Center / Account</th>
+                    <th>Budget</th>
+                    <th>Actual</th>
+                    <th>Variance</th>
+                    <th>Utilization</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(bva || []).map(b => `
+                    <tr>
+                      <td><strong>${this.esc(b.cost_center)}</strong><br><small>${this.esc(b.account)}</small></td>
+                      <td>${this.formatCompact(b.budget, sym)}</td>
+                      <td>${this.formatCompact(b.actual, sym)}</td>
+                      <td class="${b.variance >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">
+                        ${b.variance >= 0 ? '+' : ''}${this.formatCompact(b.variance, sym)}
+                      </td>
+                      <td>
+                        <div class="sd-progress-cell">
+                          <span>${b.utilization}%</span>
+                          <div class="sd-progress">
+                            <i style="width:${Math.min(100, b.utilization)}%; background:${b.utilization > 100 ? '#dc2626' : '#7c3aed'};"></i>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join("") || '<tr><td colspan="5" class="sd-empty">No budget records found.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderProjectFinance(projects, sym) {
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Project Financial Intelligence (Page 10)</h2>
+            <p>Bridging manufacturing shop-floor execution with project commercial profitability</p>
+          </div>
+        </div>
+
+        <div class="sd-table-wrap">
+          <table class="sd-table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Customer</th>
+                <th>Contract Value</th>
+                <th>Invoiced</th>
+                <th>Collected</th>
+                <th>Outstanding</th>
+                <th>Total Cost</th>
+                <th>Profit</th>
+                <th>Margin %</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(projects || []).map(p => `
+                <tr>
+                  <td><strong>${this.link("Project", p.project, p.project_name)}</strong></td>
+                  <td>${this.esc(p.customer)}</td>
+                  <td>${this.formatCompact(p.contract_value, sym)}</td>
+                  <td>${this.formatCompact(p.invoiced, sym)}</td>
+                  <td>${this.formatCompact(p.collected, sym)}</td>
+                  <td><span class="${p.outstanding > 0 ? 'sd-acc-amber' : ''}">${this.formatCompact(p.outstanding, sym)}</span></td>
+                  <td>${this.formatCompact(p.total_cost, sym)}</td>
+                  <td class="${p.profit >= 0 ? 'sd-acc-green' : 'sd-acc-red'}">
+                    <b>${p.profit >= 0 ? '+' : ''}${this.formatCompact(p.profit, sym)}</b>
+                  </td>
+                  <td><span class="sd-pill ${p.margin_pct >= 20 ? 'sd-status-green' : (p.margin_pct >= 0 ? 'sd-status-blue' : 'sd-status-red')}">${p.margin_pct}%</span></td>
+                  <td>${this.badge(p.status)}</td>
+                </tr>
+              `).join("") || '<tr><td colspan="10" class="sd-empty">No project financial records found.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  renderAuditChecklist(checklist) {
+    return `
+      <div class="sd-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>Month-End & Year-End Control Tower Checklist (Page 16 & 17)</h2>
+            <p>Operational verification checklist ensuring GL integrity and reporting readiness</p>
+          </div>
+        </div>
+
+        <div class="sd-acc-checklist-grid">
+          ${(checklist || []).map(c => `
+            <div class="sd-acc-check-item ${c.done ? 'checked' : ''}">
+              <div class="sd-acc-check-box">${c.done ? '✓' : '○'}</div>
+              <div class="sd-acc-check-text">
+                <strong>${this.esc(c.check)}</strong>
+                <a href="/desk/query-report/${encodeURIComponent(c.report)}" target="_blank" rel="noopener">Open ${this.esc(c.report)} ↗</a>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
     `;
   }
 };
