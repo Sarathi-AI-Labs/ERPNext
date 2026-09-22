@@ -15,6 +15,7 @@ frappe.SarathiIndustrialDashboard = class {
     this.accData = null;
     this.accSearch = "";
     this.accTab = "overview";
+    this.accActiveKpi = "";
     this.search = ""; this.customerPage = this.projectPage = 0;
     this.tabs = {overview: "Overview", sales: "Sales", production: "Production", engineering: "Engineering & BOM", materials: "Materials & Stock", procurement: "Procurement", quality: "Quality & Rework", fulfillment: "Delivery & Billing", reports: "Reports", integrations: "Integrations"};
     this.tabReports = {sales: ["orders", "order_items"], procurement: ["requests", "purchases", "receipts", "purchase_invoices", "procurement_exceptions"], quality: ["quality", "job_cards", "job_logs", "job_suboperations"], fulfillment: ["deliveries", "sales_invoices"], production: ["part_production", "live_activity", "production_summary", "operation_balance", "work_orders", "job_cards", "workstations", "tasks"], engineering: ["tracking_setup", "boms", "components", "operations"], materials: ["material_history", "stock_details", "stock_ledger", "reservations", "wip_stock", "materials", "stock", "finished"], integrations: ["integrations"]};
@@ -235,6 +236,8 @@ frappe.SarathiIndustrialDashboard = class {
     else if (d.action === "refresh-accounting") this.loadAccountingData();
     else if (d.action === "apply-acc-filters") this.applyAccFilters();
     else if (d.action === "reset-acc-filters") this.resetAccFilters();
+    else if (d.action === "reset-kpi-selection") { this.accActiveKpi = ""; this.accTab = "overview"; this.renderAccountingDetailView(); }
+    else if (d.accKpi) this.selectAccKpi(d.accKpi, d.accTargetTab, d.accFocus);
     else if (d.accPeriod) this.setAccPeriod(d.accPeriod);
     else if (d.accTab) this.setAccTab(d.accTab);
     else if (d.quickDate) this.setQuickDate(d.quickDate);
@@ -1248,7 +1251,25 @@ frappe.SarathiIndustrialDashboard = class {
 
   setAccTab(tab) {
     this.accTab = tab;
+    this.accActiveKpi = "";
     this.renderAccountingDetailView();
+  }
+
+  selectAccKpi(kpiId, targetTab, focusAnchor) {
+    this.accActiveKpi = kpiId;
+    this.accTab = targetTab;
+    this.renderAccountingDetailView();
+    setTimeout(() => {
+      let targetEl = this.el(`[data-acc-section="${focusAnchor}"]`);
+      if (!targetEl) {
+        targetEl = this.el(".sd-acc-tab-content");
+      }
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        targetEl.classList.add("sd-acc-highlight-pulse");
+        setTimeout(() => targetEl.classList.remove("sd-acc-highlight-pulse"), 2000);
+      }
+    }, 80);
   }
 
   async loadAccountingData(silent = false) {
@@ -1375,6 +1396,9 @@ frappe.SarathiIndustrialDashboard = class {
           ${this.renderAccountingKpis(d.kpis, sym)}
         </section>
 
+        <!-- Active KPI Selection Header Banner -->
+        ${this.renderActiveKpiBanner()}
+
         <!-- Navigation Sub-Tabs -->
         <nav class="sd-acc-tabs" role="tablist">
           ${tabs.map(t => `
@@ -1422,6 +1446,43 @@ frappe.SarathiIndustrialDashboard = class {
             </div>
           ` : ''}
         </div>
+      </div>
+    `;
+  }
+
+  renderActiveKpiBanner() {
+    const kpiNames = {
+      rev: { title: "4. Total Revenue Analytics (Section 5)", desc: "Commercial performance, monthly moving average, collection rate, customer & project revenue", tab: "revenue_expense", icon: "📈" },
+      exp: { title: "5. Total Expense Intelligence (Section 5)", desc: "Operating & overhead costs, direct production COGS, cost center & project expense allocation", tab: "revenue_expense", icon: "📉" },
+      np: { title: "6. Profitability & Net Margins (Section 6)", desc: "7-step profitability waterfall explaining how gross revenue translates into net profit", tab: "profit_cash", icon: "💎" },
+      cash: { title: "6. Cash in Hand & Liquidity Control (Section 6)", desc: "Liquid cash balances, petty cash drawers, customer collections vs supplier disbursements", tab: "profit_cash", icon: "💵" },
+      bank: { title: "6. Bank Balances & Clearance (Section 6)", desc: "Active bank accounts, live balances, clearance tracking, and general ledger links", tab: "profit_cash", icon: "🏦" },
+      ar: { title: "7. Accounts Receivable (AR) Ageing Control (Section 7)", desc: "Customer outstanding ageing buckets (Current, 1–30d, 31–60d, 61–90d, 90+d) and invoices", tab: "receivables_payables", icon: "📥" },
+      ap: { title: "7. Accounts Payable (AP) Ageing Control (Section 7)", desc: "Supplier bills ageing buckets (Due This Week, Month, 31–60d, 90+d) and payment liabilities", tab: "receivables_payables", icon: "📤" },
+      tax: { title: "8. Statutory Tax & GST Liabilities (Section 8)", desc: "Sales output tax, purchase input tax credit (ITC offset), and net statutory liability", tab: "taxes_budget", icon: "⚖️" },
+      bgt: { title: "8. Departmental Budget vs Actual (Section 8)", desc: "Approved budget limits, actual debited expenses, variance, and utilization meters", tab: "taxes_budget", icon: "🎯" }
+    };
+    if (!this.accActiveKpi || !kpiNames[this.accActiveKpi]) {
+      return `
+        <div class="sd-acc-active-banner sd-acc-banner-neutral">
+          <div class="sd-acc-banner-info">
+            <span class="sd-acc-banner-pill">💡 Interactive Control Tower</span>
+            <span class="sd-acc-banner-text">Click any of the <b>9 KPI cards</b> above to immediately show its related details, reports & analytics below.</span>
+          </div>
+        </div>
+      `;
+    }
+    const info = kpiNames[this.accActiveKpi];
+    return `
+      <div class="sd-acc-active-banner sd-acc-banner-highlight">
+        <div class="sd-acc-banner-info">
+          <span class="sd-acc-banner-pill active">${info.icon} Selected Card Section</span>
+          <div>
+            <h4 class="sd-acc-banner-title">${info.title}</h4>
+            <p class="sd-acc-banner-desc">${info.desc}</p>
+          </div>
+        </div>
+        <button class="sd-button sd-acc-banner-btn" data-action="reset-kpi-selection">View Full Overview Dashboard</button>
       </div>
     `;
   }
@@ -1509,7 +1570,7 @@ frappe.SarathiIndustrialDashboard = class {
 
     return `
       <!-- Revenue KPIs (Page 6) -->
-      <div class="sd-panel">
+      <div class="sd-panel" data-acc-section="revenue">
         <div class="sd-panel-heading">
           <div>
             <h2>5. Revenue KPIs & Commercial Performance (Page 6)</h2>
@@ -1954,6 +2015,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `${k.revenue.change >= 0 ? '▲ +' : '▼ '}${k.revenue.change}% vs prev period`,
         subClass: k.revenue.change >= 0 ? "sd-acc-green" : "sd-acc-red",
         accent: "blue", icon: "📈",
+        tab: "revenue_expense", focus: "revenue",
         report: "Sales Invoice", reportLink: "/desk/query-report/General Ledger?account_type=Income Account"
       },
       {
@@ -1961,6 +2023,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `COGS: ${this.formatCompact(k.expense.cogs, sym)} · OpEx: ${this.formatCompact(k.expense.opex, sym)}`,
         subClass: "sd-acc-sub",
         accent: "rose", icon: "📉",
+        tab: "revenue_expense", focus: "expense",
         report: "Purchase Invoice", reportLink: "/desk/query-report/General Ledger?account_type=Expense Account"
       },
       {
@@ -1968,6 +2031,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `Net Margin: ${k.net_profit.margin}% · ${k.net_profit.change >= 0 ? '▲ +' : '▼ '}${k.net_profit.change}%`,
         subClass: k.net_profit.value >= 0 ? "sd-acc-green" : "sd-acc-red",
         accent: "emerald", icon: "💎",
+        tab: "profit_cash", focus: "waterfall",
         report: "Profit and Loss", reportLink: "/desk/query-report/Profit and Loss Statement"
       },
       {
@@ -1975,6 +2039,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: "Liquid cash account balance",
         subClass: "sd-acc-sub",
         accent: "sky", icon: "💵",
+        tab: "profit_cash", focus: "cash",
         report: "GL Entry", reportLink: "/desk/query-report/General Ledger?account_type=Cash"
       },
       {
@@ -1982,6 +2047,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `Overdue: ${this.formatCompact(k.receivables.overdue, sym)} (${k.receivables.count} invoices)`,
         subClass: k.receivables.overdue > 0 ? "sd-acc-orange" : "sd-acc-green",
         accent: "amber", icon: "📥",
+        tab: "receivables_payables", focus: "ar",
         report: "Accounts Receivable", reportLink: "/desk/query-report/Accounts Receivable"
       },
       {
@@ -1989,6 +2055,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `Overdue: ${this.formatCompact(k.payables.overdue, sym)} (${k.payables.count} bills)`,
         subClass: k.payables.overdue > 0 ? "sd-acc-red" : "sd-acc-sub",
         accent: "crimson", icon: "📤",
+        tab: "receivables_payables", focus: "ap",
         report: "Accounts Payable", reportLink: "/desk/query-report/Accounts Payable"
       },
       {
@@ -1996,6 +2063,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `Output: ${this.formatCompact(k.tax_liability.output_tax, sym)} · Input: ${this.formatCompact(k.tax_liability.input_tax, sym)}`,
         subClass: "sd-acc-sub",
         accent: "orange", icon: "⚖️",
+        tab: "taxes_budget", focus: "tax",
         report: "Tax Detail", reportLink: "/desk/query-report/General Ledger?account_type=Tax"
       },
       {
@@ -2003,6 +2071,7 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `Approved: ${this.formatCompact(k.budget_used.approved, sym)}`,
         subClass: k.budget_used.pct > 100 ? "sd-acc-red" : "sd-acc-purple",
         accent: "purple", icon: "🎯",
+        tab: "taxes_budget", focus: "budget",
         report: "Budget Variance", reportLink: "/desk/query-report/Budget Variance Report"
       },
       {
@@ -2010,29 +2079,37 @@ frappe.SarathiIndustrialDashboard = class {
         sub: `${k.bank_balance.accounts_count} active bank account(s)`,
         subClass: "sd-acc-sub",
         accent: "teal", icon: "🏦",
+        tab: "profit_cash", focus: "bank",
         report: "Bank Clearance", reportLink: "/desk/query-report/Bank Clearance Summary"
       }
     ];
 
-    return items.map(it => `
-      <div class="sd-acc-kpi-card sd-acc-kpi-${it.accent}">
-        <div class="sd-acc-kpi-bar"></div>
-        <div class="sd-acc-kpi-head">
-          <span class="sd-acc-kpi-icon">${it.icon}</span>
-          <span class="sd-acc-kpi-label">${it.label}</span>
-        </div>
-        <div class="sd-acc-kpi-value">${it.val}</div>
-        <div class="sd-acc-kpi-sub ${it.subClass}">${it.sub}</div>
-        <a class="sd-acc-kpi-link" href="${it.reportLink}" target="_blank" rel="noopener">Trace to Ledger ↗</a>
-      </div>
-    `).join("");
+    return items.map(it => {
+      const isActive = this.accActiveKpi === it.id;
+      return `
+        <button type="button" class="sd-acc-kpi-card sd-acc-kpi-${it.accent} ${isActive ? 'active' : ''}" data-acc-kpi="${it.id}" data-acc-target-tab="${it.tab}" data-acc-focus="${it.focus}" title="Click to view ${it.label} details">
+          <div class="sd-acc-kpi-bar"></div>
+          <div class="sd-acc-kpi-head">
+            <span class="sd-acc-kpi-icon">${it.icon}</span>
+            <span class="sd-acc-kpi-label">${it.label}</span>
+            <span class="sd-acc-kpi-badge">${isActive ? 'Active' : 'Details ➔'}</span>
+          </div>
+          <div class="sd-acc-kpi-value">${it.val}</div>
+          <div class="sd-acc-kpi-sub ${it.subClass}">${it.sub}</div>
+          <div class="sd-acc-kpi-foot">
+            <span class="sd-acc-kpi-hint">${isActive ? '▼ Viewing Section' : 'Click for details'}</span>
+            <a class="sd-acc-kpi-link" href="${it.reportLink}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Trace ↗</a>
+          </div>
+        </button>
+      `;
+    }).join("");
   }
 
   renderProfitWaterfall(w, sym) {
     if (!w) return "";
     const isProfit = w.net_profit >= 0;
     return `
-      <div class="sd-panel sd-acc-waterfall-panel">
+      <div class="sd-panel sd-acc-waterfall-panel" data-acc-section="waterfall">
         <div class="sd-panel-heading">
           <div>
             <h2>Profitability Waterfall Architecture (Page 7)</h2>
@@ -2158,7 +2235,7 @@ frappe.SarathiIndustrialDashboard = class {
   renderExpenseCategories(categories, sym) {
     if (!categories || !categories.length) return "";
     return `
-      <div class="sd-panel">
+      <div class="sd-panel" data-acc-section="expense">
         <div class="sd-panel-heading">
           <div>
             <h2>Expense Composition by Category (Page 6)</h2>
@@ -2185,7 +2262,7 @@ frappe.SarathiIndustrialDashboard = class {
   renderCashLiquidity(cash, sym) {
     if (!cash) return "";
     return `
-      <div class="sd-panel">
+      <div class="sd-panel" data-acc-section="cash">
         <div class="sd-panel-heading">
           <div>
             <h2>Cash & Liquidity Control Tower (Page 7)</h2>
@@ -2228,7 +2305,7 @@ frappe.SarathiIndustrialDashboard = class {
         </div>
 
         <h3 class="sd-acc-subhead">Bank Accounts Ledger Status</h3>
-        <div class="sd-table-wrap">
+        <div class="sd-table-wrap" data-acc-section="bank">
           <table class="sd-table">
             <thead>
               <tr>
@@ -2276,7 +2353,7 @@ frappe.SarathiIndustrialDashboard = class {
 
         <div class="sd-acc-grid-2">
           <!-- Receivables Ageing Buckets -->
-          <div class="sd-acc-sub-panel">
+          <div class="sd-acc-sub-panel" data-acc-section="ar">
             <h3 class="sd-acc-subhead">📥 Accounts Receivable (AR) Ageing</h3>
             <div class="sd-acc-buckets-grid">
               <div class="sd-acc-bucket-box">
@@ -2327,7 +2404,7 @@ frappe.SarathiIndustrialDashboard = class {
           </div>
 
           <!-- Payables Ageing Buckets -->
-          <div class="sd-acc-sub-panel">
+          <div class="sd-acc-sub-panel" data-acc-section="ap">
             <h3 class="sd-acc-subhead">📤 Accounts Payable (AP) Ageing</h3>
             <div class="sd-acc-buckets-grid">
               <div class="sd-acc-bucket-box">
@@ -2389,7 +2466,7 @@ frappe.SarathiIndustrialDashboard = class {
 
         <div class="sd-acc-grid-2">
           <!-- Tax KPIs -->
-          <div class="sd-acc-sub-panel">
+          <div class="sd-acc-sub-panel" data-acc-section="tax">
             <h3 class="sd-acc-subhead">Statutory & Tax Liability</h3>
             <div class="sd-acc-tax-cards">
               <div class="sd-acc-tax-card">
@@ -2408,7 +2485,7 @@ frappe.SarathiIndustrialDashboard = class {
           </div>
 
           <!-- Budget vs Actual Table -->
-          <div class="sd-acc-sub-panel">
+          <div class="sd-acc-sub-panel" data-acc-section="budget">
             <h3 class="sd-acc-subhead">Budget vs Actual Utilization</h3>
             <div class="sd-table-wrap">
               <table class="sd-table">

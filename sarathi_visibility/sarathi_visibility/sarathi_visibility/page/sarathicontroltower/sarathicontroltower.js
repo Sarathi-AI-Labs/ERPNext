@@ -1,5 +1,9 @@
 frappe.pages['sarathicontroltower'].on_page_load = function(wrapper) {
-  frappe.require(['/assets/sarathi_visibility/css/sarathi_dashboard.css', '/assets/sarathi_visibility/js/sarathi_dashboard.js'], () => {
+  const ver = frappe.boot?.versions?.sarathi_visibility || Date.now();
+  frappe.require([
+    `/assets/sarathi_visibility/css/sarathi_dashboard.css?v=${ver}`,
+    `/assets/sarathi_visibility/js/sarathi_dashboard.js?v=${ver}`
+  ], () => {
     wrapper.sarathi_dashboard = new frappe.SarathiIndustrialDashboard(wrapper);
   });
 };

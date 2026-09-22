@@ -1092,19 +1092,49 @@
 .sd-acc-kpi-card {
   position: relative;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 18px 16px 14px 16px;
+  padding: 16px 14px 12px 14px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
 }
 .sd-acc-kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+  border-color: #93c5fd;
 }
+.sd-acc-kpi-card:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Active State for Selected Card */
+.sd-acc-kpi-card.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25), 0 10px 24px rgba(37, 99, 235, 0.12);
+  background: linear-gradient(180deg, #ffffff 45%, #eff6ff 100%);
+  transform: translateY(-2px);
+}
+.sd-acc-kpi-card.active .sd-acc-kpi-bar {
+  height: 6px;
+}
+.sd-acc-kpi-rose.active { border-color: #e11d48; box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.25), 0 10px 24px rgba(225, 29, 72, 0.12); background: linear-gradient(180deg, #ffffff 45%, #fff1f2 100%); }
+.sd-acc-kpi-emerald.active { border-color: #059669; box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.25), 0 10px 24px rgba(5, 150, 105, 0.12); background: linear-gradient(180deg, #ffffff 45%, #ecfdf5 100%); }
+.sd-acc-kpi-sky.active { border-color: #0284c7; box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25), 0 10px 24px rgba(2, 132, 199, 0.12); background: linear-gradient(180deg, #ffffff 45%, #f0f9ff 100%); }
+.sd-acc-kpi-amber.active { border-color: #d97706; box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25), 0 10px 24px rgba(217, 119, 6, 0.12); background: linear-gradient(180deg, #ffffff 45%, #fffbeb 100%); }
+.sd-acc-kpi-crimson.active { border-color: #dc2626; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25), 0 10px 24px rgba(220, 38, 38, 0.12); background: linear-gradient(180deg, #ffffff 45%, #fef2f2 100%); }
+.sd-acc-kpi-orange.active { border-color: #ea580c; box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25), 0 10px 24px rgba(234, 88, 12, 0.12); background: linear-gradient(180deg, #ffffff 45%, #fff7ed 100%); }
+.sd-acc-kpi-purple.active { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25), 0 10px 24px rgba(124, 58, 237, 0.12); background: linear-gradient(180deg, #ffffff 45%, #faf5ff 100%); }
+.sd-acc-kpi-teal.active { border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.25), 0 10px 24px rgba(13, 148, 136, 0.12); background: linear-gradient(180deg, #ffffff 45%, #f0fdfa 100%); }
+
 .sd-acc-kpi-bar {
   position: absolute;
   top: 0;
@@ -1127,24 +1157,48 @@
 .sd-acc-kpi-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   margin-bottom: 6px;
+  width: 100%;
 }
 .sd-acc-kpi-icon {
-  font-size: 18px;
+  font-size: 17px;
 }
 .sd-acc-kpi-label {
   font-size: 12px;
   font-weight: 700;
   color: #475569;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+.sd-acc-kpi-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #64748b;
+  margin-left: auto;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.sd-acc-kpi-card:hover .sd-acc-kpi-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.sd-acc-kpi-card.active .sd-acc-kpi-badge {
+  background: #2563eb;
+  color: #ffffff;
+}
+
 .sd-acc-kpi-value {
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;
-  margin: 4px 0 6px 0;
+  margin: 3px 0 5px 0;
 }
 .sd-acc-kpi-sub {
   font-size: 11px;
@@ -1158,16 +1212,111 @@
 .sd-acc-purple { color: #7c3aed; }
 .sd-acc-sub { color: #64748b; }
 
-.sd-acc-kpi-link {
+.sd-acc-kpi-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: auto;
-  font-size: 11px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+  width: 100%;
+}
+.sd-acc-kpi-hint {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.01em;
+}
+.sd-acc-kpi-card:hover .sd-acc-kpi-hint {
+  color: #2563eb;
+}
+.sd-acc-kpi-card.active .sd-acc-kpi-hint {
+  color: #059669;
+  font-weight: 800;
+}
+.sd-acc-kpi-link {
+  font-size: 10px;
   font-weight: 700;
   color: #2563eb;
   text-decoration: none;
   display: inline-block;
+  padding: 1px 4px;
+  border-radius: 4px;
 }
 .sd-acc-kpi-link:hover {
   text-decoration: underline;
+  background: #eff6ff;
+}
+
+/* Active Context Banner Bar */
+.sd-acc-active-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  margin: 18px 0 14px 0;
+  transition: all 0.2s ease;
+}
+.sd-acc-banner-neutral {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+.sd-acc-banner-highlight {
+  background: linear-gradient(90deg, #eff6ff 0%, #ffffff 100%);
+  border: 1.5px solid #bfdbfe;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.06);
+}
+.sd-acc-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sd-acc-banner-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #e2e8f0;
+  color: #475569;
+  white-space: nowrap;
+}
+.sd-acc-banner-pill.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+.sd-acc-banner-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.sd-acc-banner-desc {
+  margin: 0;
+  font-size: 11px;
+  color: #64748b;
+}
+.sd-acc-banner-text {
+  font-size: 12px;
+  color: #475569;
+}
+.sd-acc-banner-btn {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  white-space: nowrap;
+}
+
+/* Pulse animation on focused section */
+@keyframes sdAccPulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.15); }
+  100% { box-shadow: none; }
+}
+.sd-acc-highlight-pulse {
+  animation: sdAccPulse 1.4s ease-out;
+  border-color: #3b82f6 !important;
 }
 
 /* Sub-Tabs */
