@@ -123,6 +123,25 @@ def _resolve_period_dates(period: str, from_date: str = "", to_date: str = "") -
     return str(cur_start), str(cur_end), str(prev_start), str(prev_end)
 
 
+def _sum_field(doctype: str, fieldname: str, filters: Dict[str, Any]) -> float:
+    conds = []
+    vals: Dict[str, Any] = {}
+    for k, v in filters.items():
+        if isinstance(v, list) and len(v) == 2 and v[0] == ">":
+            conds.append(f"`{k}` > %({k})s")
+            vals[k] = v[1]
+        elif isinstance(v, list) and len(v) == 2 and v[0] == "between":
+            conds.append(f"`{k}` BETWEEN %({k}_from)s AND %({k}_to)s")
+            vals[f"{k}_from"] = v[1][0]
+            vals[f"{k}_to"] = v[1][1]
+        else:
+            conds.append(f"`{k}` = %({k})s")
+            vals[k] = v
+    where_clause = f" WHERE {' AND '.join(conds)}" if conds else ""
+    res = frappe.db.sql(f"SELECT SUM(`{fieldname}`) FROM `tab{doctype}`{where_clause}", vals)
+    return flt(res[0][0]) if res and res[0] and res[0][0] is not None else 0.0
+
+
 def _get_company_currency(company: str = "") -> str:
     if company:
         curr = frappe.db.get_value("Company", company, "default_currency")
@@ -130,6 +149,7 @@ def _get_company_currency(company: str = "") -> str:
             return curr
     def_comp = frappe.db.get_value("Company", {}, "default_currency")
     return def_comp or "INR"
+
 
 
 def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
@@ -208,7 +228,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
         if f["customer"]:
             si_filters["customer"] = f["customer"]
         si_filters["posting_date"] = ["between", [start_date, end_date]]
-        si_sum = frappe.db.get_value("Sales Invoice", si_filters, "SUM(base_grand_total)") or 0.0
+        si_sum = _sum_field("Sales Invoice", "base_grand_total", si_filters)
         revenue = flt(si_sum)
 
     if expense == 0.0 and has_pi:
@@ -220,7 +240,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
         if f["supplier"]:
             pi_filters["supplier"] = f["supplier"]
         pi_filters["posting_date"] = ["between", [start_date, end_date]]
-        pi_sum = frappe.db.get_value("Purchase Invoice", pi_filters, "SUM(base_grand_total)") or 0.0
+        pi_sum = _sum_field("Purchase Invoice", "base_grand_total", pi_filters)
         expense = flt(pi_sum)
 
     net_profit = revenue - expense
@@ -235,7 +255,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
             ar_filters["project"] = f["project"]
         if f["customer"]:
             ar_filters["customer"] = f["customer"]
-        receivables = flt(frappe.db.get_value("Sales Invoice", ar_filters, "SUM(outstanding_amount)") or 0.0)
+        receivables = flt(_sum_field("Sales Invoice", "outstanding_amount", ar_filters))
 
     payables = 0.0
     if has_pi:
@@ -246,7 +266,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
             ap_filters["project"] = f["project"]
         if f["supplier"]:
             ap_filters["supplier"] = f["supplier"]
-        payables = flt(frappe.db.get_value("Purchase Invoice", ap_filters, "SUM(outstanding_amount)") or 0.0)
+        payables = flt(_sum_field("Purchase Invoice", "outstanding_amount", ap_filters))
 
     cash_and_bank = 0.0
     if has_gl:
@@ -422,7 +442,7 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             si_filters["project"] = f["project"]
         if f["customer"]:
             si_filters["customer"] = f["customer"]
-        revenue = flt(frappe.db.get_value("Sales Invoice", si_filters, "SUM(base_grand_total)") or 0.0)
+        revenue = flt(_sum_field("Sales Invoice", "base_grand_total", si_filters))
         invoice_revenue = revenue
 
     if total_expense == 0.0 and has_pi:
@@ -433,7 +453,7 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             pi_filters["project"] = f["project"]
         if f["supplier"]:
             pi_filters["supplier"] = f["supplier"]
-        total_expense = flt(frappe.db.get_value("Purchase Invoice", pi_filters, "SUM(base_grand_total)") or 0.0)
+        total_expense = flt(_sum_field("Purchase Invoice", "base_grand_total", pi_filters))
         cogs = total_expense * 0.7
         operating_expense = total_expense * 0.3
 
