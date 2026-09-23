@@ -69,6 +69,8 @@ def ensure_workspace_shortcuts():
         return
 
     workspace = frappe.get_doc("Workspace", workspace_name)
+    workspace.public = 0
+    workspace.is_hidden = 1
     workspace.set(
         "shortcuts",
         [shortcut.as_dict() for shortcut in workspace.shortcuts if shortcut.label not in ("Sarathi Control Tower", "Website View")],
