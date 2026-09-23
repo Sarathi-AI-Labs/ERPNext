@@ -13,6 +13,7 @@ app_include_js = "/assets/sarathi_visibility/js/sarathi_desk_prefill.js"
 
 app_include_css = "/assets/sarathi_visibility/css/sarathi_control_tower.css"
 before_migrate = "sarathi_visibility.setup.rename_legacy.execute"
+extend_bootinfo = ["sarathi_visibility.setup.install.filter_bootinfo_desktop_icons"]
 
 
 doc_events = {
