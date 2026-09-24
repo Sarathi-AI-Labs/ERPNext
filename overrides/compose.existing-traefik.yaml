@@ -1,0 +1,18 @@
+services:
+  frontend:
+    networks:
+      - default
+      - traefik
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "root_default"
+      traefik.http.routers.erpnext.rule: "Host(`erp.sarathiailabs.com`)"
+      traefik.http.routers.erpnext.entrypoints: "websecure"
+      traefik.http.routers.erpnext.tls: "true"
+      traefik.http.routers.erpnext.tls.certresolver: "mytlschallenge"
+      traefik.http.services.erpnext.loadbalancer.server.port: "8080"
+
+networks:
+  traefik:
+    external: true
+    name: root_default
