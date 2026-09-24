@@ -145,7 +145,24 @@ frappe.SarathiIndustrialDashboard = class {
     this.el("[data-project-summary]").hidden = !this.filters.project;
     if (this.filters.project) {
       const p = d.selected_project;
-      this.el("[data-project-summary]").innerHTML = p ? `<div><small>${this.esc(p.name)} · ${this.esc(name)}</small><h2>${this.esc(p.project_name)}</h2><p>${this.badge(p.status)} ${p.delayed ? this.badge("Delayed") : ""} Main BOM: ${this.link("BOM", p.custom_sarathi_bom)} · ${this.link("Project", p.name, "Open Project / assign links")}</p></div><button class="sd-button" data-nav="customer">← Back to customer projects</button>` : this.empty("This project does not match the selected status filter.");
+      const getKpi = (key) => d.kpis.find(k => k.report === key)?.value ?? 0;
+      this.el("[data-project-summary]").innerHTML = p ? `
+        <div class="sd-project-summary-box">
+          <div class="sd-project-summary-info">
+            <small>${this.esc(p.name)} · ${this.esc(name)}</small>
+            <h2>${this.esc(p.project_name)}</h2>
+            <p>${this.badge(p.status)} ${p.delayed ? this.badge("Delayed") : ""} Main BOM: ${this.link("BOM", p.custom_sarathi_bom)} · ${this.link("Project", p.name, "Open Project / assign links")}</p>
+          </div>
+          <div class="sd-project-quick-links">
+            <button class="sd-button sd-tone-blue" data-report="warehouses">🏢 Warehouses (${this.num(getKpi("warehouses"))})</button>
+            <button class="sd-button sd-tone-teal" data-report="operations_catalogue">⚙️ Operations (${this.num(getKpi("operations_catalogue"))})</button>
+            <button class="sd-button sd-tone-violet" data-report="workstations">🏭 Workstations (${this.num(getKpi("workstations"))})</button>
+            <button class="sd-button sd-tone-amber" data-report="workstation_types">🏷️ Workstation Types (${this.num(getKpi("workstation_types"))})</button>
+            <button class="sd-button sd-tone-pink" data-report="routings">🔄 Routings (${this.num(getKpi("routings"))})</button>
+            <button class="sd-button sd-tone-orange" data-report="items">📦 Items (${this.num(getKpi("items"))})</button>
+          </div>
+          <button class="sd-button" data-nav="customer">← Back to customer projects</button>
+        </div>` : this.empty("This project does not match the selected status filter.");
     }
     this.renderCards(); this.renderTabs();
     if (silent && this.tab !== "overview" && this.el("[data-table-area]")) {
@@ -214,18 +231,74 @@ frappe.SarathiIndustrialDashboard = class {
     const rows = ops => `<div class="sd-table-wrap"><table class="sd-table"><thead><tr>${["Operation", "Work Order", "Workstation", "Output item / unit", "Planned", "Completed", "Process loss", "Remaining", "Status"].map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${ops.map(r => `<tr><td>${this.esc(r.sequence)} · ${this.esc(r.operation)}</td><td>${this.link("Work Order", r.work_order)}<small class="sd-operation-note">${this.esc(r.work_order_status)}</small></td><td>${this.link("Workstation", r.workstation)}</td><td>${this.link("Item", r.item)}<small class="sd-operation-note">${this.esc(r.unit || "Unit unavailable")}</small></td><td>${number(r.planned)}</td><td>${number(r.completed)}</td><td>${number(r.process_loss)}</td><td>${number(r.remaining)}</td><td>${this.badge(r.status)}</td></tr>`).join("")}</tbody></table></div>`;
     return `<section class="sd-panel sd-production-overview"><div class="sd-panel-heading"><div><h2>${selected ? "Project operation progress" : "In progress projects · operation progress"} <span class="sd-pill">${summaries.length}</span></h2><p>Lifetime submitted Work Orders · In progress = recorded production started · Quantities are Work Order output units, not physical warehouse balances</p></div><button class="sd-text-button" data-report="operation_balance" data-subset="${selected ? "" : "in_progress"}">Full operation report ↗</button></div>${summaries.map(p => { const ops = this.data.operation_balance.filter(r => r.project === p.project); return `<details class="sd-production-project" data-production-project="${this.esc(p.project)}" ${selected ? "open" : ""}><summary><span><strong>${this.esc(p.project_name)}</strong><small>${this.esc(p.project)} · ${this.esc(p.customer || "Unassigned customer")}</small></span>${this.badge(p.production_status)}<span>${p.finished_operations}/${p.operations} operations finished</span></summary><div class="sd-production-body"><p>${this.esc(p.note)} · ${p.work_orders} submitted Work Orders · Semi-finished stock tracking: ${this.esc(p.stock_tracking)} <button class="sd-text-button" data-project="${this.esc(p.project)}">Open project analysis ↗</button></p>${ops.length ? rows(ops) : this.empty("No recorded Work Order operations. Create a linked BOM / Work Order with operations to track production.")}</div></details>`; }).join("") || this.empty("No projects in progress in this selection.")}<div class="sd-production-links"><button class="sd-button" data-report="production_summary">All project production summaries</button><button class="sd-button" data-report="projects" data-subset="completed">Completed projects</button><button class="sd-button" data-report="wip_stock">Semi-finished warehouse stock</button></div><p class="sd-scope-note">Remaining = planned − completed − process loss, minimum zero. Cutting/welding/grinding are separate operations; their quantities must not be added as unique finished parts. Warehouse stock requires configured semi-finished items and posted stock movements.</p></section>`;
   }
+  setupOverview() {
+    const d = this.data;
+    const isProj = !!this.filters.project;
+    const p = d.selected_project;
+    const title = isProj ? `Project Setup & Master Records (${p?.project_name || p?.name})` : "Manufacturing & Setup Masters";
+    const sub = isProj ? "Warehouses, operations, workstations, and items configured for this project" : "Click any card to inspect all records, or click + New to create one";
+
+    const getCount = (reportKey) => {
+      const k = d.kpis.find(x => x.report === reportKey);
+      return k ? k.value : 0;
+    };
+
+    const cards = [
+      {key: "warehouses", title: "Warehouses", icon: "🏢", dt: "Warehouse", desc: isProj ? "Project storage & WIP locations" : "Stores, WIP, FG & transit warehouses", count: getCount("warehouses")},
+      {key: "operations_catalogue", title: "Operations", icon: "⚙️", dt: "Operation", desc: isProj ? "Standard operations in this project" : "Fabrication, welding & assembly operations", count: getCount("operations_catalogue")},
+      {key: "workstations", title: "Workstations", icon: "🏭", dt: "Workstation", desc: isProj ? "Assigned machinery & workstations" : "Active production machines & capacities", count: getCount("workstations")},
+      {key: "workstation_types", title: "Workstation Types", icon: "🏷️", dt: "Workstation Type", desc: "Machine classes & standard cost centers", count: getCount("workstation_types")},
+      {key: "routings", title: "Routings", icon: "🔄", dt: "Routing", desc: "Standard multi-operation sequences", count: getCount("routings")},
+      {key: "items", title: "Items Catalogue", icon: "📦", dt: "Item", desc: isProj ? "Finished parts & raw materials" : "Products, parts & raw materials", count: getCount("items")},
+    ];
+
+    return `
+      <section class="sd-panel sd-setup-panel">
+        <div class="sd-panel-heading">
+          <div>
+            <h2>${this.esc(title)}</h2>
+            <p>${this.esc(sub)}</p>
+          </div>
+          ${isProj ? `<button class="sd-button sd-text-button" data-action="clear-project-setup">View All Master Lists ↗</button>` : ""}
+        </div>
+        <div class="sd-cards sd-setup-cards">
+          ${cards.map(c => `
+            <article class="sd-card sd-setup-card" data-report="${c.key}">
+              <div class="sd-setup-header">
+                <span class="sd-setup-icon">${c.icon}</span>
+                <span class="sd-pill sd-tone-blue">${this.num(c.count)}</span>
+              </div>
+              <h3>${this.esc(c.title)}</h3>
+              <p>${this.esc(c.desc)}</p>
+              <div class="sd-setup-actions">
+                <button class="sd-button sd-tone-blue" data-report="${c.key}">Show List ↗</button>
+                <button class="sd-button" data-new="${c.dt}" title="Create new ${c.dt}">+ New</button>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }
   renderContent() {
     const content = this.el("[data-content]"); this.root.dataset.currentTab = this.tab; const expanded = new Set(Array.from(content.querySelectorAll("[data-production-project][open]")).map(x => x.dataset.productionProject)); this.detailSequence++;
     if (this.tab === "overview") {
       this.reportState = null;
-      content.innerHTML = `${this.projectHealth()}${this.pipelineOverview()}${this.productionOverview()}${this.chartGrid(this.chartsForTab())}<section class="sd-panel"><div class="sd-panel-heading"><h2>Alerts & data quality <span class="sd-pill">${this.data.alert_count}</span></h2><button class="sd-text-button" data-report="issues">View all</button></div>${this.data.alerts.map(a => `<div class="sd-alert">${this.link(a.doctype, a.name)}<span>${this.esc(a.issue)}</span></div>`).join("") || this.empty("No exceptions found in the selected records.")}</section>`;
+      content.innerHTML = `${this.projectHealth()}${this.pipelineOverview()}${this.productionOverview()}${this.setupOverview()}${this.chartGrid(this.chartsForTab())}<section class="sd-panel"><div class="sd-panel-heading"><h2>Alerts & data quality <span class="sd-pill">${this.data.alert_count}</span></h2><button class="sd-text-button" data-report="issues">View all</button></div>${this.data.alerts.map(a => `<div class="sd-alert">${this.link(a.doctype, a.name)}<span>${this.esc(a.issue)}</span></div>`).join("") || this.empty("No exceptions found in the selected records.")}</section>`;
       content.querySelectorAll("[data-production-project]").forEach(x => { if (expanded.has(x.dataset.productionProject)) x.open = true; });
       return;
     }
     const choices = this.tab === "reports" ? this.data.reports.map(r => r.key) : this.tabReports[this.tab];
     if (!this.reportState || !choices.includes(this.reportState.report)) this.reportState = {report: choices[0], subset: "", search: "", start: 0};
     const r = this.reportState;
-    content.innerHTML = `<section class="sd-panel"><div class="sd-report-toolbar"><label>Report<select data-report-select>${choices.map(k => `<option value="${k}" ${r.report === k ? "selected" : ""}>${this.esc(this.data.reports.find(x => x.key === k).title)}</option>`).join("")}</select></label><label>Search report<input data-report-search type="search" value="${this.esc(r.search)}" placeholder="Search all matching rows"></label><button class="sd-button" data-action="export">Export CSV</button><button class="sd-button" data-action="native-report">Open ERPNext report ↗</button></div><p class="sd-scope-note">${r.subset ? `Filtered to ${this.esc(r.subset)} records. ` : ""}Totals cover every matching record. Pipeline, material history, part outputs, purchasing and fulfilment reports use lifetime records. Invoice outstanding is a whole-document amount and must not be summed across item rows. Returns retain signed quantities. Inspection sample size is not a rejected-part count. Document status: 0 Draft · 1 Submitted · 2 Cancelled. ${this.tab === "materials" ? "Semi-finished stock requires enabled tracking, operation output Items and target warehouses. Stock is shared availability; requirements come from open submitted Work Orders. Blank stock means unavailable or no source warehouse." : ""}</p><div data-table-area role="status">Loading report…</div></section>`;
+    const isMasterReport = ["warehouses", "workstations", "operations_catalogue", "workstation_types", "routings", "items"].includes(r.report);
+    const scopeToggle = (this.filters.project && isMasterReport) ? `
+      <div class="sd-scope-toggle">
+        <span class="sd-pill sd-tone-blue">Project: <strong>${this.esc(this.data.selected_project?.project_name || this.filters.project)}</strong></span>
+        <button class="sd-button ${r.subset === 'all' ? '' : 'sd-primary'}" data-scope-subset="">Show Project Records</button>
+        <button class="sd-button ${r.subset === 'all' ? 'sd-primary' : ''}" data-scope-subset="all">Show All Organization Records</button>
+      </div>` : "";
+    content.innerHTML = `<section class="sd-panel"><div class="sd-report-toolbar"><label>Report<select data-report-select>${choices.map(k => `<option value="${k}" ${r.report === k ? "selected" : ""}>${this.esc(this.data.reports.find(x => x.key === k).title)}</option>`).join("")}</select></label><label>Search report<input data-report-search type="search" value="${this.esc(r.search)}" placeholder="Search all matching rows"></label><button class="sd-button" data-action="export">Export CSV</button><button class="sd-button" data-action="native-report">Open ERPNext report ↗</button></div><p class="sd-scope-note">${r.subset ? `Filtered to ${this.esc(r.subset)} records. ` : ""}Totals cover every matching record. Pipeline, material history, part outputs, purchasing and fulfilment reports use lifetime records. Invoice outstanding is a whole-document amount and must not be summed across item rows. Returns retain signed quantities. Inspection sample size is not a rejected-part count. Document status: 0 Draft · 1 Submitted · 2 Cancelled. ${this.tab === "materials" ? "Semi-finished stock requires enabled tracking, operation output Items and target warehouses. Stock is shared availability; requirements come from open submitted Work Orders. Blank stock means unavailable or no source warehouse." : ""}</p>${scopeToggle}<div data-table-area role="status">Loading report…</div></section>`;
     content.insertAdjacentHTML("afterbegin", `<div data-tab-charts>${this.chartGrid(this.chartsForTab())}</div>`);
     this.el("[data-report-select]").addEventListener("change", e => { this.reportState = {report: e.target.value, subset: "", search: "", start: 0}; this.renderContent(); });
     this.el("[data-report-search]").addEventListener("input", e => { this.reportState.search = e.target.value; this.reportState.start = 0; clearTimeout(this.searchTimer); this.searchTimer = setTimeout(() => this.loadReport(), 300); });
@@ -250,12 +323,16 @@ frappe.SarathiIndustrialDashboard = class {
     try {
       const r = await this.call("get_report", {filters: JSON.stringify(this.filters), ...state, page_length: 25});
       if (version !== this.detailSequence || !this.el("[data-table-area]")) return;
-      this.el("[data-table-area]").innerHTML = (r.rows.length ? `<div class="sd-table-wrap"><table class="sd-table"><thead><tr>${r.columns.map(c => `<th>${this.esc(c.label)}</th>`).join("")}</tr></thead><tbody>${r.rows.map(row => `<tr>${r.columns.map(c => `<td>${this.cell(c, row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : this.empty()) + `<div class="sd-pagination"><button class="sd-button" data-report-page="${Math.max(0, r.start - 25)}" ${!r.start ? "disabled" : ""}>Previous</button><span>${r.total ? r.start + 1 : 0}–${Math.min(r.total, r.start + 25)} of ${r.total}</span><button class="sd-button" data-report-page="${r.start + 25}" ${r.start + 25 >= r.total ? "disabled" : ""}>Next</button></div>`;
+      const isMasterReport = ["warehouses", "workstations", "operations_catalogue", "workstation_types", "routings", "items"].includes(r.report || state.report);
+      const emptyMsg = (this.filters.project && isMasterReport && state.subset !== "all")
+        ? `No ${this.esc(r.title || "records")} linked to project ${this.esc(this.data?.selected_project?.project_name || this.filters.project)}. Click "Show All Organization Records" above to see all organization records, or configure this project's records.`
+        : "No linked records for this selection.";
+      this.el("[data-table-area]").innerHTML = (r.rows.length ? `<div class="sd-table-wrap"><table class="sd-table"><thead><tr>${r.columns.map(c => `<th>${this.esc(c.label)}</th>`).join("")}</tr></thead><tbody>${r.rows.map(row => `<tr>${r.columns.map(c => `<td>${this.cell(c, row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : this.empty(emptyMsg)) + `<div class="sd-pagination"><button class="sd-button" data-report-page="${Math.max(0, r.start - 25)}" ${!r.start ? "disabled" : ""}>Previous</button><span>${r.total ? r.start + 1 : 0}–${Math.min(r.total, r.start + 25)} of ${r.total}</span><button class="sd-button" data-report-page="${r.start + 25}" ${r.start + 25 >= r.total ? "disabled" : ""}>Next</button></div>`;
     } catch (e) { if (version === this.detailSequence && this.el("[data-table-area]")) this.el("[data-table-area]").innerHTML = this.empty("Report could not load. Check your access and click Refresh."); }
   }
   openReport(report, subset = "") { this.tab = "reports"; this.reportState = {report, subset, search: "", start: 0}; this.writeUrl(); this.renderTabs(); this.renderContent(); this.el(".sd-tabs").scrollIntoView({behavior: "smooth", block: "start"}); }
   click(event) {
-    const b = event.target.closest("button"); if (!b || b.disabled) return; const d = b.dataset;
+    const b = event.target.closest("button, .sd-setup-card"); if (!b || b.disabled) return; const d = b.dataset;
     if (d.inspect) this.inspect(d.doctype, d.inspect);
     else if (d.action === "open-subcontracting") this.openSubcontractingView();
     else if (d.action === "close-subcontracting") this.closeSubcontractingView();
@@ -285,6 +362,9 @@ frappe.SarathiIndustrialDashboard = class {
     else if (d.nav) this.navigate(d.nav === "organization" ? {customer: "", project: ""} : {project: ""});
     else if (d.tab) { this.tab = d.tab; this.reportState = null; this.writeUrl(); this.renderTabs(); this.renderContent(); }
     else if (d.report) { if (d.reportProject && d.reportProject !== this.filters.project) this.navigate({project:d.reportProject,customer:""}); this.openReport(d.report, d.subset); }
+    else if (d.scopeSubset !== undefined) { this.reportState.subset = d.scopeSubset; this.reportState.start = 0; this.renderContent(); }
+    else if (d.new) { this.create(d.new); }
+    else if (d.action === "clear-project-setup") { this.navigate({project: "", customer: ""}); }
     else if (d.page) { this[`${d.page}Page`] = Number(d.index); this.renderCards(); }
     else if (d.reportPage !== undefined) { this.reportState.start = Number(d.reportPage); this.loadReport(); }
     else if (d.action === "refresh") this.load();

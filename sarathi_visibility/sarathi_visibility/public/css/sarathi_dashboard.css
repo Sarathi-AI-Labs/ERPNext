@@ -1763,4 +1763,130 @@
   color: #0f172a;
 }
 
+/* Master & Setup Hub Styling */
+.sd-setup-panel {
+  border-top: 3px solid #0284c7;
+  background: linear-gradient(175deg, #ffffff, #f8fafc);
+  margin-top: 20px;
+}
+.sd-setup-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.sd-setup-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+.sd-setup-card:hover {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.12);
+}
+.sd-setup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.sd-setup-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+.sd-setup-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 4px 0;
+}
+.sd-setup-card p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 14px 0;
+  line-height: 1.4;
+  min-height: 34px;
+}
+.sd-setup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+.sd-setup-actions .sd-button {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Project Summary Box & Quick Links */
+.sd-project-summary-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(135deg, #f0fdf4, #eff6ff);
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.sd-project-summary-info h2 {
+  font-size: 22px;
+  color: #0f172a;
+  margin: 4px 0 8px 0;
+}
+.sd-project-quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sd-project-quick-links .sd-button {
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sd-project-quick-links .sd-button:hover {
+  transform: translateY(-1px);
+  border-color: #0284c7;
+  color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+/* Report View Scope Toggle */
+.sd-scope-toggle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 12px 0 16px 0;
+}
+.sd-scope-toggle span {
+  font-size: 13px;
+  color: #1e293b;
+}
+.sd-scope-toggle .sd-button {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 

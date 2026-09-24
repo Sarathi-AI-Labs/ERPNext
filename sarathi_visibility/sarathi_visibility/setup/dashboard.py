@@ -150,7 +150,14 @@ def notify_dashboard(doc=None, method=None):
         docname = getattr(doc, "name", "") if doc else ""
         payload = {"doctype": doctype, "name": docname}
 
-        # 1. Publish directly via Redis pub-sub with room=None so node emits to all connected clients
+        # 1. Standard frappe realtime publication (immediate and after commit to room 'all')
+        try:
+            frappe.publish_realtime("sarathi_dashboard_changed", message=payload, room="all", after_commit=False)
+            frappe.publish_realtime("sarathi_dashboard_changed", message=payload, room="all", after_commit=True)
+        except Exception:
+            pass
+
+        # 2. Publish directly via Redis pub-sub with room="all" so node socketio emits to all connected Desk clients
         try:
             from frappe.utils.background_jobs import get_redis_connection_without_auth
             r = get_redis_connection_without_auth()
@@ -160,16 +167,12 @@ def notify_dashboard(doc=None, method=None):
                 frappe.as_json({
                     "event": "sarathi_dashboard_changed",
                     "message": payload,
-                    "room": None,
+                    "room": "all",
                     "namespace": site,
                 }),
             )
         except Exception:
             pass
-
-        # 2. Standard frappe realtime publication (immediate and after commit)
-        frappe.publish_realtime("sarathi_dashboard_changed", message=payload, after_commit=False)
-        frappe.publish_realtime("sarathi_dashboard_changed", message=payload, after_commit=True)
     except Exception:
         pass
 

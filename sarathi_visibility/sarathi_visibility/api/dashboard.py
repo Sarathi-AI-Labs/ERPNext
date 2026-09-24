@@ -129,21 +129,270 @@ for _key, (_doctype, _child) in DOCUMENTS.items():
     REPORTS[_key] = (_doctype + " project items", _doctype, [PROJECT, col("name", _doctype, "Link", _doctype), col("item_code", "Item", "Link", "Item"), col("supplier", "Supplier", "Link", "Supplier"), col("customer", "Customer", "Link", "Customer"), col("qty", "Quantity", "Float"), col("uom", "Unit"), col("stock_qty", "Stock quantity", "Float"), col("stock_uom", "Stock unit"), col("ordered_qty", "Requested quantity ordered", "Float"), col("received_qty", "Received quantity", "Float"), col("returned_qty", "Returned", "Float"), col("rejected_qty", "Supplier rejected", "Float"), col("remaining_qty", "Outstanding request / order", "Float"), col("status", "Status"), col("docstatus", "Document status", "Int"), col("date", "Date", "Date"), col("currency", "Currency"), col("net_amount", "Item net value", "Currency", "currency"), col("outstanding_amount", "Whole-document outstanding (repeated)", "Currency", "currency"), col("warehouse", "Warehouse", "Link", "Warehouse"), col("basis", "Project attribution"), col("value_basis", "Value basis", width=400)])
 
 
+def get_project_resource_ids(data, project_name):
+    if not project_name:
+        return {}
+
+    proj = next((p for p in data.get("projects", []) if p.get("name") == project_name), {})
+    proj_name = str(project_name).strip()
+    proj_title = str(proj.get("project_name") or "").strip()
+
+    # 1. BOMs explicitly linked to this project
+    project_boms = set()
+    if proj.get("custom_sarathi_bom"):
+        project_boms.add(proj.get("custom_sarathi_bom"))
+    for b in data.get("boms", []):
+        b_proj = str(b.get("custom_sarathi_project") or b.get("project") or "")
+        if b_proj == proj_name or proj_name in b_proj:
+            project_boms.add(b.get("name"))
+    for w in data.get("work_orders", []):
+        if w.get("project") == proj_name and w.get("bom_no"):
+            project_boms.add(w.get("bom_no"))
+
+    # 2. Operations & workstations from project BOMs
+    bom_stations = set()
+    bom_ops = set()
+    for op in data.get("operations", []):
+        if op.get("parent") in project_boms:
+            if op.get("workstation"):
+                bom_stations.add(op.get("workstation"))
+            if op.get("operation"):
+                bom_ops.add(op.get("operation"))
+
+    # 3. Work Orders
+    wo_stations = set()
+    wo_ops = set()
+    wo_wh = set()
+    wo_items = set()
+    for w in data.get("work_orders", []):
+        if w.get("project") == proj_name:
+            if w.get("production_item"):
+                wo_items.add(w.get("production_item"))
+            for fld in ("source_warehouse", "fg_warehouse", "wip_warehouse", "scrap_warehouse"):
+                if w.get(fld):
+                    wo_wh.add(w.get(fld))
+
+    # 4. Job Cards
+    j_stations = set()
+    j_ops = set()
+    j_items = set()
+    for j in data.get("job_cards", []):
+        if j.get("project") == proj_name:
+            if j.get("workstation"):
+                j_stations.add(j.get("workstation"))
+            if j.get("operation"):
+                j_ops.add(j.get("operation"))
+            if j.get("production_item"):
+                j_items.add(j.get("production_item"))
+            if j.get("finished_good"):
+                j_items.add(j.get("finished_good"))
+
+    # 5. Live activity, operation balance, part production
+    live_stations = {a.get("workstation") for a in data.get("live_activity", []) if (a.get("project") == proj_name or not a.get("project")) and a.get("workstation")}
+    live_ops = {a.get("operation") for a in data.get("live_activity", []) if (a.get("project") == proj_name or not a.get("project")) and a.get("operation")}
+    bal_stations = {b.get("workstation") for b in data.get("operation_balance", []) if b.get("project") == proj_name and b.get("workstation")}
+    bal_ops = {b.get("operation") for b in data.get("operation_balance", []) if b.get("project") == proj_name and b.get("operation")}
+    part_stations = {p.get("workstation") for p in data.get("part_production", []) if p.get("project") == proj_name and p.get("workstation")}
+    part_ops = {p.get("operation") for p in data.get("part_production", []) if p.get("project") == proj_name and p.get("operation")}
+
+    # 6. BOM components
+    comp_items = set()
+    comp_wh = set()
+    for c in data.get("components", []):
+        if c.get("parent") in project_boms:
+            if c.get("item_code"):
+                comp_items.add(c.get("item_code"))
+            if c.get("source_warehouse"):
+                comp_wh.add(c.get("source_warehouse"))
+
+    # 7. Pipeline & inventory movements
+    pipeline_items = set()
+    pipeline_wh = set()
+
+    for oi in data.get("order_items", []):
+        if oi.get("project") == proj_name:
+            if oi.get("item_code"):
+                pipeline_items.add(oi.get("item_code"))
+            if oi.get("warehouse"):
+                pipeline_wh.add(oi.get("warehouse"))
+
+    for doc_key in ("requests", "purchases", "receipts", "purchase_invoices", "deliveries", "sales_invoices", "material_history"):
+        for r in data.get(doc_key, []):
+            if r.get("project") == proj_name:
+                if r.get("item_code"):
+                    pipeline_items.add(r.get("item_code"))
+                for wfld in ("warehouse", "source_warehouse", "t_warehouse", "s_warehouse"):
+                    if r.get(wfld):
+                        pipeline_wh.add(r.get(wfld))
+
+    for s in data.get("stock_details", []):
+        if s.get("project") == proj_name:
+            if s.get("item_code"):
+                pipeline_items.add(s.get("item_code"))
+            if s.get("s_warehouse"):
+                pipeline_wh.add(s.get("s_warehouse"))
+            if s.get("t_warehouse"):
+                pipeline_wh.add(s.get("t_warehouse"))
+
+    for f in data.get("finished", []):
+        if f.get("project") == proj_name:
+            if f.get("item_code"):
+                pipeline_items.add(f.get("item_code"))
+            if f.get("t_warehouse"):
+                pipeline_wh.add(f.get("t_warehouse"))
+
+    for l in data.get("stock_ledger", []):
+        if l.get("project") == proj_name:
+            if l.get("item_code"):
+                pipeline_items.add(l.get("item_code"))
+            if l.get("warehouse"):
+                pipeline_wh.add(l.get("warehouse"))
+
+    for r in data.get("reservations", []):
+        if r.get("project") == proj_name:
+            if r.get("item_code"):
+                pipeline_items.add(r.get("item_code"))
+            if r.get("warehouse"):
+                pipeline_wh.add(r.get("warehouse"))
+
+    for m in data.get("materials", []):
+        if m.get("item_code"):
+            pipeline_items.add(m.get("item_code"))
+        if m.get("warehouse"):
+            pipeline_wh.add(m.get("warehouse"))
+
+    for w_ip in data.get("wip_stock", []):
+        if w_ip.get("project") == proj_name:
+            if w_ip.get("item_code"):
+                pipeline_items.add(w_ip.get("item_code"))
+            if w_ip.get("warehouse"):
+                pipeline_wh.add(w_ip.get("warehouse"))
+
+    for p in data.get("part_production", []):
+        if p.get("project") == proj_name:
+            if p.get("item_code"):
+                pipeline_items.add(p.get("item_code"))
+
+    # 8. Routings
+    project_routings = set()
+    for b in data.get("boms", []):
+        if b.get("name") in project_boms and b.get("routing"):
+            project_routings.add(b.get("routing"))
+    for w in data.get("work_orders", []):
+        if w.get("project") == proj_name and w.get("routing"):
+            project_routings.add(w.get("routing"))
+
+    # 9. Explicit project links or naming matches on master records
+    proj_name_lower = proj_name.lower()
+    proj_title_lower = proj_title.lower() if len(proj_title) >= 3 else ""
+
+    def matches_project(doc, name_field, title_field=""):
+        p_val = str(doc.get("project") or doc.get("custom_sarathi_project") or "").strip()
+        if p_val == proj_name:
+            return True
+        doc_name = str(doc.get(name_field) or "").lower()
+        doc_title = str(doc.get(title_field) or "").lower() if title_field else ""
+        if proj_name_lower and (proj_name_lower in doc_name or (doc_title and proj_name_lower in doc_title)):
+            return True
+        if proj_title_lower and (proj_title_lower in doc_name or (doc_title and proj_title_lower in doc_title)):
+            return True
+        return False
+
+    project_warehouses = {w for w in (wo_wh | comp_wh | pipeline_wh) if w}
+    for wh in data.get("warehouses", []):
+        if matches_project(wh, "name", "warehouse_name"):
+            project_warehouses.add(wh.get("name"))
+
+    project_operations = {o for o in (j_ops | bom_ops | bal_ops | live_ops | part_ops | wo_ops) if o}
+    for op in data.get("operations_catalogue", []):
+        if matches_project(op, "name", "operation_name"):
+            project_operations.add(op.get("name"))
+
+    project_workstations = {s for s in (j_stations | bom_stations | live_stations | bal_stations | part_stations | wo_stations) if s}
+    for ws in data.get("workstations", []):
+        if matches_project(ws, "name", "workstation_name"):
+            project_workstations.add(ws.get("name"))
+
+    for op in data.get("operations_catalogue", []):
+        if (op.get("name") in project_operations or op.get("operation_name") in project_operations) and op.get("workstation"):
+            project_workstations.add(op.get("workstation"))
+
+    for rt in data.get("routings", []):
+        if matches_project(rt, "name", "routing_name"):
+            project_routings.add(rt.get("name"))
+
+    main_item = proj.get("main_item")
+    for b in data.get("boms", []):
+        if b.get("name") in project_boms and b.get("item"):
+            comp_items.add(b.get("item"))
+    project_items = {i for i in ({main_item} | comp_items | wo_items | j_items | pipeline_items) if i}
+    for it in data.get("items", []):
+        if matches_project(it, "name", "item_name"):
+            project_items.add(it.get("name"))
+
+    all_ws = data.get("workstations", [])
+    project_ws_types = {w.get("workstation_type") for w in all_ws if w.get("name") in project_workstations and w.get("workstation_type") and w.get("workstation_type") != "—"}
+    for wt in data.get("workstation_types", []):
+        if matches_project(wt, "name", "workstation_type"):
+            project_ws_types.add(wt.get("name"))
+
+    return {
+        "workstations": project_workstations,
+        "operations": project_operations,
+        "warehouses": project_warehouses,
+        "items": project_items,
+        "workstation_types": project_ws_types,
+        "routings": project_routings,
+    }
+
+
 def report_data(data, report, subset="", search=""):
 
     if report not in REPORTS:
 
         frappe.throw("Unknown dashboard report.")
 
+    project_filter = data.get("filters", {}).get("project")
+    res = get_project_resource_ids(data, project_filter) if project_filter else {}
+
     if report in ("workstations", "operations_catalogue", "warehouses", "customers", "suppliers", "workstation_types", "plant_floors", "routings", "items", "inventory"):
-        result = data.get(report, [])
+        result = list(data.get(report, []))
+
+        # Project-specific scoping when a project is selected (unless subset=="all")
+        if project_filter and subset != "all":
+            if report == "warehouses":
+                allowed = res.get("warehouses", set())
+                result = [r for r in result if r.get("name") in allowed or r.get("warehouse_name") in allowed]
+            elif report == "workstations":
+                allowed = res.get("workstations", set())
+                result = [r for r in result if r.get("name") in allowed or r.get("workstation_name") in allowed]
+            elif report == "operations_catalogue":
+                allowed = res.get("operations", set())
+                result = [r for r in result if r.get("name") in allowed or r.get("operation_name") in allowed]
+            elif report == "workstation_types":
+                allowed = res.get("workstation_types", set())
+                result = [r for r in result if r.get("name") in allowed or r.get("workstation_type") in allowed]
+            elif report == "routings":
+                allowed = res.get("routings", set())
+                result = [r for r in result if r.get("name") in allowed or r.get("routing_name") in allowed]
+            elif report == "items":
+                allowed = res.get("items", set())
+                result = [r for r in result if r.get("name") in allowed or r.get("item_code") in allowed]
+            elif report == "inventory":
+                allowed_wh = res.get("warehouses", set())
+                allowed_it = res.get("items", set())
+                result = [r for r in result if (r.get("warehouse") in allowed_wh or r.get("item_code") in allowed_it)]
+            elif report == "plant_floors":
+                allowed_wh = res.get("warehouses", set())
+                result = [r for r in result if r.get("warehouse") in allowed_wh]
+
         if subset == "open" and report == "workstations":
             result = [r for r in result if r.get("open_jobs", 0) > 0]
         elif subset == "production" and report == "workstations":
             result = [r for r in result if r.get("status") == "Production"]
     else:
 
-        result = data.get(report, [])
+        result = list(data.get(report, []))
 
 
     if subset == "active" and report == "projects":
@@ -175,6 +424,8 @@ def report_data(data, report, subset="", search=""):
         result = [r for r in result if r["shortage_qty"] is not None and r["shortage_qty"] > 0]
 
     elif subset in ('in_progress', 'not_started', 'paused', 'closure_pending') and report in ('production_summary', 'operation_balance'):
+        pass
+    elif subset in ('all', 'project'):
         pass
     elif subset:
 
@@ -241,9 +492,11 @@ def get_summary(filters=None):
         kpi("Total projects", "projects"),
         kpi("Active items", "items"),
         kpi("Warehouse stock", "inventory"),
+        kpi("Warehouses", "warehouses"),
         kpi("Workstations", "workstations"),
         kpi("Operations", "operations_catalogue"),
-        kpi("Warehouses", "warehouses"),
+        kpi("Workstation types", "workstation_types"),
+        kpi("Routings", "routings"),
         kpi("Active BOMs", "boms"),
         kpi("Customers", "customers"),
         kpi("Suppliers", "suppliers"),
@@ -261,8 +514,22 @@ def get_summary(filters=None):
     selected = next(iter(projects), None) if data["filters"]["project"] else None
 
     if selected:
-
-        cards = [dict(label="Project status", value=selected.status, report="projects"), dict(label="Due date", value=str(selected.expected_end_date or "Not set"), report="projects"), dict(label="Project progress", value=f"{flt(selected.percent_complete):g}%", report="tasks"), kpi("Open orders", "orders", "open"), kpi("Executable Job Cards", "job_cards", "open"), kpi("Planned Job Cards", "job_cards", "planned"), kpi("Material shortages", "materials", "shortages")]
+        cards = [
+            dict(label="Project status", value=selected.status, report="projects"),
+            dict(label="Due date", value=str(selected.expected_end_date or "Not set"), report="projects"),
+            dict(label="Project progress", value=f"{flt(selected.percent_complete):g}%", report="tasks"),
+            kpi("Project Warehouses", "warehouses"),
+            kpi("Project Operations", "operations_catalogue"),
+            kpi("Project Workstations", "workstations"),
+            kpi("Project Workstation Types", "workstation_types"),
+            kpi("Project Routings", "routings"),
+            kpi("Project Items", "items"),
+            kpi("Open orders", "orders", "open"),
+            kpi("Active work orders", "work_orders", "open"),
+            kpi("Executable Job Cards", "job_cards", "open"),
+            kpi("Planned Job Cards", "job_cards", "planned"),
+            kpi("Material shortages", "materials", "shortages"),
+        ]
 
     quantities = {}
 
