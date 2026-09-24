@@ -252,6 +252,20 @@ class DashboardTests(unittest.TestCase):
         with self.assertRaises(frappe.PermissionError):
             get_summary({"company": other[0]})
 
+    def test_project_resource_scoping_isolation(self):
+        # A newly created project with no linked resources must return 0 for project masters
+        p_filter = {"project": self.projects[0]}
+        summary = get_summary(p_filter)
+        kpis = {k["report"]: k["value"] for k in summary["kpis"]}
+        for report_key in ("warehouses", "operations_catalogue", "workstations", "workstation_types", "routings", "items"):
+            self.assertEqual(kpis.get(report_key), 0, f"Expected 0 for {report_key} in project summary KPI")
+            scoped_report = get_report(p_filter, report_key)
+            self.assertEqual(scoped_report["total"], 0, f"Expected 0 rows for {report_key} in project scoped report")
+            # If user explicitly chooses all records (subset="all"), company records are accessible
+            all_report = get_report(p_filter, report_key, subset="all")
+            self.assertGreaterEqual(all_report["total"], scoped_report["total"])
+
+
 
 def run():
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(DashboardTests)

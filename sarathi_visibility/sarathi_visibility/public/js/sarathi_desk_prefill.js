@@ -221,3 +221,37 @@ frappe.ui.form.on('Material Request', {
 frappe.ui.form.on('Material Request Item', {
   items_add(frm, cdt, cdn) { if (frm.__sarathi_project) frappe.model.set_value(cdt,cdn,'project',frm.__sarathi_project); }
 });
+
+['Sales Order', 'Purchase Order', 'Purchase Receipt', 'Delivery Note', 'Sales Invoice', 'Stock Entry'].forEach(doctype => {
+  frappe.ui.form.on(doctype, {
+    project(frm) {
+      if (frm.doc.project && frm.doc.items) {
+        frm.doc.items.forEach(row => {
+          if (!row.project) {
+            frappe.model.set_value(row.doctype, row.name, 'project', frm.doc.project);
+          }
+        });
+      }
+    },
+    before_save(frm) {
+      if (frm.doc.project && frm.doc.items) {
+        frm.doc.items.forEach(row => {
+          if (!row.project) {
+            frappe.model.set_value(row.doctype, row.name, 'project', frm.doc.project);
+          }
+        });
+      }
+    }
+  });
+});
+
+['Sales Order Item', 'Purchase Order Item', 'Purchase Receipt Item', 'Delivery Note Item', 'Sales Invoice Item', 'Stock Entry Detail'].forEach(childtype => {
+  frappe.ui.form.on(childtype, {
+    items_add(frm, cdt, cdn) {
+      if (frm?.doc?.project) {
+        frappe.model.set_value(cdt, cdn, 'project', frm.doc.project);
+      }
+    }
+  });
+});
+

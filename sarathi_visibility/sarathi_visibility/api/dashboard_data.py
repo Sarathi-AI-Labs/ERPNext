@@ -146,17 +146,25 @@ def load(filters=None):
         for order in orders:
             order["value_scope"] = "Full order including taxes"
 
-    work_orders = rows("Work Order", WO_FIELDS, project_filter)
-    work_orders = [w for w in work_orders if w.company == project_map[w.project].company]
+    if f["project"]:
+        work_orders = rows("Work Order", WO_FIELDS, project_filter)
+        work_orders = [w for w in work_orders if w.project in project_map and w.company == project_map[w.project].company]
+    else:
+        work_orders = rows("Work Order", WO_FIELDS, company_filter)
+        for w in work_orders:
+            w["project"] = w.get("project") or "—"
     wo_map = {w.name: w for w in work_orders}
-    job_cards = rows("Job Card", ["name", "work_order", "project", "company", "production_item", "operation", "workstation", "for_quantity", "total_completed_qty", "stock_uom", "time_required", "total_time_in_mins", "expected_end_date", "posting_date", "status", "docstatus", "operation_id", "is_corrective_job_card", "modified", "process_loss_qty", "sequence_id", "finished_good", "semi_fg_bom", "manufactured_qty", "track_semi_finished_goods", "batch_no", "for_job_card", "quality_inspection", "is_paused"], {"work_order": ["in", list(wo_map) or ["__none__"]]})
-    job_cards = [j for j in job_cards if j.company == wo_map[j.work_order].company]
+    job_cards = rows("Job Card", ["name", "work_order", "project", "company", "production_item", "operation", "workstation", "for_quantity", "total_completed_qty", "stock_uom", "time_required", "total_time_in_mins", "expected_end_date", "posting_date", "status", "docstatus", "operation_id", "is_corrective_job_card", "modified", "process_loss_qty", "sequence_id", "finished_good", "semi_fg_bom", "manufactured_qty", "track_semi_finished_goods", "batch_no", "for_job_card", "quality_inspection", "is_paused"], {"work_order": ["in", list(wo_map) or ["__none__"]]} if wo_map else company_filter)
+    if f["project"]:
+        job_cards = [j for j in job_cards if j.company == wo_map[j.work_order].company]
     for j in job_cards:
-        j["project"] = wo_map[j.work_order].project
+        j["project"] = wo_map.get(j.work_order, {}).get("project") or "—"
         j["planned_hours"] = flt(j.get("time_required")) / 60
         j["actual_hours"] = flt(j.get("total_time_in_mins")) / 60
     for j in job_cards:
-        w = wo_map[j.work_order]
+        w = wo_map.get(j.work_order)
+        if not w:
+            continue
         j['production_phase'] = 'Cancelled' if j.docstatus == 2 or w.docstatus == 2 else 'Planned / draft Work Order' if w.docstatus != 1 else 'Completed' if j.status == 'Completed' else 'Stopped / closed Work Order' if w.status in ('Stopped', 'Closed', 'Completed') else 'On hold' if j.get('is_paused') or j.status in ('On Hold', 'On hold') else 'Awaiting stock posting' if j.docstatus == 1 else 'Executable pending'
     work_orders_period = [w for w in work_orders if in_period(w.get("planned_start_date"), f)]
 
@@ -165,15 +173,15 @@ def load(filters=None):
     job_cards = [j for j in lifetime_jobs if in_period(j.posting_date, f)]
     wo_operations = children("Work Order Operation", [w.name for w in work_orders if w.docstatus == 1], ["name", "parent", "idx", "operation", "sequence_id", "workstation", "completed_qty", "process_loss_qty", "status", "actual_start_time", "time_in_mins", "actual_operation_time", "finished_good", "fg_warehouse"])
 
-    boms = rows("BOM", ["name", "item", "item_name", "company", "quantity", "uom", "is_active", "docstatus", "custom_sarathi_project", "amended_from", "total_cost", "currency"], {"custom_sarathi_project": ["in", project_names or ["__none__"]]})
+    boms = rows("BOM", ["name", "item", "item_name", "company", "quantity", "uom", "is_active", "docstatus", "custom_sarathi_project", "amended_from", "total_cost", "currency"], {"custom_sarathi_project": ["in", project_names or ["__none__"]]} if f["project"] else company_filter)
     # Historical BOM references from accessible Work Orders are displayed as history,
     # never inferred from matching item codes.
     historical = {w.bom_no for w in work_orders if w.bom_no} - {b.name for b in boms}
     if historical:
         boms += rows("BOM", ["name", "item", "item_name", "company", "quantity", "uom", "is_active", "docstatus", "custom_sarathi_project", "amended_from", "total_cost", "currency"], {"name": ["in", list(historical)]})
-    boms = [b for b in boms if b.company in {p.company for p in projects} and (not b.get("custom_sarathi_project") or b.custom_sarathi_project in project_map)]
+    boms = [b for b in boms if (not f["project"] or (b.company in {p.company for p in projects} and (not b.get("custom_sarathi_project") or b.custom_sarathi_project in project_map)))]
     for b in boms:
-        b["project"] = b.get("custom_sarathi_project") or ", ".join(sorted({w.project for w in work_orders if w.bom_no == b.name}))
+        b["project"] = b.get("custom_sarathi_project") or ", ".join(sorted({w.project for w in work_orders if w.bom_no == b.name})) or "—"
         b["assignment"] = "Current main BOM" if any(p.get("custom_sarathi_bom") == b.name for p in projects) else "Historical / unassigned" if not b.get("custom_sarathi_project") else "Draft / revision"
     # Walk only explicitly linked, readable subassembly BOMs; no item-code inference.
     known_boms = {b.name for b in boms}
@@ -205,11 +213,12 @@ def load(filters=None):
         parent = stock_parent_map[r.parent]
         linked_project = wo_map.get(parent.get('work_order'), {}).get('project')
         project = r.get('project') or linked_project or parent.get('project')
-        if project not in project_map or parent.company != project_map[project].company:
+        if f["project"]:
+            if project != f["project"]:
+                continue
+        elif project and project_map and project not in project_map:
             continue
-        if linked_project and project != linked_project:
-            continue
-        r.update(project=project, line_id=r.name, posting_date=parent.posting_date, work_order=parent.get('work_order'), job_card=parent.get('job_card'), purpose=parent.purpose, quantity_basis='Posted stock movement, not current project allocation')
+        r.update(project=project or "—", line_id=r.name, posting_date=parent.posting_date, work_order=parent.get('work_order'), job_card=parent.get('job_card'), purpose=parent.purpose, quantity_basis='Posted stock movement, not current project allocation')
         stock_items.append(r)
     selected_parents = {r.parent for r in stock_items}
     stock_parent_projects = {name: sorted({r.project for r in stock_items if r.parent == name}) for name in selected_parents}
@@ -219,6 +228,7 @@ def load(filters=None):
     for s in stock:
         s.project = ', '.join(stock_parent_projects[s.name])
     finished = [r for r in stock_items if r.get('is_finished_item') and in_period(r.posting_date, f)]
+
 
     required = children("Work Order Item", [w.name for w in work_orders_period if w.docstatus == 1 and w.status not in ("Completed", "Stopped", "Closed")], ["parent", "item_code", "item_name", "required_qty", "consumed_qty", "transferred_qty", "source_warehouse"])
     warehouses = rows("Warehouse", ["name", "company"], company_filter)
@@ -251,7 +261,11 @@ def load(filters=None):
 
     associations = rows("Sarathi Customer Organization", ["name", "company", "customer"], company_filter)
     member_names = {p.customer for p in all_projects if p.customer} | {o.customer for o in membership_orders} | {a.customer for a in associations}
-    customer_cards = [dict(c) for c in customers if c.name in member_names]
+    if not f["company"]:
+        customer_cards = [dict(c) for c in customers if not c.get("disabled")]
+    else:
+        customer_cards = [dict(c) for c in customers if c.name in member_names]
+    customers_catalogue = [dict(c) for c in customers if not c.get("disabled")]
     if any(not p.customer for p in all_projects):
         customer_cards.append({"name": UNASSIGNED, "customer_name": "Unassigned customer"})
     for c in customer_cards:
@@ -291,11 +305,123 @@ def load(filters=None):
     deadlines.sort(key=lambda r: r["due_date"])
     from sarathi_visibility.api.pipeline import load_pipeline
     pipeline = load_pipeline(dict(projects=projects, filters=f, order_items=order_items, wip_stock=wip_stock), company_filter, work_orders, lifetime_jobs, stock_items, stock_map)
+    all_items = rows("Item", ["name", "item_name", "item_group", "stock_uom", "is_stock_item", "default_warehouse", "valuation_rate", "standard_rate", "disabled"])
+    items = [i for i in all_items if not i.get("disabled")]
+    item_map = {i.name: i for i in items}
+
+    bins_data = rows("Bin", ["name", "item_code", "warehouse", "actual_qty", "reserved_qty", "valuation_rate", "stock_value"], {"warehouse": ["in", list(warehouse_names) or ["__none__"]]}) if readable("Bin") else []
+    inventory = []
+    for b in bins_data:
+        i_info = item_map.get(b.item_code, {})
+        inventory.append(frappe._dict(
+            name=b.name,
+            item_code=b.item_code,
+            item_name=i_info.get("item_name") or b.item_code,
+            warehouse=b.warehouse,
+            actual_qty=flt(b.actual_qty),
+            stock_uom=i_info.get("stock_uom", ""),
+            valuation_rate=flt(b.valuation_rate),
+            stock_value=flt(b.stock_value) or (flt(b.actual_qty) * flt(b.valuation_rate)),
+            reserved_qty=flt(b.reserved_qty),
+        ))
+
+    # Master catalogues & workstations
+    all_workstations = rows("Workstation", ["name", "workstation_name", "workstation_type", "status", "production_capacity", "hour_rate", "description", "plant_floor"])
+    station_stats = {}
+    for j in lifetime_jobs:
+        if j.docstatus == 2:
+            continue
+        w_name = j.get("workstation") or ""
+        s = station_stats.setdefault(w_name, {"jobs": 0, "open_jobs": 0, "planned_hours": 0.0, "actual_hours": 0.0})
+        s["jobs"] += 1
+        s["open_jobs"] += 1 if j.status != "Completed" else 0
+        s["planned_hours"] += flt(j.get("planned_hours") or j.get("time_required")) / 60
+        s["actual_hours"] += flt(j.get("actual_hours") or j.get("total_time_in_mins")) / 60
+
+    workstation_rows = []
+    for w in all_workstations:
+        st = station_stats.get(w.name, {"jobs": 0, "open_jobs": 0, "planned_hours": 0.0, "actual_hours": 0.0})
+        workstation_rows.append(frappe._dict(
+            name=w.name,
+            workstation=w.name,
+            workstation_name=w.get("workstation_name") or w.name,
+            workstation_type=w.get("workstation_type") or "—",
+            status=w.get("status") or "Production",
+            production_capacity=flt(w.get("production_capacity") or 1),
+            jobs=st["jobs"],
+            open_jobs=st["open_jobs"],
+            planned_hours=st["planned_hours"],
+            actual_hours=st["actual_hours"],
+            description=w.get("description") or "",
+            plant_floor=w.get("plant_floor") or "—"
+        ))
+    for w_name, st in station_stats.items():
+        if w_name and not any(w.name == w_name for w in all_workstations):
+            workstation_rows.append(frappe._dict(
+                name=w_name,
+                workstation=w_name,
+                workstation_name=w_name,
+                workstation_type="—",
+                status="Production",
+                production_capacity=1,
+                jobs=st["jobs"],
+                open_jobs=st["open_jobs"],
+                planned_hours=st["planned_hours"],
+                actual_hours=st["actual_hours"],
+                description="",
+                plant_floor="—"
+            ))
+
+    operations_catalogue = rows("Operation", ["name", "operation_name", "workstation", "description"])
+    warehouses_list = rows("Warehouse", ["name", "warehouse_name", "company", "is_group", "parent_warehouse", "disabled"], company_filter if f["company"] else None)
+    warehouses = [w for w in warehouses_list if not w.get("disabled")]
+    suppliers_list = rows("Supplier", ["name", "supplier_name", "supplier_group", "country", "is_transporter", "disabled"])
+    suppliers = [s for s in suppliers_list if not s.get("disabled")]
+    workstation_types = rows("Workstation Type", ["name", "workstation_type", "description"])
+    plant_floors = rows("Plant Floor", ["name", "floor_name", "warehouse", "company"])
+    routings = rows("Routing", ["name", "routing_name", "disabled"])
+
     if not readable('Work Order'):
         for r in production_summary:
             if r['project_status'] not in ('Completed', 'Cancelled', 'On hold'):
                 r.update(live_status='Access restricted', production_status='Access restricted', activity_message='Work Order read access is required', note='Manufacturing data unavailable to this viewer')
-    return dict(**pipeline, live_activity=live_activity_rows, operation_balance=operation_balance, production_summary=production_summary, wip_stock=wip_stock, filters=f, companies=companies, customers=customer_cards, projects=projects, orders=orders, order_items=order_items, work_orders=work_orders_period, job_cards=job_cards, boms=boms, components=components, operations=operations, stock=stock, finished=finished, materials=materials, tasks=tasks, integrations=integrations, issues=issues, deadlines=deadlines)
+    return dict(
+        **pipeline,
+        items=items,
+        inventory=inventory,
+        workstations=workstation_rows,
+        operations_catalogue=operations_catalogue,
+        warehouses=warehouses,
+        customers_catalogue=customers_catalogue,
+        suppliers=suppliers,
+        workstation_types=workstation_types,
+        plant_floors=plant_floors,
+        routings=routings,
+        live_activity=live_activity_rows,
+        operation_balance=operation_balance,
+        production_summary=production_summary,
+        wip_stock=wip_stock,
+        filters=f,
+        companies=companies,
+        customers=customer_cards,
+        projects=projects,
+        orders=orders,
+        order_items=order_items,
+        work_orders=work_orders_period,
+        job_cards=job_cards,
+        boms=boms,
+        components=components,
+        operations=operations,
+        stock=stock,
+        finished=finished,
+        materials=materials,
+        tasks=tasks,
+        integrations=integrations,
+        issues=issues,
+        deadlines=deadlines,
+    )
+
+
 
 
 def grouped(rows_, key, value=None):

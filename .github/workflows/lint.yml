@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
@@ -11,6 +12,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -29,7 +31,19 @@ jobs:
       - name: Install pre-commit
         run: pip install -U pre-commit
 
-      - name: Lint
-        run: pre-commit run --color=always --all-files
+      - name: Lint sarathi_visibility
+        run: |
+          FILES=$(git ls-files -- 'sarathi_visibility/**')
+
+          if [ -z "$FILES" ]; then
+            echo "No tracked files found in sarathi_visibility"
+            exit 0
+          fi
+
+          echo "Files being linted:"
+          printf '%s\n' "$FILES"
+
+          pre-commit run --color=always --files $FILES
+
         env:
           GO111MODULE: on

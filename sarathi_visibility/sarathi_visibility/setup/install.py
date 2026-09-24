@@ -13,6 +13,7 @@ def after_install():
     ensure_role("Sarathi Super Admin")
     ensure_module_profile_page()
     ensure_workspace_shortcuts()
+    ensure_no_desk_icon()
     ensure_manufacturing_sidebar_link()
 
 
@@ -21,7 +22,45 @@ def after_migrate():
     install()
     ensure_module_profile_page()
     ensure_workspace_shortcuts()
+    ensure_no_desk_icon()
     ensure_manufacturing_sidebar_link()
+
+
+def ensure_no_desk_icon():
+    if frappe.db.exists("Desktop Icon", "Sarathi Visibility"):
+        frappe.delete_doc("Desktop Icon", "Sarathi Visibility", ignore_permissions=True, force=True)
+    elif frappe.db.table_exists("Desktop Icon"):
+        for icon in frappe.get_all("Desktop Icon", filters={"label": "Sarathi Visibility"}, pluck="name"):
+            frappe.delete_doc("Desktop Icon", icon, ignore_permissions=True, force=True)
+
+    if frappe.db.exists("Workspace Sidebar", "Sarathi Visibility"):
+        frappe.delete_doc("Workspace Sidebar", "Sarathi Visibility", ignore_permissions=True, force=True)
+    elif frappe.db.table_exists("Workspace Sidebar"):
+        for sb in frappe.get_all("Workspace Sidebar", filters={"title": "Sarathi Visibility"}, pluck="name"):
+            frappe.delete_doc("Workspace Sidebar", sb, ignore_permissions=True, force=True)
+
+    try:
+        from frappe.desk.doctype.desktop_icon.desktop_icon import clear_desktop_icons_cache
+        clear_desktop_icons_cache()
+    except Exception:
+        pass
+
+
+def filter_bootinfo_desktop_icons(bootinfo):
+    if not bootinfo:
+        return
+    desktop_icons = bootinfo.get("desktop_icons")
+    if isinstance(desktop_icons, list):
+        bootinfo["desktop_icons"] = [
+            icon for icon in desktop_icons
+            if not (
+                isinstance(icon, dict) and (
+                    icon.get("name") == "Sarathi Visibility" or
+                    icon.get("label") == "Sarathi Visibility" or
+                    icon.get("link_to") == "Sarathi Visibility"
+                )
+            )
+        ]
 
 
 def ensure_role(role_name: str):
@@ -69,6 +108,8 @@ def ensure_workspace_shortcuts():
         return
 
     workspace = frappe.get_doc("Workspace", workspace_name)
+    workspace.public = 0
+    workspace.is_hidden = 1
     workspace.set(
         "shortcuts",
         [shortcut.as_dict() for shortcut in workspace.shortcuts if shortcut.label not in ("Sarathi Control Tower", "Website View")],

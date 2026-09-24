@@ -65,16 +65,22 @@ def load_pipeline(data, company_filter, work_orders, jobs, stock_items, stock_ma
             if not project:
                 if unrestricted:
                     exceptions.append(dict(doctype=doctype, name=parent.name, line_id=line.name, item_code=line.get('item_code'), project=None, issue=basis))
-                continue
-            if project not in projects or parent.company != projects[project].company:
-                continue
-            if parent.get('customer') and parent.customer != projects[project].customer:
-                continue
+                if not data['filters'].get('project'):
+                    project = "—"
+                    basis = "Company document"
+                else:
+                    continue
+            if project != "—":
+                if project not in projects or parent.company != projects[project].company:
+                    continue
+                if parent.get('customer') and parent.customer != projects[project].customer:
+                    continue
             row = frappe._dict(line)
             row.update(line_id=line.name, name=parent.name, project=project, company=parent.company, doctype=doctype, supplier=parent.get('supplier'), customer=parent.get('customer'), status=parent.status, docstatus=parent.docstatus, date=parent.get('posting_date') or parent.get('transaction_date'), currency=parent.get('currency'), is_return=parent.get('is_return'), update_stock=parent.get('update_stock'), basis=basis, value_basis='Item net amount excluding document taxes', outstanding_amount=None)
             row['remaining_qty'] = max(flt(line.qty) - flt(line.get('received_qty') if key == 'purchases' else line.get('ordered_qty')), 0) if key in ('requests', 'purchases') else None
             selected.append(row)
             references[line.name] = project
+
         # Outstanding is meaningful only when every document item belongs to this selection.
         for row in selected:
             parent = parent_map[row.name]
@@ -164,4 +170,10 @@ def load_pipeline(data, company_filter, work_orders, jobs, stock_items, stock_ma
         metrics = {key: len({r.name for r in result[key] if r.project == p.name and r.docstatus == 1}) if readable(dt) else None for key, (dt, child) in DOCUMENTS.items()}
         metrics.update(project=p.name, customer=p.customer, work_orders=len([w for w in wo_map.values() if w.project == p.name]) if readable('Work Order') else None, running_jobs=len([j for j in jobs if j.project == p.name and j.get('production_phase') == 'Executable pending']) if readable('Job Card') else None, inspections=len([q for q in result['quality'] if q.project == p.name]) if readable('Quality Inspection') else None)
         result['pipeline_summary'].append(metrics)
+    if not projects and not data['filters'].get('project'):
+        comp_name = data['filters'].get('company') or "Organization Overview"
+        metrics = {key: len({r.name for r in result[key] if r.docstatus == 1}) if readable(dt) else None for key, (dt, child) in DOCUMENTS.items()}
+        metrics.update(project=comp_name, customer="—", work_orders=len([w for w in wo_map.values() if w.docstatus == 1]) if readable('Work Order') else None, running_jobs=len([j for j in jobs if j.get('production_phase') == 'Executable pending']) if readable('Job Card') else None, inspections=len([q for q in result['quality'] if q.docstatus == 1]) if readable('Quality Inspection') else None)
+        result['pipeline_summary'].append(metrics)
     return result
+
