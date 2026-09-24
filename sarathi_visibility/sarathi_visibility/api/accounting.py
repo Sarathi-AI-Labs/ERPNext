@@ -29,10 +29,12 @@ from frappe.utils import (
 
 
 def _check_read(doctype: str) -> bool:
-    return bool(frappe.db.exists("DocType", doctype) and frappe.has_permission(doctype, "read"))
+    return bool(
+        frappe.db.exists("DocType", doctype) and frappe.has_permission(doctype, "read")
+    )
 
 
-def _parse_filters(filters: Any = None) -> Dict[str, Any]:
+def _parse_filters(filters: Any = None) -> dict[str, Any]:
     if isinstance(filters, str):
         try:
             filters = frappe.parse_json(filters)
@@ -52,7 +54,9 @@ def _parse_filters(filters: Any = None) -> Dict[str, Any]:
     }
 
 
-def _resolve_period_dates(period: str, from_date: str = "", to_date: str = "") -> Tuple[str, str, str, str]:
+def _resolve_period_dates(
+    period: str, from_date: str = "", to_date: str = ""
+) -> tuple[str, str, str, str]:
     """Resolves current period and matching comparison previous period dates.
     Returns: (start_date, end_date, prev_start_date, prev_end_date)
     """
@@ -96,7 +100,9 @@ def _resolve_period_dates(period: str, from_date: str = "", to_date: str = "") -
         cur_start = getdate(f"{t.year}-{(quarter * 3) + 1:02d}-01")
         cur_end = t
         prev_end = add_days(cur_start, -1)
-        prev_start = getdate(f"{prev_end.year}-{((prev_end.month - 1) // 3 * 3) + 1:02d}-01")
+        prev_start = getdate(
+            f"{prev_end.year}-{((prev_end.month - 1) // 3 * 3) + 1:02d}-01"
+        )
     elif period == "this_year":
         cur_start = getdate(f"{t.year}-01-01")
         cur_end = t
@@ -123,9 +129,9 @@ def _resolve_period_dates(period: str, from_date: str = "", to_date: str = "") -
     return str(cur_start), str(cur_end), str(prev_start), str(prev_end)
 
 
-def _sum_field(doctype: str, fieldname: str, filters: Dict[str, Any]) -> float:
+def _sum_field(doctype: str, fieldname: str, filters: dict[str, Any]) -> float:
     conds = []
-    vals: Dict[str, Any] = {}
+    vals: dict[str, Any] = {}
     for k, v in filters.items():
         if isinstance(v, list) and len(v) == 2 and v[0] == ">":
             conds.append(f"`{k}` > %({k})s")
@@ -138,7 +144,9 @@ def _sum_field(doctype: str, fieldname: str, filters: Dict[str, Any]) -> float:
             conds.append(f"`{k}` = %({k})s")
             vals[k] = v
     where_clause = f" WHERE {' AND '.join(conds)}" if conds else ""
-    res = frappe.db.sql(f"SELECT SUM(`{fieldname}`) FROM `tab{doctype}`{where_clause}", vals)
+    res = frappe.db.sql(
+        f"SELECT SUM(`{fieldname}`) FROM `tab{doctype}`{where_clause}", vals
+    )
     return flt(res[0][0]) if res and res[0] and res[0][0] is not None else 0.0
 
 
@@ -151,8 +159,7 @@ def _get_company_currency(company: str = "") -> str:
     return def_comp or "INR"
 
 
-
-def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
+def get_accounting_card_summary(filters: Any = None) -> dict[str, Any]:
     """Lightweight summary specifically for the Main Dashboard Finance / Account Card.
     Returns Net Profit, Revenue, Expenses, AR (Receivables), AP (Payables), Cash & Bank Balances.
     """
@@ -176,10 +183,12 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
             "budget_used_pct": 0.0,
         }
 
-    start_date, end_date, _, _ = _resolve_period_dates(f["period"], f["from_date"], f["to_date"])
+    start_date, end_date, _, _ = _resolve_period_dates(
+        f["period"], f["from_date"], f["to_date"]
+    )
 
     gl_conditions = ["gl.is_cancelled = 0"]
-    gl_params: Dict[str, Any] = {"start_date": start_date, "end_date": end_date}
+    gl_params: dict[str, Any] = {"start_date": start_date, "end_date": end_date}
 
     if f["company"]:
         gl_conditions.append("gl.company = %(company)s")
@@ -191,7 +200,9 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
         gl_conditions.append("gl.cost_center = %(cost_center)s")
         gl_params["cost_center"] = f["cost_center"]
 
-    pnl_conditions = list(gl_conditions) + ["gl.posting_date BETWEEN %(start_date)s AND %(end_date)s"]
+    pnl_conditions = list(gl_conditions) + [
+        "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s"
+    ]
     where_pnl = " AND ".join(pnl_conditions)
 
     revenue = 0.0
@@ -220,7 +231,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
             pass
 
     if revenue == 0.0 and has_si:
-        si_filters: Dict[str, Any] = {"docstatus": 1}
+        si_filters: dict[str, Any] = {"docstatus": 1}
         if f["company"]:
             si_filters["company"] = f["company"]
         if f["project"]:
@@ -232,7 +243,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
         revenue = flt(si_sum)
 
     if expense == 0.0 and has_pi:
-        pi_filters: Dict[str, Any] = {"docstatus": 1}
+        pi_filters: dict[str, Any] = {"docstatus": 1}
         if f["company"]:
             pi_filters["company"] = f["company"]
         if f["project"]:
@@ -248,7 +259,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
 
     receivables = 0.0
     if has_si:
-        ar_filters: Dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
+        ar_filters: dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
         if f["company"]:
             ar_filters["company"] = f["company"]
         if f["project"]:
@@ -259,7 +270,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
 
     payables = 0.0
     if has_pi:
-        ap_filters: Dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
+        ap_filters: dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
         if f["company"]:
             ap_filters["company"] = f["company"]
         if f["project"]:
@@ -270,7 +281,11 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
 
     cash_and_bank = 0.0
     if has_gl:
-        cb_conditions = ["gl.is_cancelled = 0", "acc.account_type IN ('Bank', 'Cash')", "gl.posting_date <= %(end_date)s"]
+        cb_conditions = [
+            "gl.is_cancelled = 0",
+            "acc.account_type IN ('Bank', 'Cash')",
+            "gl.posting_date <= %(end_date)s",
+        ]
         if f["company"]:
             cb_conditions.append("gl.company = %(company)s")
         where_cb = " AND ".join(cb_conditions)
@@ -290,7 +305,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
     budget_used_pct = 0.0
     if _check_read("Budget"):
         try:
-            b_filters: Dict[str, Any] = {"docstatus": 1}
+            b_filters: dict[str, Any] = {"docstatus": 1}
             if f["company"]:
                 b_filters["company"] = f["company"]
             if f["project"]:
@@ -298,10 +313,13 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
             budgets = frappe.get_all("Budget", fields=["name"], filters=b_filters)
             if budgets:
                 budget_names = [b.name for b in budgets]
-                tot_budget = flt(frappe.db.sql(
-                    "SELECT SUM(budget_amount) FROM `tabBudget Account` WHERE parent IN %(parents)s",
-                    {"parents": tuple(budget_names)},
-                )[0][0] or 0.0)
+                tot_budget = flt(
+                    frappe.db.sql(
+                        "SELECT SUM(budget_amount) FROM `tabBudget Account` WHERE parent IN %(parents)s",
+                        {"parents": tuple(budget_names)},
+                    )[0][0]
+                    or 0.0
+                )
                 if tot_budget > 0:
                     budget_used_pct = min(100.0, (expense / tot_budget) * 100.0)
         except Exception:
@@ -321,7 +339,7 @@ def get_accounting_card_summary(filters: Any = None) -> Dict[str, Any]:
 
 
 @frappe.whitelist()
-def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
+def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
     """Comprehensive Analytical Payload for the Accounting Control Tower Detail View.
     Fulfills all 17 sections of the 19-page Sarathi Architecture Specification.
     """
@@ -335,10 +353,12 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
     has_project = _check_read("Project")
 
     currency = _get_company_currency(f["company"])
-    start_date, end_date, prev_start, prev_end = _resolve_period_dates(f["period"], f["from_date"], f["to_date"])
+    start_date, end_date, prev_start, prev_end = _resolve_period_dates(
+        f["period"], f["from_date"], f["to_date"]
+    )
 
     gl_conditions = ["gl.is_cancelled = 0"]
-    gl_params: Dict[str, Any] = {
+    gl_params: dict[str, Any] = {
         "start_date": start_date,
         "end_date": end_date,
         "prev_start": prev_start,
@@ -401,11 +421,17 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                         other_income += cr
                 elif rt == "Expense":
                     total_expense += dr
-                    if at == "Cost of Goods Sold" or "COGS" in (r.get("name") or "") or "Direct" in (r.get("name") or ""):
+                    if (
+                        at == "Cost of Goods Sold"
+                        or "COGS" in (r.get("name") or "")
+                        or "Direct" in (r.get("name") or "")
+                    ):
                         cogs += dr
                     elif at == "Tax" or "Tax" in (r.get("name") or ""):
                         tax_expense += dr
-                    elif "Finance" in (r.get("name") or "") or "Interest" in (r.get("name") or ""):
+                    elif "Finance" in (r.get("name") or "") or "Interest" in (
+                        r.get("name") or ""
+                    ):
                         finance_cost += dr
                     else:
                         operating_expense += dr
@@ -435,7 +461,10 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             pass
 
     if revenue == 0.0 and has_si:
-        si_filters: Dict[str, Any] = {"docstatus": 1, "posting_date": ["between", [start_date, end_date]]}
+        si_filters: dict[str, Any] = {
+            "docstatus": 1,
+            "posting_date": ["between", [start_date, end_date]],
+        }
         if f["company"]:
             si_filters["company"] = f["company"]
         if f["project"]:
@@ -446,14 +475,19 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
         invoice_revenue = revenue
 
     if total_expense == 0.0 and has_pi:
-        pi_filters: Dict[str, Any] = {"docstatus": 1, "posting_date": ["between", [start_date, end_date]]}
+        pi_filters: dict[str, Any] = {
+            "docstatus": 1,
+            "posting_date": ["between", [start_date, end_date]],
+        }
         if f["company"]:
             pi_filters["company"] = f["company"]
         if f["project"]:
             pi_filters["project"] = f["project"]
         if f["supplier"]:
             pi_filters["supplier"] = f["supplier"]
-        total_expense = flt(_sum_field("Purchase Invoice", "base_grand_total", pi_filters))
+        total_expense = flt(
+            _sum_field("Purchase Invoice", "base_grand_total", pi_filters)
+        )
         cogs = total_expense * 0.7
         operating_expense = total_expense * 0.3
 
@@ -468,7 +502,7 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
     cash_balance = 0.0
     bank_balance = 0.0
-    bank_accounts: List[Dict[str, Any]] = []
+    bank_accounts: list[dict[str, Any]] = []
 
     if has_gl:
         bank_query = f"""
@@ -493,14 +527,16 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                     cash_balance += bal
                 else:
                     bank_balance += bal
-                bank_accounts.append({
-                    "account": r.get("account"),
-                    "account_name": r.get("account_name"),
-                    "account_type": at,
-                    "currency": r.get("account_currency") or currency,
-                    "balance": flt(bal, 2),
-                    "reconciliation_status": "Reconciled",
-                })
+                bank_accounts.append(
+                    {
+                        "account": r.get("account"),
+                        "account_name": r.get("account_name"),
+                        "account_type": at,
+                        "currency": r.get("account_currency") or currency,
+                        "balance": flt(bal, 2),
+                        "reconciliation_status": "Reconciled",
+                    }
+                )
         except Exception:
             pass
 
@@ -508,11 +544,17 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
     receivables_total = 0.0
     receivables_overdue = 0.0
-    ar_buckets = {"current": 0.0, "days_1_30": 0.0, "days_31_60": 0.0, "days_61_90": 0.0, "days_90_plus": 0.0}
-    top_receivables: List[Dict[str, Any]] = []
+    ar_buckets = {
+        "current": 0.0,
+        "days_1_30": 0.0,
+        "days_31_60": 0.0,
+        "days_61_90": 0.0,
+        "days_90_plus": 0.0,
+    }
+    top_receivables: list[dict[str, Any]] = []
 
     if has_si:
-        si_ar_filter: Dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
+        si_ar_filter: dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
         if f["company"]:
             si_ar_filter["company"] = f["company"]
         if f["project"]:
@@ -522,7 +564,15 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
         invoices = frappe.get_all(
             "Sales Invoice",
-            fields=["name", "customer", "customer_name", "posting_date", "due_date", "grand_total", "outstanding_amount"],
+            fields=[
+                "name",
+                "customer",
+                "customer_name",
+                "posting_date",
+                "due_date",
+                "grand_total",
+                "outstanding_amount",
+            ],
             filters=si_ar_filter,
             order_by="outstanding_amount desc",
             limit_page_length=50,
@@ -555,24 +605,31 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 receivables_overdue += amt
 
             if len(top_receivables) < 15:
-                top_receivables.append({
-                    "party": inv.customer_name or inv.customer,
-                    "document": inv.name,
-                    "doctype": "Sales Invoice",
-                    "due_date": str(inv.due_date or inv.posting_date),
-                    "amount": flt(amt, 2),
-                    "days": max(0, diff),
-                    "status": status,
-                    "is_overdue": diff > 0,
-                })
+                top_receivables.append(
+                    {
+                        "party": inv.customer_name or inv.customer,
+                        "document": inv.name,
+                        "doctype": "Sales Invoice",
+                        "due_date": str(inv.due_date or inv.posting_date),
+                        "amount": flt(amt, 2),
+                        "days": max(0, diff),
+                        "status": status,
+                        "is_overdue": diff > 0,
+                    }
+                )
 
     payables_total = 0.0
     payables_overdue = 0.0
-    ap_buckets = {"due_week": 0.0, "due_month": 0.0, "days_31_60": 0.0, "days_90_plus": 0.0}
-    top_payables: List[Dict[str, Any]] = []
+    ap_buckets = {
+        "due_week": 0.0,
+        "due_month": 0.0,
+        "days_31_60": 0.0,
+        "days_90_plus": 0.0,
+    }
+    top_payables: list[dict[str, Any]] = []
 
     if has_pi:
-        pi_ap_filter: Dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
+        pi_ap_filter: dict[str, Any] = {"docstatus": 1, "outstanding_amount": [">", 0]}
         if f["company"]:
             pi_ap_filter["company"] = f["company"]
         if f["project"]:
@@ -582,7 +639,15 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
         pinvoices = frappe.get_all(
             "Purchase Invoice",
-            fields=["name", "supplier", "supplier_name", "posting_date", "due_date", "grand_total", "outstanding_amount"],
+            fields=[
+                "name",
+                "supplier",
+                "supplier_name",
+                "posting_date",
+                "due_date",
+                "grand_total",
+                "outstanding_amount",
+            ],
             filters=pi_ap_filter,
             order_by="outstanding_amount desc",
             limit_page_length=50,
@@ -610,16 +675,18 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 payables_overdue += amt
 
             if len(top_payables) < 15:
-                top_payables.append({
-                    "party": pinv.supplier_name or pinv.supplier,
-                    "document": pinv.name,
-                    "doctype": "Purchase Invoice",
-                    "due_date": str(pinv.due_date or pinv.posting_date),
-                    "amount": flt(amt, 2),
-                    "days": max(0, diff),
-                    "status": status,
-                    "is_overdue": diff > 0,
-                })
+                top_payables.append(
+                    {
+                        "party": pinv.supplier_name or pinv.supplier,
+                        "document": pinv.name,
+                        "doctype": "Purchase Invoice",
+                        "due_date": str(pinv.due_date or pinv.posting_date),
+                        "amount": flt(amt, 2),
+                        "days": max(0, diff),
+                        "status": status,
+                        "is_overdue": diff > 0,
+                    }
+                )
 
     output_tax = 0.0
     input_tax = 0.0
@@ -651,11 +718,11 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
     approved_budget = 0.0
     committed_expense = 0.0
-    budget_vs_actual_list: List[Dict[str, Any]] = []
+    budget_vs_actual_list: list[dict[str, Any]] = []
 
     if has_budget:
         try:
-            b_filter: Dict[str, Any] = {"docstatus": 1}
+            b_filter: dict[str, Any] = {"docstatus": 1}
             if f["company"]:
                 b_filter["company"] = f["company"]
             if f["project"]:
@@ -663,9 +730,17 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             if f["cost_center"]:
                 b_filter["cost_center"] = f["cost_center"]
 
-            budgets = frappe.get_all("Budget", fields=["name", "budget_against", "cost_center", "project"], filters=b_filter)
+            budgets = frappe.get_all(
+                "Budget",
+                fields=["name", "budget_against", "cost_center", "project"],
+                filters=b_filter,
+            )
             for b in budgets:
-                accts = frappe.get_all("Budget Account", fields=["account", "budget_amount"], filters={"parent": b.name})
+                accts = frappe.get_all(
+                    "Budget Account",
+                    fields=["account", "budget_amount"],
+                    filters={"parent": b.name},
+                )
                 for ba in accts:
                     b_amt = flt(ba.budget_amount)
                     approved_budget += b_amt
@@ -674,52 +749,70 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                         FROM `tabGL Entry` gl
                         WHERE {base_where} AND gl.account = %(acc_name)s AND gl.posting_date BETWEEN %(start_date)s AND %(end_date)s
                     """
-                    act_val = flt(frappe.db.sql(act_sql, {**gl_params, "acc_name": ba.account})[0][0] or 0.0)
+                    act_val = flt(
+                        frappe.db.sql(act_sql, {**gl_params, "acc_name": ba.account})[
+                            0
+                        ][0]
+                        or 0.0
+                    )
                     variance = b_amt - act_val
                     util = (act_val / b_amt * 100.0) if b_amt > 0 else 0.0
-                    budget_vs_actual_list.append({
-                        "period": f["period"].replace("_", " ").title(),
-                        "cost_center": b.cost_center or b.project or "General",
-                        "account": ba.account,
-                        "budget": flt(b_amt, 2),
-                        "actual": flt(act_val, 2),
-                        "variance": flt(variance, 2),
-                        "utilization": flt(util, 1),
-                    })
+                    budget_vs_actual_list.append(
+                        {
+                            "period": f["period"].replace("_", " ").title(),
+                            "cost_center": b.cost_center or b.project or "General",
+                            "account": ba.account,
+                            "budget": flt(b_amt, 2),
+                            "actual": flt(act_val, 2),
+                            "variance": flt(variance, 2),
+                            "utilization": flt(util, 1),
+                        }
+                    )
         except Exception:
             pass
 
     if approved_budget == 0.0 and total_expense > 0:
         approved_budget = total_expense * 1.15
-        budget_vs_actual_list.append({
-            "period": f["period"].replace("_", " ").title(),
-            "cost_center": f["cost_center"] or f["project"] or "Corporate",
-            "account": "Operating Benchmark",
-            "budget": flt(approved_budget, 2),
-            "actual": flt(total_expense, 2),
-            "variance": flt(approved_budget - total_expense, 2),
-            "utilization": flt((total_expense / approved_budget) * 100.0, 1),
-        })
+        budget_vs_actual_list.append(
+            {
+                "period": f["period"].replace("_", " ").title(),
+                "cost_center": f["cost_center"] or f["project"] or "Corporate",
+                "account": "Operating Benchmark",
+                "budget": flt(approved_budget, 2),
+                "actual": flt(total_expense, 2),
+                "variance": flt(approved_budget - total_expense, 2),
+                "utilization": flt((total_expense / approved_budget) * 100.0, 1),
+            }
+        )
 
     budget_variance = approved_budget - total_expense
-    budget_used_pct = (total_expense / approved_budget * 100.0) if approved_budget > 0 else 0.0
+    budget_used_pct = (
+        (total_expense / approved_budget * 100.0) if approved_budget > 0 else 0.0
+    )
 
     collections = 0.0
     supplier_payments = 0.0
     if has_pe:
-        pe_cond = ["docstatus = 1", "posting_date BETWEEN %(start_date)s AND %(end_date)s"]
+        pe_cond = [
+            "docstatus = 1",
+            "posting_date BETWEEN %(start_date)s AND %(end_date)s",
+        ]
         if f["company"]:
             pe_cond.append("company = %(company)s")
         if f["project"]:
             pe_cond.append("project = %(project)s")
         where_pe = " AND ".join(pe_cond)
         try:
-            pe_rows = frappe.db.sql(f"""
+            pe_rows = frappe.db.sql(
+                f"""
                 SELECT payment_type, SUM(received_amount) as rec, SUM(paid_amount) as paid
                 FROM `tabPayment Entry`
                 WHERE {where_pe}
                 GROUP BY payment_type
-            """, gl_params, as_dict=True)
+            """,
+                gl_params,
+                as_dict=True,
+            )
             for r in pe_rows:
                 pt = r.get("payment_type")
                 if pt == "Receive":
@@ -731,10 +824,10 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
     net_cash_movement = collections - supplier_payments
 
-    trend_labels: List[str] = []
-    trend_revenue: List[float] = []
-    trend_expense: List[float] = []
-    trend_profit: List[float] = []
+    trend_labels: list[str] = []
+    trend_revenue: list[float] = []
+    trend_expense: list[float] = []
+    trend_profit: list[float] = []
 
     cur_dt = getdate(end_date)
     for i in range(5, -1, -1):
@@ -748,7 +841,8 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
         m_exp = 0.0
         if has_gl:
             try:
-                m_rows = frappe.db.sql(f"""
+                m_rows = frappe.db.sql(
+                    f"""
                     SELECT
                         acc.root_type,
                         SUM(gl.credit - gl.debit) as cr,
@@ -757,7 +851,10 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                     INNER JOIN `tabAccount` acc ON acc.name = gl.account
                     WHERE {base_where} AND gl.posting_date BETWEEN %s AND %s
                     GROUP BY acc.root_type
-                """, (m_start, m_end), as_dict=True)
+                """,
+                    (m_start, m_end),
+                    as_dict=True,
+                )
                 for r in m_rows:
                     rt = r.get("root_type")
                     if rt == "Income":
@@ -771,19 +868,35 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
         trend_expense.append(flt(m_exp, 2))
         trend_profit.append(flt(m_rev - m_exp, 2))
 
-    expense_categories: List[Dict[str, Any]] = [
-        {"category": "COGS / Direct Production", "amount": flt(cogs, 2), "color": "#e11d48"},
-        {"category": "Operating & Administration", "amount": flt(operating_expense, 2), "color": "#7c3aed"},
-        {"category": "Finance & Bank Charges", "amount": flt(finance_cost, 2), "color": "#0284c7"},
-        {"category": "Taxes & Statutory", "amount": flt(tax_expense, 2), "color": "#ea580c"},
+    expense_categories: list[dict[str, Any]] = [
+        {
+            "category": "COGS / Direct Production",
+            "amount": flt(cogs, 2),
+            "color": "#e11d48",
+        },
+        {
+            "category": "Operating & Administration",
+            "amount": flt(operating_expense, 2),
+            "color": "#7c3aed",
+        },
+        {
+            "category": "Finance & Bank Charges",
+            "amount": flt(finance_cost, 2),
+            "color": "#0284c7",
+        },
+        {
+            "category": "Taxes & Statutory",
+            "amount": flt(tax_expense, 2),
+            "color": "#ea580c",
+        },
     ]
     tot_cat_exp = sum(c["amount"] for c in expense_categories) or 1.0
     for c in expense_categories:
         c["pct"] = flt((c["amount"] / tot_cat_exp) * 100.0, 1)
 
-    project_finance_list: List[Dict[str, Any]] = []
+    project_finance_list: list[dict[str, Any]] = []
     if has_project:
-        p_filter: Dict[str, Any] = {}
+        p_filter: dict[str, Any] = {}
         if f["company"]:
             p_filter["company"] = f["company"]
         if f["project"]:
@@ -793,7 +906,16 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
         projects = frappe.get_all(
             "Project",
-            fields=["name", "project_name", "customer", "company", "status", "estimated_costing", "total_sales_amount", "total_billed_amount"],
+            fields=[
+                "name",
+                "project_name",
+                "customer",
+                "company",
+                "status",
+                "estimated_costing",
+                "total_sales_amount",
+                "total_billed_amount",
+            ],
             filters=p_filter,
             limit_page_length=20,
         )
@@ -806,14 +928,18 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
             if has_gl:
                 try:
-                    p_gl = frappe.db.sql("""
+                    p_gl = frappe.db.sql(
+                        """
                         SELECT
                             SUM(CASE WHEN acc.root_type = 'Expense' THEN gl.debit - gl.credit ELSE 0 END) as cost,
                             SUM(CASE WHEN acc.root_type = 'Income' THEN gl.credit - gl.debit ELSE 0 END) as rev
                         FROM `tabGL Entry` gl
                         INNER JOIN `tabAccount` acc ON acc.name = gl.account
                         WHERE gl.is_cancelled = 0 AND gl.project = %s
-                    """, (p_name,), as_dict=True)
+                    """,
+                        (p_name,),
+                        as_dict=True,
+                    )
                     if p_gl and p_gl[0]:
                         p_cost = flt(p_gl[0].get("cost") or 0.0)
                         if not p_invoiced:
@@ -823,11 +949,14 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
 
             if has_pe:
                 try:
-                    p_pe = frappe.db.sql("""
+                    p_pe = frappe.db.sql(
+                        """
                         SELECT SUM(received_amount) as coll
                         FROM `tabPayment Entry`
                         WHERE docstatus = 1 AND payment_type = 'Receive' AND project = %s
-                    """, (p_name,))
+                    """,
+                        (p_name,),
+                    )
                     if p_pe and p_pe[0][0]:
                         p_collected = flt(p_pe[0][0])
                 except Exception:
@@ -838,83 +967,109 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
             p_margin = (p_profit / p_invoiced * 100.0) if p_invoiced > 0 else 0.0
             p_contract = flt(p.total_sales_amount or p_invoiced or 0.0)
 
-            project_finance_list.append({
-                "project": p_name,
-                "project_name": p.project_name or p_name,
-                "customer": p.customer or "Unassigned",
-                "contract_value": flt(p_contract, 2),
-                "invoiced": flt(p_invoiced, 2),
-                "collected": flt(p_collected, 2),
-                "outstanding": flt(p_outstanding, 2),
-                "total_cost": flt(p_cost, 2),
-                "profit": flt(p_profit, 2),
-                "margin_pct": flt(p_margin, 1),
-                "status": p.status,
-            })
+            project_finance_list.append(
+                {
+                    "project": p_name,
+                    "project_name": p.project_name or p_name,
+                    "customer": p.customer or "Unassigned",
+                    "contract_value": flt(p_contract, 2),
+                    "invoiced": flt(p_invoiced, 2),
+                    "collected": flt(p_collected, 2),
+                    "outstanding": flt(p_outstanding, 2),
+                    "total_cost": flt(p_cost, 2),
+                    "profit": flt(p_profit, 2),
+                    "margin_pct": flt(p_margin, 1),
+                    "status": p.status,
+                }
+            )
 
     # Section 5: Revenue Visualizations data
-    revenue_by_customer: List[Dict[str, Any]] = []
+    revenue_by_customer: list[dict[str, Any]] = []
     if has_si:
         try:
-            si_cust_cond = ["docstatus = 1", "posting_date BETWEEN %(start_date)s AND %(end_date)s"]
+            si_cust_cond = [
+                "docstatus = 1",
+                "posting_date BETWEEN %(start_date)s AND %(end_date)s",
+            ]
             if f["company"]:
                 si_cust_cond.append("company = %(company)s")
             if f["project"]:
                 si_cust_cond.append("project = %(project)s")
             where_si_cust = " AND ".join(si_cust_cond)
-            cust_rows = frappe.db.sql(f"""
+            cust_rows = frappe.db.sql(
+                f"""
                 SELECT customer, customer_name, SUM(base_grand_total) as total
                 FROM `tabSales Invoice`
                 WHERE {where_si_cust}
                 GROUP BY customer, customer_name
                 ORDER BY total DESC
                 LIMIT 8
-            """, gl_params, as_dict=True)
+            """,
+                gl_params,
+                as_dict=True,
+            )
             tot_cust_rev = sum(flt(r.total) for r in cust_rows) or 1.0
             for r in cust_rows:
                 tot = flt(r.total, 2)
-                revenue_by_customer.append({
-                    "customer": r.customer,
-                    "customer_name": r.customer_name or r.customer,
-                    "amount": tot,
-                    "pct": flt((tot / tot_cust_rev) * 100.0, 1),
-                })
+                revenue_by_customer.append(
+                    {
+                        "customer": r.customer,
+                        "customer_name": r.customer_name or r.customer,
+                        "amount": tot,
+                        "pct": flt((tot / tot_cust_rev) * 100.0, 1),
+                    }
+                )
         except Exception:
             pass
 
-    revenue_by_project: List[Dict[str, Any]] = []
+    revenue_by_project: list[dict[str, Any]] = []
     if has_si:
         try:
-            si_proj_cond = ["docstatus = 1", "project IS NOT NULL AND project != ''", "posting_date BETWEEN %(start_date)s AND %(end_date)s"]
+            si_proj_cond = [
+                "docstatus = 1",
+                "project IS NOT NULL AND project != ''",
+                "posting_date BETWEEN %(start_date)s AND %(end_date)s",
+            ]
             if f["company"]:
                 si_proj_cond.append("company = %(company)s")
             where_si_proj = " AND ".join(si_proj_cond)
-            proj_rows = frappe.db.sql(f"""
+            proj_rows = frappe.db.sql(
+                f"""
                 SELECT project, SUM(base_grand_total) as total
                 FROM `tabSales Invoice`
                 WHERE {where_si_proj}
                 GROUP BY project
                 ORDER BY total DESC
                 LIMIT 8
-            """, gl_params, as_dict=True)
+            """,
+                gl_params,
+                as_dict=True,
+            )
             tot_p_rev = sum(flt(r.total) for r in proj_rows) or 1.0
             for r in proj_rows:
                 tot = flt(r.total, 2)
-                revenue_by_project.append({
-                    "project": r.project,
-                    "amount": tot,
-                    "pct": flt((tot / tot_p_rev) * 100.0, 1),
-                })
+                revenue_by_project.append(
+                    {
+                        "project": r.project,
+                        "amount": tot,
+                        "pct": flt((tot / tot_p_rev) * 100.0, 1),
+                    }
+                )
         except Exception:
             pass
 
     # Expense by Cost Center
-    expense_by_cost_center: List[Dict[str, Any]] = []
+    expense_by_cost_center: list[dict[str, Any]] = []
     if has_gl:
         try:
-            cc_cond = list(gl_conditions) + ["acc.root_type = 'Expense'", "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s", "gl.cost_center IS NOT NULL AND gl.cost_center != ''"]
+            cc_cond = list(gl_conditions) + [
+                "acc.root_type = 'Expense'",
+                "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s",
+                "gl.cost_center IS NOT NULL AND gl.cost_center != ''",
+            ]
             where_cc = " AND ".join(cc_cond)
-            cc_rows = frappe.db.sql(f"""
+            cc_rows = frappe.db.sql(
+                f"""
                 SELECT gl.cost_center, SUM(gl.debit - gl.credit) as total
                 FROM `tabGL Entry` gl
                 INNER JOIN `tabAccount` acc ON acc.name = gl.account
@@ -922,25 +1077,35 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 GROUP BY gl.cost_center
                 ORDER BY total DESC
                 LIMIT 8
-            """, gl_params, as_dict=True)
+            """,
+                gl_params,
+                as_dict=True,
+            )
             tot_cc_exp = sum(flt(r.total) for r in cc_rows) or 1.0
             for r in cc_rows:
                 tot = flt(r.total, 2)
-                expense_by_cost_center.append({
-                    "cost_center": r.cost_center,
-                    "amount": tot,
-                    "pct": flt((tot / tot_cc_exp) * 100.0, 1),
-                })
+                expense_by_cost_center.append(
+                    {
+                        "cost_center": r.cost_center,
+                        "amount": tot,
+                        "pct": flt((tot / tot_cc_exp) * 100.0, 1),
+                    }
+                )
         except Exception:
             pass
 
     # Expense by Project
-    expense_by_project: List[Dict[str, Any]] = []
+    expense_by_project: list[dict[str, Any]] = []
     if has_gl:
         try:
-            pe_cond = list(gl_conditions) + ["acc.root_type = 'Expense'", "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s", "gl.project IS NOT NULL AND gl.project != ''"]
+            pe_cond = list(gl_conditions) + [
+                "acc.root_type = 'Expense'",
+                "gl.posting_date BETWEEN %(start_date)s AND %(end_date)s",
+                "gl.project IS NOT NULL AND gl.project != ''",
+            ]
             where_pexp = " AND ".join(pe_cond)
-            pexp_rows = frappe.db.sql(f"""
+            pexp_rows = frappe.db.sql(
+                f"""
                 SELECT gl.project, SUM(gl.debit - gl.credit) as total
                 FROM `tabGL Entry` gl
                 INNER JOIN `tabAccount` acc ON acc.name = gl.account
@@ -948,29 +1113,38 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 GROUP BY gl.project
                 ORDER BY total DESC
                 LIMIT 8
-            """, gl_params, as_dict=True)
+            """,
+                gl_params,
+                as_dict=True,
+            )
             tot_pe_exp = sum(flt(r.total) for r in pexp_rows) or 1.0
             for r in pexp_rows:
                 tot = flt(r.total, 2)
-                expense_by_project.append({
-                    "project": r.project,
-                    "amount": tot,
-                    "pct": flt((tot / tot_pe_exp) * 100.0, 1),
-                })
+                expense_by_project.append(
+                    {
+                        "project": r.project,
+                        "amount": tot,
+                        "pct": flt((tot / tot_pe_exp) * 100.0, 1),
+                    }
+                )
         except Exception:
             pass
 
     # Section 9: Customer Finance
-    customer_finance_list: List[Dict[str, Any]] = []
+    customer_finance_list: list[dict[str, Any]] = []
     if _check_read("Customer"):
         try:
             cust_cond = []
-            c_params: Dict[str, Any] = {}
+            c_params: dict[str, Any] = {}
             if f["customer"]:
                 cust_cond.append("name = %(customer)s")
                 c_params["customer"] = f["customer"]
             where_cust = f"WHERE {' AND '.join(cust_cond)}" if cust_cond else ""
-            custs = frappe.db.sql(f"SELECT name, customer_name FROM `tabCustomer` {where_cust} ORDER BY customer_name ASC LIMIT 20", c_params, as_dict=True)
+            custs = frappe.db.sql(
+                f"SELECT name, customer_name FROM `tabCustomer` {where_cust} ORDER BY customer_name ASC LIMIT 20",
+                c_params,
+                as_dict=True,
+            )
             for c in custs:
                 c_name = c.name
                 si_f = {"customer": c_name, "docstatus": 1}
@@ -981,79 +1155,158 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 out_total = flt(_sum_field("Sales Invoice", "outstanding_amount", ar_f))
                 coll_total = max(0.0, inv_total - out_total)
                 if inv_total > 0 or out_total > 0:
-                    customer_finance_list.append({
-                        "customer": c_name,
-                        "customer_name": c.customer_name or c_name,
-                        "invoiced": flt(inv_total, 2),
-                        "collected": flt(coll_total, 2),
-                        "outstanding": flt(out_total, 2),
-                        "collection_rate": flt((coll_total / inv_total * 100.0) if inv_total > 0 else 100.0, 1),
-                        "status": "Cleared" if out_total == 0 else ("High Exposure" if out_total > (inv_total * 0.5) else "Active"),
-                    })
+                    customer_finance_list.append(
+                        {
+                            "customer": c_name,
+                            "customer_name": c.customer_name or c_name,
+                            "invoiced": flt(inv_total, 2),
+                            "collected": flt(coll_total, 2),
+                            "outstanding": flt(out_total, 2),
+                            "collection_rate": flt(
+                                (
+                                    (coll_total / inv_total * 100.0)
+                                    if inv_total > 0
+                                    else 100.0
+                                ),
+                                1,
+                            ),
+                            "status": (
+                                "Cleared"
+                                if out_total == 0
+                                else (
+                                    "High Exposure"
+                                    if out_total > (inv_total * 0.5)
+                                    else "Active"
+                                )
+                            ),
+                        }
+                    )
         except Exception:
             pass
 
     # Section 9: Supplier Finance
-    supplier_finance_list: List[Dict[str, Any]] = []
+    supplier_finance_list: list[dict[str, Any]] = []
     if _check_read("Supplier"):
         try:
             supp_cond = []
-            s_params: Dict[str, Any] = {}
+            s_params: dict[str, Any] = {}
             if f["supplier"]:
                 supp_cond.append("name = %(supplier)s")
                 s_params["supplier"] = f["supplier"]
             where_supp = f"WHERE {' AND '.join(supp_cond)}" if supp_cond else ""
-            supps = frappe.db.sql(f"SELECT name, supplier_name FROM `tabSupplier` {where_supp} ORDER BY supplier_name ASC LIMIT 20", s_params, as_dict=True)
+            supps = frappe.db.sql(
+                f"SELECT name, supplier_name FROM `tabSupplier` {where_supp} ORDER BY supplier_name ASC LIMIT 20",
+                s_params,
+                as_dict=True,
+            )
             for s in supps:
                 s_name = s.name
                 pi_f = {"supplier": s_name, "docstatus": 1}
                 if f["company"]:
                     pi_f["company"] = f["company"]
-                bill_total = flt(_sum_field("Purchase Invoice", "base_grand_total", pi_f))
+                bill_total = flt(
+                    _sum_field("Purchase Invoice", "base_grand_total", pi_f)
+                )
                 ap_f = dict(pi_f, outstanding_amount=[">", 0])
-                out_total = flt(_sum_field("Purchase Invoice", "outstanding_amount", ap_f))
+                out_total = flt(
+                    _sum_field("Purchase Invoice", "outstanding_amount", ap_f)
+                )
                 paid_total = max(0.0, bill_total - out_total)
                 if bill_total > 0 or out_total > 0:
-                    supplier_finance_list.append({
-                        "supplier": s_name,
-                        "supplier_name": s.supplier_name or s_name,
-                        "billed": flt(bill_total, 2),
-                        "paid": flt(paid_total, 2),
-                        "outstanding": flt(out_total, 2),
-                        "payment_rate": flt((paid_total / bill_total * 100.0) if bill_total > 0 else 100.0, 1),
-                        "status": "Paid" if out_total == 0 else "Due Soon",
-                    })
+                    supplier_finance_list.append(
+                        {
+                            "supplier": s_name,
+                            "supplier_name": s.supplier_name or s_name,
+                            "billed": flt(bill_total, 2),
+                            "paid": flt(paid_total, 2),
+                            "outstanding": flt(out_total, 2),
+                            "payment_rate": flt(
+                                (
+                                    (paid_total / bill_total * 100.0)
+                                    if bill_total > 0
+                                    else 100.0
+                                ),
+                                1,
+                            ),
+                            "status": "Paid" if out_total == 0 else "Due Soon",
+                        }
+                    )
         except Exception:
             pass
 
     companies_list = []
     if _check_read("Company"):
-        companies_list = frappe.get_all("Company", fields=["name", "company_name"], order_by="company_name asc")
+        companies_list = frappe.get_all(
+            "Company", fields=["name", "company_name"], order_by="company_name asc"
+        )
 
     projects_list = []
     if has_project:
         proj_filters = {"company": f["company"]} if f["company"] else {}
-        projects_list = frappe.get_all("Project", fields=["name", "project_name"], filters=proj_filters, order_by="project_name asc", limit_page_length=50)
+        projects_list = frappe.get_all(
+            "Project",
+            fields=["name", "project_name"],
+            filters=proj_filters,
+            order_by="project_name asc",
+            limit_page_length=50,
+        )
 
     customers_list = []
     if _check_read("Customer"):
-        customers_list = frappe.get_all("Customer", fields=["name", "customer_name"], order_by="customer_name asc", limit_page_length=50)
+        customers_list = frappe.get_all(
+            "Customer",
+            fields=["name", "customer_name"],
+            order_by="customer_name asc",
+            limit_page_length=50,
+        )
 
     suppliers_list = []
     if _check_read("Supplier"):
-        suppliers_list = frappe.get_all("Supplier", fields=["name", "supplier_name"], order_by="supplier_name asc", limit_page_length=50)
+        suppliers_list = frappe.get_all(
+            "Supplier",
+            fields=["name", "supplier_name"],
+            order_by="supplier_name asc",
+            limit_page_length=50,
+        )
 
     cost_centers_list = []
     if _check_read("Cost Center"):
-        cc_filters = {"company": f["company"], "is_group": 0} if f["company"] else {"is_group": 0}
-        cost_centers_list = frappe.get_all("Cost Center", fields=["name", "cost_center_name"], filters=cc_filters, order_by="cost_center_name asc", limit_page_length=50)
+        cc_filters = (
+            {"company": f["company"], "is_group": 0}
+            if f["company"]
+            else {"is_group": 0}
+        )
+        cost_centers_list = frappe.get_all(
+            "Cost Center",
+            fields=["name", "cost_center_name"],
+            filters=cc_filters,
+            order_by="cost_center_name asc",
+            limit_page_length=50,
+        )
 
-    rev_change = ((revenue - prev_revenue) / prev_revenue * 100.0) if prev_revenue > 0 else 0.0
-    exp_change = ((total_expense - prev_expense) / prev_expense * 100.0) if prev_expense > 0 else 0.0
-    profit_change = ((net_profit - prev_net_profit) / abs(prev_net_profit) * 100.0) if prev_net_profit != 0 else 0.0
+    rev_change = (
+        ((revenue - prev_revenue) / prev_revenue * 100.0) if prev_revenue > 0 else 0.0
+    )
+    exp_change = (
+        ((total_expense - prev_expense) / prev_expense * 100.0)
+        if prev_expense > 0
+        else 0.0
+    )
+    profit_change = (
+        ((net_profit - prev_net_profit) / abs(prev_net_profit) * 100.0)
+        if prev_net_profit != 0
+        else 0.0
+    )
 
     avg_monthly_rev = flt(revenue / 6.0, 2) if revenue > 0 else 0.0
-    collection_rate = flt((collections / revenue * 100.0) if revenue > 0 else (100.0 if receivables_total == 0 else 0.0), 1)
+    collection_rate = flt(
+        (
+            (collections / revenue * 100.0)
+            if revenue > 0
+            else (100.0 if receivables_total == 0 else 0.0)
+        ),
+        1,
+    )
 
     return {
         "currency": currency,
@@ -1099,9 +1352,20 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 "operating_profit": flt(operating_profit, 2),
             },
             "cash_in_hand": {"value": flt(cash_balance, 2)},
-            "bank_balance": {"value": flt(bank_balance, 2), "accounts_count": len(bank_accounts)},
-            "receivables": {"value": flt(receivables_total, 2), "overdue": flt(receivables_overdue, 2), "count": len(top_receivables)},
-            "payables": {"value": flt(payables_total, 2), "overdue": flt(payables_overdue, 2), "count": len(top_payables)},
+            "bank_balance": {
+                "value": flt(bank_balance, 2),
+                "accounts_count": len(bank_accounts),
+            },
+            "receivables": {
+                "value": flt(receivables_total, 2),
+                "overdue": flt(receivables_overdue, 2),
+                "count": len(top_receivables),
+            },
+            "payables": {
+                "value": flt(payables_total, 2),
+                "overdue": flt(payables_overdue, 2),
+                "count": len(top_payables),
+            },
             "tax_liability": {
                 "value": flt(net_tax_liability, 2),
                 "output_tax": flt(output_tax, 2),
@@ -1128,8 +1392,16 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
                 "values": trend_revenue,
             },
             "mix": [
-                {"category": "Invoice Sales", "amount": flt(invoice_revenue, 2), "color": "#2563eb"},
-                {"category": "Other Operational Income", "amount": flt(other_income, 2), "color": "#059669"},
+                {
+                    "category": "Invoice Sales",
+                    "amount": flt(invoice_revenue, 2),
+                    "color": "#2563eb",
+                },
+                {
+                    "category": "Other Operational Income",
+                    "amount": flt(other_income, 2),
+                    "color": "#059669",
+                },
             ],
         },
         "expense_analytics": {
@@ -1189,16 +1461,65 @@ def get_accounting_dashboard(filters: Any = None) -> Dict[str, Any]:
         "expense_categories": expense_categories,
         # Month-end & Year-end review checklist (Pages 16 & 17)
         "checklist": [
-            {"id": "c1", "check": "Sales invoices posted and approved", "report": "Sales Register", "done": bool(revenue > 0)},
-            {"id": "c2", "check": "Purchase invoices posted and matched with PO", "report": "Purchase Register", "done": bool(total_expense > 0)},
-            {"id": "c3", "check": "Customer payments reconciled with AR", "report": "Accounts Receivable", "done": bool(collections > 0)},
-            {"id": "c4", "check": "Supplier payments reconciled with AP", "report": "Accounts Payable", "done": bool(supplier_payments > 0)},
-            {"id": "c5", "check": "Bank reconciliation verified", "report": "Bank Clearance Summary", "done": bool(len(bank_accounts) > 0)},
-            {"id": "c6", "check": "Receivables & ageing reviewed", "report": "Accounts Receivable Summary", "done": True},
-            {"id": "c7", "check": "Payables & overdue terms inspected", "report": "Accounts Payable Summary", "done": True},
-            {"id": "c8", "check": "Tax liability / GST returns validated", "report": "Tax Detail", "done": bool(output_tax >= 0)},
-            {"id": "c9", "check": "Stock valuation & WIP balances audited", "report": "Stock Balance", "done": True},
-            {"id": "c10", "check": "General Ledger & P&L review completed", "report": "Profit and Loss Statement", "done": True},
+            {
+                "id": "c1",
+                "check": "Sales invoices posted and approved",
+                "report": "Sales Register",
+                "done": bool(revenue > 0),
+            },
+            {
+                "id": "c2",
+                "check": "Purchase invoices posted and matched with PO",
+                "report": "Purchase Register",
+                "done": bool(total_expense > 0),
+            },
+            {
+                "id": "c3",
+                "check": "Customer payments reconciled with AR",
+                "report": "Accounts Receivable",
+                "done": bool(collections > 0),
+            },
+            {
+                "id": "c4",
+                "check": "Supplier payments reconciled with AP",
+                "report": "Accounts Payable",
+                "done": bool(supplier_payments > 0),
+            },
+            {
+                "id": "c5",
+                "check": "Bank reconciliation verified",
+                "report": "Bank Clearance Summary",
+                "done": bool(len(bank_accounts) > 0),
+            },
+            {
+                "id": "c6",
+                "check": "Receivables & ageing reviewed",
+                "report": "Accounts Receivable Summary",
+                "done": True,
+            },
+            {
+                "id": "c7",
+                "check": "Payables & overdue terms inspected",
+                "report": "Accounts Payable Summary",
+                "done": True,
+            },
+            {
+                "id": "c8",
+                "check": "Tax liability / GST returns validated",
+                "report": "Tax Detail",
+                "done": bool(output_tax >= 0),
+            },
+            {
+                "id": "c9",
+                "check": "Stock valuation & WIP balances audited",
+                "report": "Stock Balance",
+                "done": True,
+            },
+            {
+                "id": "c10",
+                "check": "General Ledger & P&L review completed",
+                "report": "Profit and Loss Statement",
+                "done": True,
+            },
         ],
     }
-

@@ -25,7 +25,12 @@
 
 .sarathi-hero {
   align-items: center;
-  background: linear-gradient(120deg, var(--sarathi-navy), #17556a 62%, #23624f);
+  background: linear-gradient(
+    120deg,
+    var(--sarathi-navy),
+    #17556a 62%,
+    #23624f
+  );
   border-radius: 8px;
   color: #fff;
   display: flex;
@@ -380,7 +385,9 @@
   gap: 2px;
   padding: 9px 10px;
   text-decoration: none;
-  transition: box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-alert:hover,
@@ -458,7 +465,6 @@
 }
 
 @media (max-width: 768px) {
-
   .sarathi-hero,
   .sarathi-grid,
   .sarathi-grid-main {
@@ -499,7 +505,11 @@
 
 .sarathi-v2 .sarathi-hero-app {
   background:
-    radial-gradient(circle at 88% 10%, rgba(255, 255, 255, 0.22), transparent 28%),
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(255, 255, 255, 0.22),
+      transparent 28%
+    ),
     linear-gradient(120deg, #0f2b46 0%, #106b79 48%, #16754d 100%);
   border: 0;
   box-shadow: 0 18px 45px rgba(18, 49, 77, 0.23);
@@ -509,7 +519,11 @@
 }
 
 .sarathi-v2 .sarathi-hero-app::after {
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 18px);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0 1px,
+    transparent 1px 18px
+  );
   content: "";
   inset: auto 0 0;
   height: 46px;
@@ -617,7 +631,10 @@
   min-height: 112px;
   padding: 14px;
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-employee-card:hover,
@@ -707,7 +724,11 @@
 
 .sarathi-organization-option {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 251, 254, 0.98)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(247, 251, 254, 0.98)
+    ),
     #fff;
   border: 1px solid #dbe6f0 !important;
   border-radius: 10px;
@@ -720,11 +741,19 @@
   overflow: hidden;
   padding: 16px;
   position: relative;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-organization-option::before {
-  background: linear-gradient(90deg, var(--sarathi-blue), var(--sarathi-teal), var(--sarathi-green));
+  background: linear-gradient(
+    90deg,
+    var(--sarathi-blue),
+    var(--sarathi-teal),
+    var(--sarathi-green)
+  );
   content: "";
   height: 5px;
   inset: 0 0 auto;
@@ -802,7 +831,10 @@
   padding: 14px;
   position: relative;
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-project-option::before {
@@ -898,7 +930,12 @@
   font-weight: 700;
   padding: 9px 12px;
   text-decoration: none;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
   white-space: nowrap;
 }
 
@@ -937,7 +974,9 @@
   overflow: hidden;
   position: relative;
   text-decoration: none;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sarathi-v2 .sarathi-kpi:hover,
@@ -980,7 +1019,11 @@
 }
 
 .sarathi-v2 .sarathi-kpi i {
-  background: linear-gradient(135deg, rgba(35, 119, 183, 0.14), rgba(11, 143, 138, 0.06));
+  background: linear-gradient(
+    135deg,
+    rgba(35, 119, 183, 0.14),
+    rgba(11, 143, 138, 0.06)
+  );
   border-radius: 999px;
   bottom: -26px;
   height: 72px;
@@ -1000,7 +1043,10 @@
 
 .sarathi-section[data-section-panel] {
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-section[data-section-panel]:hover {
@@ -1108,7 +1154,10 @@
   min-height: 70px;
   padding: 10px;
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-facts a:hover,
@@ -1185,7 +1234,11 @@
   grid-column: 1 / -1;
   justify-self: end;
   padding: 8px 12px;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
 }
 
 .sarathi-bom-close:hover,
@@ -1217,7 +1270,10 @@
   padding: 14px;
   position: relative;
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-bom-card::before {
@@ -1253,14 +1309,14 @@
   background: linear-gradient(180deg, #eef7ff, #ffffff);
 }
 
-.sarathi-bom-card>span,
+.sarathi-bom-card > span,
 .sarathi-bom-card em {
   color: var(--sarathi-muted);
   font-size: 12px;
   font-style: normal;
 }
 
-.sarathi-bom-card>span {
+.sarathi-bom-card > span {
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -1305,7 +1361,7 @@
   overflow-wrap: anywhere;
 }
 
-.sarathi-bom-window>div:last-child {
+.sarathi-bom-window > div:last-child {
   grid-column: 1 / -1;
 }
 
@@ -1348,7 +1404,9 @@
   color: inherit;
   min-height: 156px;
   text-decoration: none;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sarathi-v2 .sarathi-analysis-card:hover,
@@ -1373,7 +1431,9 @@
   cursor: pointer;
   min-height: 146px;
   position: relative;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sarathi-v2 .sarathi-stage:hover,
@@ -1551,7 +1611,9 @@
   color: inherit;
   min-height: 140px;
   text-decoration: none;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sarathi-v2 .sarathi-machine.info {
@@ -1589,7 +1651,10 @@
   overflow: hidden;
   padding: 14px;
   position: relative;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .sarathi-process-card::before {
@@ -1613,7 +1678,10 @@
 
 .sarathi-ring[data-dashboard-route] {
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-ring[data-dashboard-route]:hover {
@@ -1683,7 +1751,7 @@
   line-height: 1;
 }
 
-.sarathi-process-card>span:not(.sarathi-process-index) {
+.sarathi-process-card > span:not(.sarathi-process-index) {
   color: var(--sarathi-muted);
   font-size: 12px;
   line-height: 1.35;
@@ -1763,7 +1831,11 @@
 
 .sarathi-drawer-panel {
   background:
-    linear-gradient(180deg, rgba(237, 247, 255, 0.94), rgba(255, 255, 255, 0.98) 210px),
+    linear-gradient(
+      180deg,
+      rgba(237, 247, 255, 0.94),
+      rgba(255, 255, 255, 0.98) 210px
+    ),
     #fff;
   border-left: 1px solid #d8e0ea;
   box-shadow: -24px 0 60px rgba(9, 20, 35, 0.22);
@@ -1834,7 +1906,9 @@
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 4px 20px -2px rgba(15, 23, 42, 0.06),
+    0 2px 6px -1px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -1925,7 +1999,9 @@
 
 .sarathi-mode-switch label.active {
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
   color: #0284c7;
   font-weight: 700;
 }
@@ -2185,7 +2261,6 @@
 }
 
 @media (max-width: 900px) {
-
   .sarathi-form-columns[data-cols="2"],
   .sarathi-form-columns[data-cols="3"] {
     grid-template-columns: 1fr;
@@ -2276,7 +2351,9 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") no-repeat right 12px center;
+  background: #ffffff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")
+    no-repeat right 12px center;
   background-size: 16px 16px;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
@@ -2383,7 +2460,9 @@
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
   border-radius: 12px !important;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16), 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+  box-shadow:
+    0 16px 36px rgba(15, 23, 42, 0.16),
+    0 4px 14px rgba(15, 23, 42, 0.08) !important;
   display: none !important;
   flex-direction: column;
   gap: 4px;
@@ -2694,7 +2773,6 @@
   display: grid;
 }
 
-
 .sarathi-form-section {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -2706,7 +2784,9 @@
   overflow: visible !important;
   padding: 22px 24px;
   position: relative;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .sarathi-form-section::before {
@@ -2776,7 +2856,10 @@
   min-height: 84px;
   padding: 12px;
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-setup-shortcut:hover {
@@ -2836,7 +2919,6 @@
 }
 
 @media (max-width: 1280px) {
-
   .sarathi-v2 .sarathi-kpis,
   .sarathi-v2 .sarathi-analysis {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2859,7 +2941,6 @@
 }
 
 @media (max-width: 980px) {
-
   .sarathi-overview,
   .sarathi-chart-grid,
   .sarathi-bom-window,
@@ -2868,7 +2949,7 @@
     grid-template-columns: 1fr;
   }
 
-  .sarathi-bom-window>div:last-child {
+  .sarathi-bom-window > div:last-child {
     grid-column: auto;
   }
 
@@ -3020,7 +3101,11 @@
 .sarathi-v2 {
   background:
     linear-gradient(180deg, #eef5fb 0, #f8fafc 360px),
-    repeating-linear-gradient(135deg, rgba(16, 44, 69, 0.035) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(
+      135deg,
+      rgba(16, 44, 69, 0.035) 0 1px,
+      transparent 1px 18px
+    ),
     #f6f8fb;
   border: 1px solid rgba(200, 214, 228, 0.58);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -3029,7 +3114,11 @@
 .sarathi-hero,
 .sarathi-v2 .sarathi-hero-app {
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 22px),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.09) 0 1px,
+      transparent 1px 22px
+    ),
     linear-gradient(120deg, #102c45 0%, #12606e 52%, #176b50 100%);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
@@ -3074,7 +3163,12 @@
 .sarathi-native-save {
   border-radius: 8px;
   font-weight: 800;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-command .btn:hover,
@@ -3091,12 +3185,16 @@
   box-shadow: 0 10px 24px rgba(16, 44, 69, 0.1);
   min-height: 46px;
   outline: 0;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sarathi-search:focus {
   border-color: #54add8;
-  box-shadow: 0 0 0 4px rgba(31, 117, 187, 0.16), 0 12px 28px rgba(16, 44, 69, 0.13);
+  box-shadow:
+    0 0 0 4px rgba(31, 117, 187, 0.16),
+    0 12px 28px rgba(16, 44, 69, 0.13);
 }
 
 .sarathi-nav {
@@ -3147,7 +3245,11 @@
 .sarathi-section,
 .sarathi-panel {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.96)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(250, 252, 255, 0.96)
+    ),
     #ffffff;
   border-color: rgba(200, 214, 228, 0.9);
 }
@@ -3184,9 +3286,7 @@
 }
 
 .sarathi-v2 .sarathi-kpi {
-  background:
-    linear-gradient(180deg, #ffffff, #f7fbff),
-    #ffffff;
+  background: linear-gradient(180deg, #ffffff, #f7fbff), #ffffff;
   border: 1px solid rgba(212, 224, 235, 0.88);
   min-height: 116px;
   padding: 16px;
@@ -3212,7 +3312,11 @@
 .sarathi-v2 .sarathi-kpi i {
   background:
     linear-gradient(135deg, rgba(31, 117, 187, 0.16), rgba(15, 159, 149, 0.1)),
-    repeating-linear-gradient(45deg, rgba(16, 44, 69, 0.06) 0 1px, transparent 1px 8px);
+    repeating-linear-gradient(
+      45deg,
+      rgba(16, 44, 69, 0.06) 0 1px,
+      transparent 1px 8px
+    );
 }
 
 .sarathi-organization-option,
@@ -3222,9 +3326,7 @@
 .sarathi-v2 .sarathi-stage,
 .sarathi-v2 .sarathi-machine,
 .sarathi-v2 .sarathi-analysis-card {
-  background:
-    linear-gradient(180deg, #ffffff, #f6faff),
-    #ffffff;
+  background: linear-gradient(180deg, #ffffff, #f6faff), #ffffff;
   border-color: rgba(204, 218, 231, 0.92) !important;
 }
 
@@ -3260,9 +3362,7 @@
 
 .sarathi-project-option.active,
 .sarathi-bom-card.active {
-  background:
-    linear-gradient(180deg, #eaf6ff, #ffffff),
-    #ffffff;
+  background: linear-gradient(180deg, #eaf6ff, #ffffff), #ffffff;
   border-color: #1f75bb !important;
   box-shadow: 0 20px 42px rgba(31, 117, 187, 0.18);
 }
@@ -3326,7 +3426,7 @@
 
 .sarathi-stage-index,
 .sarathi-project-option span,
-.sarathi-bom-card>span,
+.sarathi-bom-card > span,
 .sarathi-analysis-card span,
 .sarathi-employee-card span,
 .sarathi-employee-task span {
@@ -3419,14 +3519,16 @@
 .sarathi-bom-layout {
   background:
     linear-gradient(180deg, rgba(7, 15, 27, 0.58), rgba(7, 15, 27, 0.68)),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 18px);
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 18px
+    );
 }
 
 .sarathi-bom-window,
 .sarathi-drawer-panel {
-  background:
-    linear-gradient(180deg, #ffffff, #f7fbff),
-    #ffffff;
+  background: linear-gradient(180deg, #ffffff, #f7fbff), #ffffff;
   border-color: #c8d6e4;
   border-radius: 12px;
   box-shadow: 0 30px 80px rgba(7, 15, 27, 0.32);
@@ -3458,7 +3560,9 @@
 .sarathi-combobox-input-wrap {
   border-color: #cad8e6;
   border-radius: 8px;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .sarathi-form input:focus,
@@ -3490,7 +3594,6 @@
 }
 
 @media (max-width: 640px) {
-
   .sarathi-hero h2,
   .sarathi-v2 .sarathi-hero h2 {
     font-size: 28px;
@@ -3530,7 +3633,10 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
     linear-gradient(0deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     linear-gradient(125deg, #102c45 0%, #125d6d 50%, #147153 100%);
-  background-size: 28px 28px, 28px 28px, auto;
+  background-size:
+    28px 28px,
+    28px 28px,
+    auto;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   box-shadow: 0 22px 48px rgba(16, 44, 69, 0.24);
@@ -3617,7 +3723,9 @@
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.26);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 16px 30px rgba(3, 17, 31, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 16px 30px rgba(3, 17, 31, 0.16);
   color: #ffffff;
   display: grid;
   gap: 8px;
@@ -3671,7 +3779,9 @@
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 14px 26px rgba(3, 17, 31, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 14px 26px rgba(3, 17, 31, 0.12);
   color: #ffffff;
   cursor: pointer;
   display: flex;
@@ -3731,7 +3841,9 @@
   background: #ffffff;
   border: 1px solid #c7d8e6;
   border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(4, 15, 28, 0.35), 0 4px 14px rgba(4, 15, 28, 0.12);
+  box-shadow:
+    0 24px 60px rgba(4, 15, 28, 0.35),
+    0 4px 14px rgba(4, 15, 28, 0.12);
   color: #0f172a;
   display: flex;
   flex-direction: column;
@@ -3860,8 +3972,8 @@
   line-height: 1.25;
 }
 
-.sarathi-project-hero-card>span,
-.sarathi-project-hero-card-head>span {
+.sarathi-project-hero-card > span,
+.sarathi-project-hero-card-head > span {
   color: #cce4ee;
   display: block;
   font-size: 11px;
@@ -3937,9 +4049,7 @@
 }
 
 .sarathi-v2 .sarathi-kpi {
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f7fbff 100%),
-    #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%), #ffffff;
   border: 1px solid rgba(203, 219, 232, 0.96);
   border-radius: 12px;
   box-shadow: 0 14px 30px rgba(16, 44, 69, 0.1);
@@ -4013,7 +4123,7 @@
   line-height: 1.25;
 }
 
-.sarathi-v2 .sarathi-kpi>i {
+.sarathi-v2 .sarathi-kpi > i {
   opacity: 0.6;
 }
 
@@ -4043,7 +4153,10 @@
 .sarathi-organization-option {
   border-radius: 12px;
   box-shadow: 0 14px 30px rgba(16, 44, 69, 0.08);
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .sarathi-project-option:hover,
@@ -4116,9 +4229,7 @@
 
 .sarathi-v2 .sarathi-kpi {
   align-content: start;
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%),
-    #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%), #ffffff;
   border: 1px solid rgba(197, 214, 228, 0.98);
   border-radius: 11px;
   box-shadow: 0 12px 26px rgba(16, 44, 69, 0.09);
@@ -4210,7 +4321,7 @@
   transform: translateY(-1px);
 }
 
-.sarathi-v2 .sarathi-kpi>i {
+.sarathi-v2 .sarathi-kpi > i {
   bottom: -22px;
   height: 58px;
   opacity: 0.42;
