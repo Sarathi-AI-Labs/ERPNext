@@ -67,6 +67,7 @@ def on_bom_submit(doc, method=None):
         frappe.db.get_value("Project", doc.custom_sarathi_project, "name", for_update=True)
         if not frappe.db.get_value("Project", doc.custom_sarathi_project, "custom_sarathi_bom"):
             frappe.db.set_value("Project", doc.custom_sarathi_project, "custom_sarathi_bom", doc.name)
+    notify_dashboard(doc)
 
 
 def allowed_project_bom(candidate, main_bom, project):
@@ -91,8 +92,11 @@ def allowed_project_bom(candidate, main_bom, project):
 
 
 def validate_item_projects(doc):
+    header_project = doc.get('project')
     for row in doc.get('items') or []:
-        name = row.get('project') or doc.get('project')
+        if header_project and not row.get('project') and hasattr(row, 'project'):
+            row.project = header_project
+        name = row.get('project') or header_project
         if not name:
             continue
         project = frappe.get_doc('Project', name)
@@ -139,6 +143,11 @@ def validate_transaction(doc, method=None):
 
 
 
-def notify_dashboard(doc, method=None):
+def notify_dashboard(doc=None, method=None):
     # Send only an invalidation signal; each viewer fetches permission-scoped data.
-    frappe.publish_realtime("sarathi_dashboard_changed", after_commit=True)
+    try:
+        doctype = getattr(doc, "doctype", "") if doc else ""
+        frappe.publish_realtime("sarathi_dashboard_changed", message={"doctype": doctype}, after_commit=True)
+    except Exception:
+        pass
+

@@ -119,7 +119,12 @@ services:
       restart_policy:
         condition: on-failure
     command:
-      - nginx-entrypoint.sh
+      - bash
+      - -c
+      - >
+        wait-for-it -t 120 backend:8000 &&
+        wait-for-it -t 120 websocket:9000 &&
+        exec nginx-entrypoint.sh
     environment:
       BACKEND: backend:8000
       FRAPPE_SITE_NAME_HEADER: frontend
