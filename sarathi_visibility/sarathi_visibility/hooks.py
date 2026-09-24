@@ -24,19 +24,78 @@ doc_events = {
         "before_update_after_submit": "sarathi_visibility.setup.dashboard.validate_bom",
         "on_submit": "sarathi_visibility.setup.dashboard.on_bom_submit",
     },
-    "Sales Order": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
-    "Work Order": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
+    "Sales Order": {
+        "validate": "sarathi_visibility.setup.dashboard.validate_transaction"
+    },
+    "Work Order": {
+        "validate": "sarathi_visibility.setup.dashboard.validate_transaction"
+    },
     "Job Card": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
-    "Stock Entry": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
+    "Stock Entry": {
+        "validate": "sarathi_visibility.setup.dashboard.validate_transaction"
+    },
 }
 
-for _doctype in ('Material Request', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 'Delivery Note', 'Sales Invoice'):
-    doc_events.setdefault(_doctype, {})['validate'] = 'sarathi_visibility.setup.dashboard.validate_transaction'
+for _doctype in (
+    "Material Request",
+    "Purchase Order",
+    "Purchase Receipt",
+    "Purchase Invoice",
+    "Delivery Note",
+    "Sales Invoice",
+):
+    doc_events.setdefault(_doctype, {})[
+        "validate"
+    ] = "sarathi_visibility.setup.dashboard.validate_transaction"
 
-for _doctype in ("Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice", "Delivery Note", "Sales Invoice", "Quality Inspection", "Stock Reservation Entry", "Company", "Customer", "Project", "BOM", "Sales Order", "Work Order", "Job Card", "Stock Entry", "Task", "Sarathi Customer Organization", "Subcontracting Order", "Subcontracting Receipt"):
-    doc_events.setdefault(_doctype, {}).update({
-        "on_update": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_update_after_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_cancel": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_trash": "sarathi_visibility.setup.dashboard.notify_dashboard",
-    })
+for _doctype in (
+    "Material Request",
+    "Purchase Order",
+    "Purchase Receipt",
+    "Purchase Invoice",
+    "Delivery Note",
+    "Sales Invoice",
+    "Quality Inspection",
+    "Stock Reservation Entry",
+    "Stock Ledger Entry",
+    "Company",
+    "Customer",
+    "Supplier",
+    "Project",
+    "BOM",
+    "Sales Order",
+    "Work Order",
+    "Job Card",
+    "Stock Entry",
+    "Task",
+    "Sarathi Customer Organization",
+    "Subcontracting Order",
+    "Subcontracting Receipt",
+    "Item",
+    "Warehouse",
+    "Bin",
+    "Workstation",
+    "Workstation Type",
+    "Plant Floor",
+    "Routing",
+    "Operation",
+    "Production Plan",
+    "Pick List",
+    "Stock Reconciliation",
+    "Journal Entry",
+    "Payment Entry",
+    "GL Entry",
+    "Account",
+    "Cost Center",
+    "Employee",
+    "Sarathi Machine Integration Log",
+):
+    doc_events.setdefault(_doctype, {}).update(
+        {
+            "on_update": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_update_after_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_cancel": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_trash": "sarathi_visibility.setup.dashboard.notify_dashboard",
+        }
+    )

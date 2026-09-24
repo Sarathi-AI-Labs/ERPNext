@@ -128,7 +128,7 @@ Work Order completion is never converted to guessed physical part quantities.
 Setup links identify missing customer/main BOM/validation and output configuration.
 Linked readable subassembly BOMs appear in engineering; manufacturing validation
 allows active main or structurally linked subassembly BOMs, excluding another
-project's BOM. New procurement and fulfilment saves validate item project company
+project's BOM. New procurement and fulfillment saves validate item project company
 and, for selling documents, customer consistency.
 
 ### Live project production

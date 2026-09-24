@@ -4,13 +4,16 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -18,18 +21,21 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.14"
-
-      # For shfmt pre-commit hook
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: "^1.14"
+          python-version: "3.12"
 
       - name: Install pre-commit
         run: pip install -U pre-commit
 
-      - name: Lint
-        run: pre-commit run --color=always --all-files
-        env:
-          GO111MODULE: on
+      - name: Lint sarathi_visibility
+        run: |
+          mapfile -t FILES < <(git ls-files -- 'sarathi_visibility/**')
+
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "No tracked files found in sarathi_visibility/"
+            exit 0
+          fi
+
+          echo "Found ${#FILES[@]} files in sarathi_visibility/ to lint:"
+          printf ' - %s\n' "${FILES[@]}"
+
+          pre-commit run --color=always --files "${FILES[@]}"

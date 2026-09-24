@@ -1,11 +1,13 @@
 """Integration and API unit tests for Sarathi Accounting Control Tower."""
 
 import unittest
+
 import frappe
+
 from sarathi_visibility.api.accounting import (
+    _resolve_period_dates,
     get_accounting_card_summary,
     get_accounting_dashboard,
-    _resolve_period_dates,
 )
 from sarathi_visibility.api.dashboard import get_summary
 
@@ -86,12 +88,16 @@ class TestAccounting(unittest.TestCase):
 
         # Verify Checklist has 10 standard items
         checklist = dashboard["checklist"]
-        self.assertEqual(len(checklist), 10, "Month-end checklist should contain 10 items")
+        self.assertEqual(
+            len(checklist), 10, "Month-end checklist should contain 10 items"
+        )
 
     def test_main_dashboard_summary_integration(self):
         res = get_summary()
         self.assertIsInstance(res, dict)
-        self.assertIn("accounting_summary", res, "get_summary must include accounting_summary")
+        self.assertIn(
+            "accounting_summary", res, "get_summary must include accounting_summary"
+        )
         acc_s = res["accounting_summary"]
         self.assertIn("net_profit", acc_s)
         self.assertIn("revenue", acc_s)
