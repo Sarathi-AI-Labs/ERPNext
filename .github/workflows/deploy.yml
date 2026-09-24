@@ -1,0 +1,55 @@
+name: Deploy ERPNext to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/frappe_docker
+
+            git fetch origin
+            git reset --hard origin/main
+
+            docker compose \
+              -f compose.yaml \
+              -f overrides/compose.mariadb.yaml \
+              -f overrides/compose.redis.yaml \
+              -f overrides/compose.sarathi.yaml \
+              -f overrides/compose.existing-traefik.yaml \
+              build backend frontend queue-long queue-short scheduler websocket
+
+            docker compose \
+              -f compose.yaml \
+              -f overrides/compose.mariadb.yaml \
+              -f overrides/compose.redis.yaml \
+              -f overrides/compose.sarathi.yaml \
+              -f overrides/compose.existing-traefik.yaml \
+              up -d
+
+            docker compose \
+              -f compose.yaml \
+              -f overrides/compose.mariadb.yaml \
+              -f overrides/compose.redis.yaml \
+              -f overrides/compose.sarathi.yaml \
+              -f overrides/compose.existing-traefik.yaml \
+              exec -T backend bench --site erp.sarathiailabs.com migrate
+
+            docker compose \
+              -f compose.yaml \
+              -f overrides/compose.mariadb.yaml \
+              -f overrides/compose.redis.yaml \
+              -f overrides/compose.sarathi.yaml \
+              -f overrides/compose.existing-traefik.yaml \
+              exec -T backend bench --site erp.sarathiailabs.com clear-cache
