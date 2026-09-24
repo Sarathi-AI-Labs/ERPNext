@@ -1,12 +1,14 @@
 """Integration and API unit tests for Subcontracting Control Tower."""
 
 import unittest
+
 import frappe
+
+from sarathi_visibility.api.dashboard import get_summary
 from sarathi_visibility.api.subcontracting import (
     get_subcontracting_card_summary,
     get_subcontracting_dashboard,
 )
-from sarathi_visibility.api.dashboard import get_summary
 
 
 class TestSubcontracting(unittest.TestCase):
@@ -42,7 +44,9 @@ class TestSubcontracting(unittest.TestCase):
 
         # Check 7-Stage Pipeline
         pipeline = dashboard.get("pipeline", [])
-        self.assertEqual(len(pipeline), 7, "Pipeline must contain exactly 7 lifecycle stages")
+        self.assertEqual(
+            len(pipeline), 7, "Pipeline must contain exactly 7 lifecycle stages"
+        )
         stage_keys = [p["key"] for p in pipeline]
         expected_stages = [
             "po",

@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 
-
 SUPER_ADMIN_ROLES = {"Sarathi Super Admin"}
 SETUP_EDIT_ROLES = {"Manufacturing Manager", "System Manager", *SUPER_ADMIN_ROLES}
 
@@ -25,7 +24,9 @@ def require_super_admin():
 def permission_payload() -> dict:
     user = frappe.session.user
     roles = frappe.get_roles(user)
-    can_edit_setup = user == "Administrator" or bool(SETUP_EDIT_ROLES.intersection(roles))
+    can_edit_setup = user == "Administrator" or bool(
+        SETUP_EDIT_ROLES.intersection(roles)
+    )
     return {
         "user": user,
         "roles": roles,

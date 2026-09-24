@@ -9,6 +9,7 @@ def before_install():
 
 def after_install():
     from sarathi_visibility.setup.dashboard import install
+
     install()
     ensure_role("Sarathi Super Admin")
     ensure_module_profile_page()
@@ -19,6 +20,7 @@ def after_install():
 
 def after_migrate():
     from sarathi_visibility.setup.dashboard import install
+
     install()
     ensure_module_profile_page()
     ensure_workspace_shortcuts()
@@ -28,19 +30,35 @@ def after_migrate():
 
 def ensure_no_desk_icon():
     if frappe.db.exists("Desktop Icon", "Sarathi Visibility"):
-        frappe.delete_doc("Desktop Icon", "Sarathi Visibility", ignore_permissions=True, force=True)
+        frappe.delete_doc(
+            "Desktop Icon", "Sarathi Visibility", ignore_permissions=True, force=True
+        )
     elif frappe.db.table_exists("Desktop Icon"):
-        for icon in frappe.get_all("Desktop Icon", filters={"label": "Sarathi Visibility"}, pluck="name"):
+        for icon in frappe.get_all(
+            "Desktop Icon", filters={"label": "Sarathi Visibility"}, pluck="name"
+        ):
             frappe.delete_doc("Desktop Icon", icon, ignore_permissions=True, force=True)
 
     if frappe.db.exists("Workspace Sidebar", "Sarathi Visibility"):
-        frappe.delete_doc("Workspace Sidebar", "Sarathi Visibility", ignore_permissions=True, force=True)
+        frappe.delete_doc(
+            "Workspace Sidebar",
+            "Sarathi Visibility",
+            ignore_permissions=True,
+            force=True,
+        )
     elif frappe.db.table_exists("Workspace Sidebar"):
-        for sb in frappe.get_all("Workspace Sidebar", filters={"title": "Sarathi Visibility"}, pluck="name"):
-            frappe.delete_doc("Workspace Sidebar", sb, ignore_permissions=True, force=True)
+        for sb in frappe.get_all(
+            "Workspace Sidebar", filters={"title": "Sarathi Visibility"}, pluck="name"
+        ):
+            frappe.delete_doc(
+                "Workspace Sidebar", sb, ignore_permissions=True, force=True
+            )
 
     try:
-        from frappe.desk.doctype.desktop_icon.desktop_icon import clear_desktop_icons_cache
+        from frappe.desk.doctype.desktop_icon.desktop_icon import (
+            clear_desktop_icons_cache,
+        )
+
         clear_desktop_icons_cache()
     except Exception:
         pass
@@ -52,12 +70,14 @@ def filter_bootinfo_desktop_icons(bootinfo):
     desktop_icons = bootinfo.get("desktop_icons")
     if isinstance(desktop_icons, list):
         bootinfo["desktop_icons"] = [
-            icon for icon in desktop_icons
+            icon
+            for icon in desktop_icons
             if not (
-                isinstance(icon, dict) and (
-                    icon.get("name") == "Sarathi Visibility" or
-                    icon.get("label") == "Sarathi Visibility" or
-                    icon.get("link_to") == "Sarathi Visibility"
+                isinstance(icon, dict)
+                and (
+                    icon.get("name") == "Sarathi Visibility"
+                    or icon.get("label") == "Sarathi Visibility"
+                    or icon.get("link_to") == "Sarathi Visibility"
                 )
             )
         ]
@@ -93,7 +113,12 @@ def _ensure_control_tower_page(page_name: str):
         page.module = "Sarathi Visibility"
         page.title = "Sarathi Industrial Dashboard"
         page.set("roles", [])
-        for role in ("Manufacturing User", "Manufacturing Manager", "System Manager", "Sarathi Super Admin"):
+        for role in (
+            "Manufacturing User",
+            "Manufacturing Manager",
+            "System Manager",
+            "Sarathi Super Admin",
+        ):
             if frappe.db.exists("Role", role):
                 page.append("roles", {"role": role})
         page.flags.do_not_update_json = True
@@ -112,7 +137,11 @@ def ensure_workspace_shortcuts():
     workspace.is_hidden = 1
     workspace.set(
         "shortcuts",
-        [shortcut.as_dict() for shortcut in workspace.shortcuts if shortcut.label not in ("Sarathi Control Tower", "Website View")],
+        [
+            shortcut.as_dict()
+            for shortcut in workspace.shortcuts
+            if shortcut.label not in ("Sarathi Control Tower", "Website View")
+        ],
     )
     _remove_content_shortcut(workspace, "Sarathi Control Tower")
     _remove_content_shortcut(workspace, "Website View")
@@ -123,7 +152,9 @@ def ensure_workspace_shortcuts():
         shortcut_type="Page",
         color="Blue",
     )
-    _ensure_content_shortcut(workspace, "Sarathi Industrial Dashboard", "sarathi-control-tower-shortcut")
+    _ensure_content_shortcut(
+        workspace, "Sarathi Industrial Dashboard", "sarathi-control-tower-shortcut"
+    )
     workspace.save(ignore_permissions=True)
 
 
@@ -164,7 +195,9 @@ def _ensure_content_shortcut(workspace, shortcut_name: str, block_id: str):
     except json.JSONDecodeError:
         content = []
 
-    if any(block.get("data", {}).get("shortcut_name") == shortcut_name for block in content):
+    if any(
+        block.get("data", {}).get("shortcut_name") == shortcut_name for block in content
+    ):
         return
 
     content.insert(
@@ -184,7 +217,11 @@ def _remove_content_shortcut(workspace, shortcut_name: str):
     except json.JSONDecodeError:
         return
 
-    cleaned = [block for block in content if block.get("data", {}).get("shortcut_name") != shortcut_name]
+    cleaned = [
+        block
+        for block in content
+        if block.get("data", {}).get("shortcut_name") != shortcut_name
+    ]
     if len(cleaned) != len(content):
         workspace.content = json.dumps(cleaned, separators=(",", ":"))
 
@@ -250,7 +287,11 @@ def _remove_manufacturing_workspace_card_link():
 
     workspace = frappe.get_doc("Workspace", "Manufacturing")
     label = "Sarathi Industrial Dashboard"
-    link_rows = [row.as_dict() for row in workspace.links if row.label != label and row.label != "Sarathi Industrial Dashboard"]
+    link_rows = [
+        row.as_dict()
+        for row in workspace.links
+        if row.label != label and row.label != "Sarathi Industrial Dashboard"
+    ]
     if len(link_rows) == len(workspace.links):
         return
 

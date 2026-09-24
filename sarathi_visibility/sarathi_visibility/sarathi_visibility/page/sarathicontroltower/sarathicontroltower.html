@@ -1,24 +1,127 @@
 <main class="sd-dashboard">
-  <header class="sd-hero"><div><div class="sd-eyebrow">SARATHI AI LABS · MANUFACTURING</div><h1>Sarathi Industrial Dashboard</h1><p>Customers, projects and production in one place</p></div><div class="sd-hero-actions"><span data-updated role="status">Connecting to ERPNext…</span><button class="sd-button" data-action="refresh">↻ Refresh</button></div></header>
+  <header class="sd-hero">
+    <div>
+      <div class="sd-eyebrow">SARATHI AI LABS · MANUFACTURING</div>
+      <h1>Sarathi Industrial Dashboard</h1>
+      <p>Customers, projects and production in one place</p>
+    </div>
+    <div class="sd-hero-actions">
+      <span data-updated role="status">Connecting to ERPNext…</span
+      ><button class="sd-button" data-action="refresh">↻ Refresh</button>
+    </div>
+  </header>
   <section class="sd-controls" aria-label="Dashboard filters">
-    <label>Organization<select data-filter="company" aria-label="Organization"><option value="">All organizations</option></select></label>
-    <label>From date<input type="date" data-filter="from_date" aria-label="From date"></label><label>To date<input type="date" data-filter="to_date" aria-label="To date"></label>
-    <label>Project status<select data-filter="status" aria-label="Project status"><option value="">All statuses</option><option>Ongoing</option><option>Active</option><option>Completed</option><option>Delayed</option><option>On hold</option><option>Cancelled</option></select></label>
-    <label class="sd-search">Find customers / projects<input type="search" data-search placeholder="Search by name or ID" aria-label="Find customers or projects"></label>
-    <button class="sd-button sd-primary" data-action="create">+ Create</button><button class="sd-button" data-action="setup">Setup</button>
+    <label
+      >Organization<select data-filter="company" aria-label="Organization">
+        <option value="">All organizations</option>
+      </select></label
+    >
+    <label
+      >From date<input
+        type="date"
+        data-filter="from_date"
+        aria-label="From date" /></label
+    ><label
+      >To date<input type="date" data-filter="to_date" aria-label="To date"
+    /></label>
+    <label
+      >Project status<select data-filter="status" aria-label="Project status">
+        <option value="">All statuses</option>
+        <option>Ongoing</option>
+        <option>Active</option>
+        <option>Completed</option>
+        <option>Delayed</option>
+        <option>On hold</option>
+        <option>Cancelled</option>
+      </select></label
+    >
+    <label class="sd-search"
+      >Find customers / projects<input
+        type="search"
+        data-search
+        placeholder="Search by name or ID"
+        aria-label="Find customers or projects"
+    /></label>
+    <button class="sd-button sd-primary" data-action="create">+ Create</button
+    ><button class="sd-button" data-action="setup">Setup</button>
   </section>
-  <nav class="sd-breadcrumb" data-breadcrumb aria-label="Dashboard breadcrumb"></nav>
-  <p class="sd-scope-note">Project status filters the portfolio. Dates filter orders by order date, Work Orders by planned start, Job Cards and stock by posting date. Project progress, BOMs, operation balances and semi-finished warehouse stock remain current; operation balances cover lifetime submitted production.</p>
-  <div class="sd-error" data-error role="alert" hidden></div><div class="sd-notice" data-permissions hidden></div>
+  <nav
+    class="sd-breadcrumb"
+    data-breadcrumb
+    aria-label="Dashboard breadcrumb"
+  ></nav>
+  <p class="sd-scope-note">
+    Project status filters the portfolio. Dates filter orders by order date,
+    Work Orders by planned start, Job Cards and stock by posting date. Project
+    progress, BOMs, operation balances and semi-finished warehouse stock remain
+    current; operation balances cover lifetime submitted production.
+  </p>
+  <div class="sd-error" data-error role="alert" hidden></div>
+  <div class="sd-notice" data-permissions hidden></div>
   <section class="sd-kpis" data-kpis aria-label="Summary"></section>
   <section data-live-projects aria-label="Live project production"></section>
-  <section class="sd-panel" data-subcontracting-card-panel><div class="sd-panel-heading"><div><h2>Subcontracting Operations</h2><p>Outsourced manufacturing, supplier materials and tracking</p></div><span class="sd-pill sd-status-blue">Subcontracting</span></div><div class="sd-cards" data-subcontracting-cards></div></section>
-  <section class="sd-panel" data-accounting-card-panel><div class="sd-panel-heading"><div><h2>Finance & Accounting</h2><p>Executive financial intelligence, cash liquidity, profitability & GL traceability</p></div><span class="sd-pill sd-status-green">Accounting Intelligence</span></div><div class="sd-cards" data-accounting-cards></div></section>
-  <section class="sd-panel" data-customer-panel><div class="sd-panel-heading"><div><h2>Customers</h2><p>Choose a customer to focus every chart and report</p></div><button class="sd-button" data-action="associate">Link existing customer</button></div><div class="sd-cards" data-customers></div><div data-customer-pagination></div></section>
-  <section class="sd-panel" data-project-panel><div class="sd-panel-heading"><div><h2 data-project-heading>Organization projects</h2><p>Choose a project to inspect its manufacturing records</p></div><span class="sd-pill" data-project-count></span></div><div class="sd-cards" data-projects></div><div data-project-pagination></div></section>
+  <section class="sd-panel" data-subcontracting-card-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Subcontracting Operations</h2>
+        <p>Outsourced manufacturing, supplier materials and tracking</p>
+      </div>
+      <span class="sd-pill sd-status-blue">Subcontracting</span>
+    </div>
+    <div class="sd-cards" data-subcontracting-cards></div>
+  </section>
+  <section class="sd-panel" data-accounting-card-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Finance & Accounting</h2>
+        <p>
+          Executive financial intelligence, cash liquidity, profitability & GL
+          traceability
+        </p>
+      </div>
+      <span class="sd-pill sd-status-green">Accounting Intelligence</span>
+    </div>
+    <div class="sd-cards" data-accounting-cards></div>
+  </section>
+  <section class="sd-panel" data-customer-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Customers</h2>
+        <p>Choose a customer to focus every chart and report</p>
+      </div>
+      <button class="sd-button" data-action="associate">
+        Link existing customer
+      </button>
+    </div>
+    <div class="sd-cards" data-customers></div>
+    <div data-customer-pagination></div>
+  </section>
+  <section class="sd-panel" data-project-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2 data-project-heading>Organization projects</h2>
+        <p>Choose a project to inspect its manufacturing records</p>
+      </div>
+      <span class="sd-pill" data-project-count></span>
+    </div>
+    <div class="sd-cards" data-projects></div>
+    <div data-project-pagination></div>
+  </section>
   <section class="sd-project-summary" data-project-summary hidden></section>
-  <section data-subcontracting-view hidden aria-label="Subcontracting Detail View"></section>
-  <section data-accounting-view hidden aria-label="Accounting Detail View"></section>
-  <nav class="sd-tabs" aria-label="Analysis sections" role="tablist"></nav><section data-content role="tabpanel"></section>
-  <footer class="sd-footer">Live ERPNext records · Refreshes every 30 seconds while this page is visible · Shared stock is availability, not a project allocation</footer>
+  <section
+    data-subcontracting-view
+    hidden
+    aria-label="Subcontracting Detail View"
+  ></section>
+  <section
+    data-accounting-view
+    hidden
+    aria-label="Accounting Detail View"
+  ></section>
+  <nav class="sd-tabs" aria-label="Analysis sections" role="tablist"></nav>
+  <section data-content role="tabpanel"></section>
+  <footer class="sd-footer">
+    Live ERPNext records · Refreshes every 30 seconds while this page is visible
+    · Shared stock is availability, not a project allocation
+  </footer>
 </main>

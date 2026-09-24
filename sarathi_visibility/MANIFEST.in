@@ -4,4 +4,3 @@ recursive-include sarathi_visibility *.py
 recursive-include sarathi_visibility *.js
 recursive-include sarathi_visibility *.html
 recursive-include sarathi_visibility *.css
-

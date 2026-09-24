@@ -17,4 +17,3 @@ build-backend = "flit_core.buildapi"
 
 [tool.flit.module]
 name = "sarathi_visibility"
-

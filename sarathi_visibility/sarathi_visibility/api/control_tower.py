@@ -17,7 +17,6 @@ from sarathi_visibility.api.data import (
 )
 from sarathi_visibility.api.permissions import permission_payload, require_super_admin
 
-
 MANUFACTURING_PROCESS_STEPS = [
     {
         "key": "item",
@@ -171,7 +170,18 @@ def doctype_exists(doctype: str) -> bool:
 
 
 def has_field(doctype: str, fieldname: str) -> bool:
-    if fieldname in {"name", "owner", "creation", "modified", "modified_by", "docstatus", "idx", "parent", "parenttype", "parentfield"}:
+    if fieldname in {
+        "name",
+        "owner",
+        "creation",
+        "modified",
+        "modified_by",
+        "docstatus",
+        "idx",
+        "parent",
+        "parenttype",
+        "parentfield",
+    }:
         return True
     if not doctype_exists(doctype):
         return False
@@ -239,7 +249,11 @@ def get_link_options(doctype: str | None) -> list[dict[str, Any]]:
 
     options = []
     for row in rows:
-        label = row.get(title_field) if title_field and title_field in row else row.get("name")
+        label = (
+            row.get(title_field)
+            if title_field and title_field in row
+            else row.get("name")
+        )
         options.append({"value": row.get("name"), "label": label or row.get("name")})
     return options
 
@@ -300,7 +314,9 @@ def route_slug(doctype: str) -> str:
     return doctype.lower().replace(" ", "-")
 
 
-def resolve_project(project: str | None = None, company: str | None = None) -> dict[str, Any]:
+def resolve_project(
+    project: str | None = None, company: str | None = None
+) -> dict[str, Any]:
     if project and doctype_exists("Project") and frappe.db.exists("Project", project):
         return project_payload(project)
 
@@ -312,7 +328,9 @@ def resolve_project(project: str | None = None, company: str | None = None) -> d
     if doctype_exists("Project") and frappe.db.exists("Project", DEFAULT_PROJECT_DOC):
         return project_payload(DEFAULT_PROJECT_DOC)
 
-    filters = {"company": company} if company and has_field("Project", "company") else None
+    filters = (
+        {"company": company} if company and has_field("Project", "company") else None
+    )
     latest = get_all_safe(
         "Project",
         ["name", "modified"],
@@ -362,11 +380,18 @@ def project_payload(project_name: str) -> dict[str, Any]:
         "custom_item_code",
         "custom_item",
     ]
-    values = frappe.db.get_value("Project", project_name, safe_fields("Project", fields), as_dict=True) or {}
+    values = (
+        frappe.db.get_value(
+            "Project", project_name, safe_fields("Project", fields), as_dict=True
+        )
+        or {}
+    )
     return {
         "name": values.get("name", project_name),
         "project_name": values.get("project_name") or DEFAULT_PROJECT_CODE,
-        "display_name": values.get("project_name") or values.get("name") or DEFAULT_PROJECT_CODE,
+        "display_name": values.get("project_name")
+        or values.get("name")
+        or DEFAULT_PROJECT_CODE,
         "status": values.get("status") or "Open",
         "percent_complete": flt(values.get("percent_complete")),
         "customer": values.get("customer"),
@@ -396,14 +421,20 @@ def apply_production_completion(
     project_doc["erp_percent_complete"] = flt(project_doc.get("percent_complete"))
 
     has_work_orders = bool(work_orders)
-    all_work_orders_completed = has_work_orders and all(row.get("status") == "Completed" for row in work_orders)
-    all_job_cards_completed = bool(job_cards) and all(row.get("status") == "Completed" for row in job_cards)
+    all_work_orders_completed = has_work_orders and all(
+        row.get("status") == "Completed" for row in work_orders
+    )
+    all_job_cards_completed = bool(job_cards) and all(
+        row.get("status") == "Completed" for row in job_cards
+    )
     finished_qty = sum(flt(row.get("balance_qty")) for row in finished_goods)
 
     if all_work_orders_completed and all_job_cards_completed and finished_qty > 0:
         project_doc["status"] = "Completed"
         project_doc["percent_complete"] = 100
-        project_doc["status_source"] = "Computed from completed Work Order, Job Cards and Finished Goods"
+        project_doc["status_source"] = (
+            "Computed from completed Work Order, Job Cards and Finished Goods"
+        )
     else:
         project_doc["status_source"] = "ERPNext Project"
 
@@ -414,10 +445,22 @@ def get_project_cards(company: str | None = None) -> list[dict[str, Any]]:
     if not doctype_exists("Project"):
         return []
 
-    filters = {"company": company} if company and has_field("Project", "company") else None
+    filters = (
+        {"company": company} if company and has_field("Project", "company") else None
+    )
     rows = get_all_safe(
         "Project",
-        ["name", "project_name", "status", "percent_complete", "customer", "company", "expected_start_date", "expected_end_date", "modified"],
+        [
+            "name",
+            "project_name",
+            "status",
+            "percent_complete",
+            "customer",
+            "company",
+            "expected_start_date",
+            "expected_end_date",
+            "modified",
+        ],
         filters=filters,
         order_by="modified desc",
         limit_page_length=200,
@@ -431,16 +474,24 @@ def get_project_cards(company: str | None = None) -> list[dict[str, Any]]:
         finished_goods = get_finished_goods_rows(work_orders)
         boms = get_bom_rows(project_doc, work_orders)
         materials = get_material_rows(project_doc["name"], work_orders, boms)
-        project_doc = apply_production_completion(project_doc, work_orders, job_cards, finished_goods)
+        project_doc = apply_production_completion(
+            project_doc, work_orders, job_cards, finished_goods
+        )
         project_doc.update(
             {
                 "bom_count": len(boms),
                 "work_order_count": len(work_orders),
                 "job_card_count": len(job_cards),
-                "completed_job_cards": len([card for card in job_cards if card.get("status") == "Completed"]),
-                "finished_goods_qty": sum(flt(item.get("balance_qty")) for item in finished_goods),
+                "completed_job_cards": len(
+                    [card for card in job_cards if card.get("status") == "Completed"]
+                ),
+                "finished_goods_qty": sum(
+                    flt(item.get("balance_qty")) for item in finished_goods
+                ),
                 "material_count": len(materials),
-                "shortage_qty": sum(flt(item.get("shortage_qty")) for item in materials),
+                "shortage_qty": sum(
+                    flt(item.get("shortage_qty")) for item in materials
+                ),
                 "modified": row.get("modified"),
                 "url": f"/desk/sarathicontroltower?project={quote(str(project_doc['name']))}",
             }
@@ -504,7 +555,10 @@ def get_company_options(selected_company: str | None = None) -> list[dict[str, A
             }
         )
 
-    return sorted(companies.values(), key=lambda row: row.get("company_name") or row.get("name") or "")
+    return sorted(
+        companies.values(),
+        key=lambda row: row.get("company_name") or row.get("name") or "",
+    )
 
 
 def get_default_company_from_erp() -> str | None:
@@ -513,8 +567,12 @@ def get_default_company_from_erp() -> str | None:
         return None
 
     if doctype_exists("Project") and has_field("Project", "company"):
-        project_company = frappe.db.get_value("Project", {"name": DEFAULT_PROJECT_DOC}, "company")
-        if project_company and any(row.get("name") == project_company for row in companies):
+        project_company = frappe.db.get_value(
+            "Project", {"name": DEFAULT_PROJECT_DOC}, "company"
+        )
+        if project_company and any(
+            row.get("name") == project_company for row in companies
+        ):
             return project_company
 
     with_projects = [row for row in companies if flt(row.get("project_count")) > 0]
@@ -534,11 +592,22 @@ def find_sales_order(project_name: str) -> str:
 
 def get_project_tasks(project_name: str) -> list[dict[str, Any]]:
     if not doctype_exists("Task") or not has_field("Task", "project"):
-        return [{**task, "status": "Not configured", "progress": 0, "source": "Blueprint"} for task in PROJECT_TASKS]
+        return [
+            {**task, "status": "Not configured", "progress": 0, "source": "Blueprint"}
+            for task in PROJECT_TASKS
+        ]
 
     tasks = get_all_safe(
         "Task",
-        ["name", "subject", "status", "progress", "exp_start_date", "exp_end_date", "project"],
+        [
+            "name",
+            "subject",
+            "status",
+            "progress",
+            "exp_start_date",
+            "exp_end_date",
+            "project",
+        ],
         filters={"project": project_name},
         order_by="exp_start_date asc, creation asc",
         limit_page_length=200,
@@ -546,10 +615,15 @@ def get_project_tasks(project_name: str) -> list[dict[str, Any]]:
     if tasks:
         for task in tasks:
             task["source"] = "ERPNext Task"
-            task["is_delayed"] = is_delayed(task.get("exp_end_date"), task.get("status"))
+            task["is_delayed"] = is_delayed(
+                task.get("exp_end_date"), task.get("status")
+            )
         return tasks
 
-    return [{**task, "status": "No ERP task", "progress": 0, "source": "Blueprint"} for task in PROJECT_TASKS]
+    return [
+        {**task, "status": "No ERP task", "progress": 0, "source": "Blueprint"}
+        for task in PROJECT_TASKS
+    ]
 
 
 def is_delayed(end_date: Any, status: str | None) -> bool:
@@ -560,22 +634,34 @@ def is_delayed(end_date: Any, status: str | None) -> bool:
     return getdate(end_date) < getdate(today())
 
 
-def get_pipeline(tasks: list[dict[str, Any]], project: dict[str, Any]) -> list[dict[str, Any]]:
+def get_pipeline(
+    tasks: list[dict[str, Any]], project: dict[str, Any]
+) -> list[dict[str, Any]]:
     by_subject = {task.get("subject"): task for task in tasks}
     complete_from_project = flt(project.get("percent_complete"))
-    project_completed = project.get("status") == "Completed" or complete_from_project >= 100
+    project_completed = (
+        project.get("status") == "Completed" or complete_from_project >= 100
+    )
     pipeline = []
 
     for stage in get_pipeline_weights(project.get("name")):
         task = by_subject.get(stage["task"])
         if task:
             status = task.get("status") or "Open"
-            progress = 100 if status == "Completed" or project_completed else flt(task.get("progress"))
+            progress = (
+                100
+                if status == "Completed" or project_completed
+                else flt(task.get("progress"))
+            )
             if project_completed and status != "Completed":
                 status = "Completed"
         else:
             status = "Completed" if project_completed else "No ERP task"
-            progress = 100 if project_completed else complete_from_project if stage["stage"] == "Completion" else 0
+            progress = (
+                100
+                if project_completed
+                else complete_from_project if stage["stage"] == "Completion" else 0
+            )
         pipeline.append(
             {
                 **stage,
@@ -655,12 +741,20 @@ def get_work_orders_for_project(project_name: str) -> list[dict[str, Any]]:
     )
     for row in work_orders:
         qty = flt(row.get("qty"))
-        row["completion_percent"] = round((flt(row.get("produced_qty")) / qty) * 100, 2) if qty else 0
+        row["completion_percent"] = (
+            round((flt(row.get("produced_qty")) / qty) * 100, 2) if qty else 0
+        )
     return work_orders
 
 
-def get_job_cards_for_work_orders(work_orders: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    if not work_orders or not doctype_exists("Job Card") or not has_field("Job Card", "work_order"):
+def get_job_cards_for_work_orders(
+    work_orders: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if (
+        not work_orders
+        or not doctype_exists("Job Card")
+        or not has_field("Job Card", "work_order")
+    ):
         return []
 
     names = [wo["name"] for wo in work_orders]
@@ -687,11 +781,19 @@ def get_job_cards_for_work_orders(work_orders: list[dict[str, Any]]) -> list[dic
     for card in cards:
         qty = flt(card.get("for_quantity"))
         completed = flt(card.get("total_completed_qty"))
-        card["completion_percent"] = round((completed / qty) * 100, 2) if qty else (100 if card.get("status") == "Completed" else 0)
+        card["completion_percent"] = (
+            round((completed / qty) * 100, 2)
+            if qty
+            else (100 if card.get("status") == "Completed" else 0)
+        )
     return cards
 
 
-def get_material_rows(project_name: str, work_orders: list[dict[str, Any]], boms: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+def get_material_rows(
+    project_name: str,
+    work_orders: list[dict[str, Any]],
+    boms: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     custom_rows = get_all_safe(
         "Sarathi Material Requirement",
         [
@@ -743,11 +845,17 @@ def get_material_rows(project_name: str, work_orders: list[dict[str, Any]], boms
     ]
 
 
-def get_bom_material_rows(work_orders: list[dict[str, Any]], boms: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+def get_bom_material_rows(
+    work_orders: list[dict[str, Any]], boms: list[dict[str, Any]] | None = None
+) -> list[dict[str, Any]]:
     if not doctype_exists("BOM Item"):
         return []
 
-    bom_qty = {wo.get("bom_no"): flt(wo.get("qty")) or 1 for wo in work_orders if wo.get("bom_no")}
+    bom_qty = {
+        wo.get("bom_no"): flt(wo.get("qty")) or 1
+        for wo in work_orders
+        if wo.get("bom_no")
+    }
     for bom in boms or []:
         if bom.get("name") and bom.get("name") not in bom_qty:
             bom_qty[bom.get("name")] = flt(bom.get("quantity")) or 1
@@ -793,7 +901,9 @@ def get_bom_material_rows(work_orders: list[dict[str, Any]], boms: list[dict[str
     return list(totals.values())
 
 
-def get_available_qty(item_code: str | None, warehouse: str | None = None) -> float | None:
+def get_available_qty(
+    item_code: str | None, warehouse: str | None = None
+) -> float | None:
     if not item_code or not doctype_exists("Bin"):
         return None
     conditions = ["item_code = %(item_code)s"]
@@ -813,14 +923,21 @@ def get_available_qty(item_code: str | None, warehouse: str | None = None) -> fl
     return flt(result[0][0]) if result else 0
 
 
-def get_project_item_codes(project_doc: dict[str, Any], work_orders: list[dict[str, Any]]) -> list[str]:
+def get_project_item_codes(
+    project_doc: dict[str, Any], work_orders: list[dict[str, Any]]
+) -> list[str]:
     item_codes: set[str] = {
-        row.get("production_item")
-        for row in work_orders
-        if row.get("production_item")
+        row.get("production_item") for row in work_orders if row.get("production_item")
     }
 
-    for fieldname in ["production_item", "item_code", "item", "custom_production_item", "custom_item_code", "custom_item"]:
+    for fieldname in [
+        "production_item",
+        "item_code",
+        "item",
+        "custom_production_item",
+        "custom_item_code",
+        "custom_item",
+    ]:
         if project_doc.get(fieldname):
             item_codes.add(project_doc.get(fieldname))
 
@@ -839,7 +956,11 @@ def get_project_item_codes(project_doc: dict[str, Any], work_orders: list[dict[s
             if row.get("name")
         )
 
-    if sales_orders and doctype_exists("Sales Order Item") and has_field("Sales Order Item", "item_code"):
+    if (
+        sales_orders
+        and doctype_exists("Sales Order Item")
+        and has_field("Sales Order Item", "item_code")
+    ):
         item_codes.update(
             row.get("item_code")
             for row in get_all_safe(
@@ -861,7 +982,11 @@ def append_linked_bom_names(
     bom_field: str = "bom",
     project_field: str = "project",
 ) -> None:
-    if not doctype_exists(doctype) or not has_field(doctype, bom_field) or not has_field(doctype, project_field):
+    if (
+        not doctype_exists(doctype)
+        or not has_field(doctype, bom_field)
+        or not has_field(doctype, project_field)
+    ):
         return
 
     rows = get_all_safe(
@@ -874,7 +999,9 @@ def append_linked_bom_names(
     names.update(row.get(bom_field) for row in rows if row.get(bom_field))
 
 
-def get_project_bom_names(project_doc: dict[str, Any], work_orders: list[dict[str, Any]]) -> list[str]:
+def get_project_bom_names(
+    project_doc: dict[str, Any], work_orders: list[dict[str, Any]]
+) -> list[str]:
     names: set[str] = {wo.get("bom_no") for wo in work_orders if wo.get("bom_no")}
     if not doctype_exists("BOM"):
         return sorted(names)
@@ -896,8 +1023,12 @@ def get_project_bom_names(project_doc: dict[str, Any], work_orders: list[dict[st
             )
             names.update(row.get("name") for row in rows if row.get("name"))
 
-    append_linked_bom_names(names, "Sarathi Material Requirement", project_doc.get("name"))
-    append_linked_bom_names(names, "Sarathi Production Tracker", project_doc.get("name"))
+    append_linked_bom_names(
+        names, "Sarathi Material Requirement", project_doc.get("name")
+    )
+    append_linked_bom_names(
+        names, "Sarathi Production Tracker", project_doc.get("name")
+    )
 
     item_codes = get_project_item_codes(project_doc, work_orders)
     if item_codes and has_field("BOM", "item"):
@@ -919,7 +1050,11 @@ def get_project_bom_names(project_doc: dict[str, Any], work_orders: list[dict[st
 def get_all_work_orders(company: str | None = None) -> list[dict[str, Any]]:
     if not doctype_exists("Work Order"):
         return []
-    filters = [["Work Order", "company", "=", company]] if company and has_field("Work Order", "company") else None
+    filters = (
+        [["Work Order", "company", "=", company]]
+        if company and has_field("Work Order", "company")
+        else None
+    )
     fields = [
         "name",
         "production_item",
@@ -937,7 +1072,13 @@ def get_all_work_orders(company: str | None = None) -> list[dict[str, Any]]:
         "docstatus",
         "modified",
     ]
-    return get_all_safe("Work Order", fields, filters=filters, order_by="modified desc", limit_page_length=200)
+    return get_all_safe(
+        "Work Order",
+        fields,
+        filters=filters,
+        order_by="modified desc",
+        limit_page_length=200,
+    )
 
 
 def get_all_bom_rows(
@@ -963,7 +1104,14 @@ def get_all_bom_rows(
         "docstatus",
         "modified",
     ]
-    for opt in ["project", "custom_project", "sarathi_project", "project_name", "product_name", "custom_product_name"]:
+    for opt in [
+        "project",
+        "custom_project",
+        "sarathi_project",
+        "project_name",
+        "product_name",
+        "custom_product_name",
+    ]:
         if has_field("BOM", opt) and opt not in fields:
             fields.append(opt)
 
@@ -980,17 +1128,31 @@ def get_all_bom_rows(
     )
 
     wo_map: dict[str, str] = {}
-    if doctype_exists("Work Order") and has_field("Work Order", "bom_no") and has_field("Work Order", "project"):
-        wo_rows = get_all_safe("Work Order", ["bom_no", "project"], limit_page_length=500)
+    if (
+        doctype_exists("Work Order")
+        and has_field("Work Order", "bom_no")
+        and has_field("Work Order", "project")
+    ):
+        wo_rows = get_all_safe(
+            "Work Order", ["bom_no", "project"], limit_page_length=500
+        )
         for wo in wo_rows:
-            if wo.get("bom_no") and wo.get("project") and wo.get("bom_no") not in wo_map:
+            if (
+                wo.get("bom_no")
+                and wo.get("project")
+                and wo.get("bom_no") not in wo_map
+            ):
                 wo_map[wo.get("bom_no")] = wo.get("project")
 
     bom_names = [row.get("name") for row in boms if row.get("name")]
     component_counts = get_component_counts(bom_names)
 
     project_name = project_doc.get("name") if project_doc else None
-    linked_boms = set(get_project_bom_names(project_doc, work_orders or [])) if project_doc else set()
+    linked_boms = (
+        set(get_project_bom_names(project_doc, work_orders or []))
+        if project_doc
+        else set()
+    )
 
     for bom in boms:
         bom["component_count"] = component_counts.get(bom["name"], 0)
@@ -1004,17 +1166,19 @@ def get_all_bom_rows(
             )
         bom["is_current_project"] = bool(
             project_name
-            and (
-                bom.get("project") == project_name
-                or bom.get("name") in linked_boms
-            )
+            and (bom.get("project") == project_name or bom.get("name") in linked_boms)
         )
 
-    boms.sort(key=lambda b: (not b.get("is_current_project", False), b.get("modified") or ""), reverse=False)
+    boms.sort(
+        key=lambda b: (not b.get("is_current_project", False), b.get("modified") or ""),
+        reverse=False,
+    )
     return boms
 
 
-def get_bom_rows(project_doc: dict[str, Any], work_orders: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def get_bom_rows(
+    project_doc: dict[str, Any], work_orders: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     bom_names = get_project_bom_names(project_doc, work_orders)
     if not bom_names or not doctype_exists("BOM"):
         return []
@@ -1034,7 +1198,14 @@ def get_bom_rows(project_doc: dict[str, Any], work_orders: list[dict[str, Any]])
         "docstatus",
         "modified",
     ]
-    for opt in ["project", "custom_project", "sarathi_project", "project_name", "product_name", "custom_product_name"]:
+    for opt in [
+        "project",
+        "custom_project",
+        "sarathi_project",
+        "project_name",
+        "product_name",
+        "custom_product_name",
+    ]:
         if has_field("BOM", opt) and opt not in fields:
             fields.append(opt)
 
@@ -1055,13 +1226,24 @@ def get_bom_rows(project_doc: dict[str, Any], work_orders: list[dict[str, Any]])
     return boms
 
 
-def get_bom_operation_rows(boms: list[dict[str, Any]], job_cards: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def get_bom_operation_rows(
+    boms: list[dict[str, Any]], job_cards: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     bom_names = [row.get("name") for row in boms if row.get("name")]
     rows = []
     if bom_names and doctype_exists("BOM Operation"):
         rows = get_all_safe(
             "BOM Operation",
-            ["parent", "operation", "workstation", "workstation_type", "time_in_mins", "hour_rate", "operating_cost", "idx"],
+            [
+                "parent",
+                "operation",
+                "workstation",
+                "workstation_type",
+                "time_in_mins",
+                "hour_rate",
+                "operating_cost",
+                "idx",
+            ],
             filters=[["BOM Operation", "parent", "in", bom_names]],
             order_by="idx asc",
             limit_page_length=300,
@@ -1101,7 +1283,9 @@ def get_component_counts(bom_names: list[str]) -> dict[str, int]:
     return {row[0]: row[1] for row in rows}
 
 
-def get_workstation_rows(project_name: str, job_cards: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def get_workstation_rows(
+    project_name: str, job_cards: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     latest_by_station = {}
     for card in job_cards:
         station = card.get("workstation")
@@ -1110,13 +1294,26 @@ def get_workstation_rows(project_name: str, job_cards: list[dict[str, Any]]) -> 
 
     rows = get_all_safe(
         "Workstation",
-        ["name", "workstation_name", "workstation_type", "production_capacity", "warehouse", "status", "disabled"],
+        [
+            "name",
+            "workstation_name",
+            "workstation_type",
+            "production_capacity",
+            "warehouse",
+            "status",
+            "disabled",
+        ],
         limit_page_length=200,
     )
 
     if not rows:
         return [
-            {"name": name, "workstation_type": kind, "status": "Not configured", "source": "Blueprint"}
+            {
+                "name": name,
+                "workstation_type": kind,
+                "status": "Not configured",
+                "source": "Blueprint",
+            }
             for name, kind in [
                 ("Cutting Workstation", "Cutting Machine"),
                 ("Drilling Workstation", "Drilling Machine"),
@@ -1134,7 +1331,11 @@ def get_workstation_rows(project_name: str, job_cards: list[dict[str, Any]]) -> 
         current = latest_by_station.get(row.get("name"))
         row["current_work_order"] = current.get("work_order") if current else None
         row["current_operation"] = current.get("operation") if current else None
-        row["live_status"] = "Running" if current and current.get("status") == "Work In Progress" else status_from_workstation(row)
+        row["live_status"] = (
+            "Running"
+            if current and current.get("status") == "Work In Progress"
+            else status_from_workstation(row)
+        )
         row["source"] = "ERPNext Workstation"
     return rows
 
@@ -1145,7 +1346,9 @@ def status_from_workstation(row: dict[str, Any]) -> str:
     return row.get("status") or "Available"
 
 
-def get_stock_entry_rows(project_name: str, work_orders: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def get_stock_entry_rows(
+    project_name: str, work_orders: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     if not doctype_exists("Stock Entry"):
         return []
 
@@ -1153,13 +1356,27 @@ def get_stock_entry_rows(project_name: str, work_orders: list[dict[str, Any]]) -
     if has_field("Stock Entry", "project"):
         filters = {"project": project_name}
     elif work_orders and has_field("Stock Entry", "work_order"):
-        filters = [["Stock Entry", "work_order", "in", [wo["name"] for wo in work_orders]]]
+        filters = [
+            ["Stock Entry", "work_order", "in", [wo["name"] for wo in work_orders]]
+        ]
     else:
         return []
 
     return get_all_safe(
         "Stock Entry",
-        ["name", "purpose", "work_order", "from_warehouse", "to_warehouse", "total_outgoing_value", "total_incoming_value", "docstatus", "posting_date", "posting_time", "modified"],
+        [
+            "name",
+            "purpose",
+            "work_order",
+            "from_warehouse",
+            "to_warehouse",
+            "total_outgoing_value",
+            "total_incoming_value",
+            "docstatus",
+            "posting_date",
+            "posting_time",
+            "modified",
+        ],
         filters=filters,
         order_by="posting_date desc, posting_time desc",
         limit_page_length=100,
@@ -1167,7 +1384,9 @@ def get_stock_entry_rows(project_name: str, work_orders: list[dict[str, Any]]) -
 
 
 def get_finished_goods_rows(work_orders: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    finished_items = sorted({wo.get("production_item") for wo in work_orders if wo.get("production_item")})
+    finished_items = sorted(
+        {wo.get("production_item") for wo in work_orders if wo.get("production_item")}
+    )
     if not finished_items:
         return []
 
@@ -1209,23 +1428,39 @@ def get_live_analysis(
     primary_bom = boms[0] if boms else {}
     primary_work_order = work_orders[0] if work_orders else {}
     primary_finished_good = finished_goods[0] if finished_goods else {}
-    completed_job_cards = len([row for row in job_cards if row.get("status") == "Completed"])
+    completed_job_cards = len(
+        [row for row in job_cards if row.get("status") == "Completed"]
+    )
     total_job_cards = len(job_cards)
-    shortage = next((row for row in materials if flt(row.get("shortage_qty")) > 0), None)
-    primary_alert = next((row for row in alerts if row.get("severity") == "Critical"), alerts[0] if alerts else None)
+    shortage = next(
+        (row for row in materials if flt(row.get("shortage_qty")) > 0), None
+    )
+    primary_alert = next(
+        (row for row in alerts if row.get("severity") == "Critical"),
+        alerts[0] if alerts else None,
+    )
 
-    operations_list = [row.get("operation") for row in job_cards if row.get("operation")]
+    operations_list = [
+        row.get("operation") for row in job_cards if row.get("operation")
+    ]
     seen_ops = set()
     unique_ops = []
     for op in operations_list:
         if op not in seen_ops:
             seen_ops.add(op)
             unique_ops.append(op)
-    job_ops_str = ", ".join(unique_ops) if unique_ops else "Cutting, Drilling, Welding, Grinding, Painting, Inspection"
+    job_ops_str = (
+        ", ".join(unique_ops)
+        if unique_ops
+        else "Cutting, Drilling, Welding, Grinding, Painting, Inspection"
+    )
 
-    shortage_bom = (shortage.get("bom") if shortage else None) or (primary_bom.get("name") if primary_bom else "")
+    shortage_bom = (shortage.get("bom") if shortage else None) or (
+        primary_bom.get("name") if primary_bom else ""
+    )
     shortage_detail = (
-        f"Short by {flt(shortage.get('shortage_qty'))}" + (f" ({shortage_bom})" if shortage_bom else "")
+        f"Short by {flt(shortage.get('shortage_qty'))}"
+        + (f" ({shortage_bom})" if shortage_bom else "")
         if shortage
         else (primary_alert.get("detail") if primary_alert else "No critical alerts")
     )
@@ -1247,7 +1482,9 @@ def get_live_analysis(
             "detail": f"{primary_bom.get('component_count', 0)} components",
             "doctype": "BOM" if primary_bom.get("name") else None,
             "name": primary_bom.get("name"),
-            "status": "Submitted" if primary_bom.get("docstatus") == 1 else "Not configured",
+            "status": (
+                "Submitted" if primary_bom.get("docstatus") == 1 else "Not configured"
+            ),
         },
         {
             "label": "Work Order",
@@ -1264,27 +1501,57 @@ def get_live_analysis(
             "value": f"{completed_job_cards} / {total_job_cards}",
             "detail": job_ops_str,
             "doctype": "Job Card" if total_job_cards else None,
-            "work_order": primary_work_order.get("name") if primary_work_order else (job_cards[0].get("work_order") if job_cards else None),
-            "url": f"/desk/job-card?work_order={primary_work_order.get('name') or job_cards[0].get('work_order')}" if (primary_work_order.get("name") or (job_cards and job_cards[0].get("work_order"))) else "/desk/job-card",
-            "status": "Completed" if total_job_cards and completed_job_cards == total_job_cards else "In Progress",
+            "work_order": (
+                primary_work_order.get("name")
+                if primary_work_order
+                else (job_cards[0].get("work_order") if job_cards else None)
+            ),
+            "url": (
+                f"/desk/job-card?work_order={primary_work_order.get('name') or job_cards[0].get('work_order')}"
+                if (
+                    primary_work_order.get("name")
+                    or (job_cards and job_cards[0].get("work_order"))
+                )
+                else "/desk/job-card"
+            ),
+            "status": (
+                "Completed"
+                if total_job_cards and completed_job_cards == total_job_cards
+                else "In Progress"
+            ),
         },
         {
             "label": "Finished Goods",
-            "title": primary_finished_good.get("item_code") or "Finished item not configured",
+            "title": primary_finished_good.get("item_code")
+            or "Finished item not configured",
             "value": f"{flt(primary_finished_good.get('balance_qty'))} Nos",
             "detail": primary_finished_good.get("warehouse") or "Finished Goods - PMPL",
             "doctype": "Item" if primary_finished_good.get("item_code") else None,
             "name": primary_finished_good.get("item_code"),
-            "status": "Available" if flt(primary_finished_good.get("balance_qty")) > 0 else "No stock",
+            "status": (
+                "Available"
+                if flt(primary_finished_good.get("balance_qty")) > 0
+                else "No stock"
+            ),
         },
         {
             "label": "Alert",
-            "title": f"{shortage.get('item_name') or shortage.get('item_code')} shortage" if shortage else "No critical shortage",
-            "value": f"Short by {flt(shortage.get('shortage_qty'))}" if shortage else "0",
+            "title": (
+                f"{shortage.get('item_name') or shortage.get('item_code')} shortage"
+                if shortage
+                else "No critical shortage"
+            ),
+            "value": (
+                f"Short by {flt(shortage.get('shortage_qty'))}" if shortage else "0"
+            ),
             "detail": shortage_detail,
             "doctype": "Item" if shortage and shortage.get("item_code") else None,
             "name": shortage.get("item_code") if shortage else None,
-            "status": primary_alert.get("severity") if primary_alert else ("Critical" if shortage else "Clear"),
+            "status": (
+                primary_alert.get("severity")
+                if primary_alert
+                else ("Critical" if shortage else "Clear")
+            ),
         },
     ]
 
@@ -1309,31 +1576,35 @@ def get_alert_rows(
                 extra.append(str(row.get("project")))
             if extra:
                 detail += f" ({' • '.join(extra)})"
-            alerts.append({
-                "type": "Shortage",
-                "severity": "Critical",
-                "title": item_title or item_code,
-                "detail": detail,
-                "doctype": "Item" if item_code else None,
-                "name": item_code if item_code else None,
-                "project": row.get("project"),
-                "bom": row.get("bom"),
-            })
+            alerts.append(
+                {
+                    "type": "Shortage",
+                    "severity": "Critical",
+                    "title": item_title or item_code,
+                    "detail": detail,
+                    "doctype": "Item" if item_code else None,
+                    "name": item_code if item_code else None,
+                    "project": row.get("project"),
+                    "bom": row.get("bom"),
+                }
+            )
 
     for task in tasks:
         if task.get("is_delayed"):
             detail = f"Due {task.get('exp_end_date')}"
             if task.get("project"):
                 detail += f" • {task.get('project')}"
-            alerts.append({
-                "type": "Delay",
-                "severity": "Warning",
-                "title": task.get("subject"),
-                "detail": detail,
-                "doctype": "Task",
-                "name": task.get("name"),
-                "project": task.get("project"),
-            })
+            alerts.append(
+                {
+                    "type": "Delay",
+                    "severity": "Warning",
+                    "title": task.get("subject"),
+                    "detail": detail,
+                    "doctype": "Task",
+                    "name": task.get("name"),
+                    "project": task.get("project"),
+                }
+            )
 
     for wo in work_orders or []:
         if (
@@ -1344,26 +1615,30 @@ def get_alert_rows(
             detail = f"Due {str(wo.get('planned_end_date'))[:10]}"
             if wo.get("project"):
                 detail += f" • {wo.get('project')}"
-            alerts.append({
-                "type": "Delay",
-                "severity": "Warning",
-                "title": f"WO {wo.get('name')}: {wo.get('production_item') or wo.get('item_name')}",
-                "detail": detail,
-                "doctype": "Work Order",
-                "name": wo.get("name"),
-                "project": wo.get("project"),
-            })
+            alerts.append(
+                {
+                    "type": "Delay",
+                    "severity": "Warning",
+                    "title": f"WO {wo.get('name')}: {wo.get('production_item') or wo.get('item_name')}",
+                    "detail": detail,
+                    "doctype": "Work Order",
+                    "name": wo.get("name"),
+                    "project": wo.get("project"),
+                }
+            )
 
     for station in workstations:
         if station.get("live_status") in {"Down", "Disabled"}:
-            alerts.append({
-                "type": "Workstation",
-                "severity": "Warning",
-                "title": station.get("name"),
-                "detail": station.get("live_status"),
-                "doctype": "Workstation",
-                "name": station.get("name"),
-            })
+            alerts.append(
+                {
+                    "type": "Workstation",
+                    "severity": "Warning",
+                    "title": station.get("name"),
+                    "detail": station.get("live_status"),
+                    "doctype": "Workstation",
+                    "name": station.get("name"),
+                }
+            )
 
     return alerts[:25]
 
@@ -1398,14 +1673,18 @@ def get_manufacturing_process(
 
     for index, step in enumerate(MANUFACTURING_PROCESS_STEPS, start=1):
         doctype = step["doctype"]
-        filters = process_filters(doctype, step.get("filters"), project_name, bom_names, work_order_names)
+        filters = process_filters(
+            doctype, step.get("filters"), project_name, bom_names, work_order_names
+        )
         installed = doctype_exists(doctype)
         count = count_safe(doctype, filters) if installed else 0
         recent = process_recent_records(doctype, filters) if installed else []
         if step["key"] in project_process_rows:
             recent = project_process_rows[step["key"]]
             count = len(recent)
-        progress = process_progress(doctype, count, recent, work_orders, bom_names, work_order_names)
+        progress = process_progress(
+            doctype, count, recent, work_orders, bom_names, work_order_names
+        )
         status = process_status(installed, count, progress, step.get("filters"))
 
         steps.append(
@@ -1448,21 +1727,42 @@ def project_process_records(
     item_rows = []
     seen_items = set()
     for row in [*materials, *work_orders, *boms]:
-        item_code = row.get("item_code") or row.get("production_item") or row.get("item")
+        item_code = (
+            row.get("item_code") or row.get("production_item") or row.get("item")
+        )
         if item_code and item_code not in seen_items:
             seen_items.add(item_code)
-            item_rows.append(project_process_row("Item", item_code, row.get("item_name") or row.get("production_item") or item_code, row.get("status")))
+            item_rows.append(
+                project_process_row(
+                    "Item",
+                    item_code,
+                    row.get("item_name") or row.get("production_item") or item_code,
+                    row.get("status"),
+                )
+            )
     if item_rows:
         records["item"] = item_rows
 
     warehouse_rows = []
     seen_warehouses = set()
     for row in [*materials, *work_orders, *stock_entries]:
-        for fieldname in ["warehouse", "wip_warehouse", "fg_warehouse", "source_warehouse", "scrap_warehouse", "from_warehouse", "to_warehouse"]:
+        for fieldname in [
+            "warehouse",
+            "wip_warehouse",
+            "fg_warehouse",
+            "source_warehouse",
+            "scrap_warehouse",
+            "from_warehouse",
+            "to_warehouse",
+        ]:
             warehouse = row.get(fieldname)
             if warehouse and warehouse not in seen_warehouses:
                 seen_warehouses.add(warehouse)
-                warehouse_rows.append(project_process_row("Warehouse", warehouse, warehouse, row.get("status")))
+                warehouse_rows.append(
+                    project_process_row(
+                        "Warehouse", warehouse, warehouse, row.get("status")
+                    )
+                )
     if warehouse_rows:
         records["warehouse"] = warehouse_rows
 
@@ -1472,7 +1772,15 @@ def project_process_records(
         operation = row.get("operation")
         if operation and operation not in seen_operations:
             seen_operations.add(operation)
-            operation_rows.append(project_process_row("Operation", operation, operation, row.get("status"), row.get("parent") or row.get("work_order")))
+            operation_rows.append(
+                project_process_row(
+                    "Operation",
+                    operation,
+                    operation,
+                    row.get("status"),
+                    row.get("parent") or row.get("work_order"),
+                )
+            )
     if operation_rows:
         records["operation"] = operation_rows
 
@@ -1482,7 +1790,14 @@ def project_process_records(
         workstation_type = row.get("workstation_type")
         if workstation_type and workstation_type not in seen_workstation_types:
             seen_workstation_types.add(workstation_type)
-            workstation_type_rows.append(project_process_row("Workstation Type", workstation_type, workstation_type, row.get("status") or row.get("live_status")))
+            workstation_type_rows.append(
+                project_process_row(
+                    "Workstation Type",
+                    workstation_type,
+                    workstation_type,
+                    row.get("status") or row.get("live_status"),
+                )
+            )
     if workstation_type_rows:
         records["workstation_type"] = workstation_type_rows
 
@@ -1492,7 +1807,15 @@ def project_process_records(
         workstation = row.get("workstation") or row.get("name")
         if workstation and workstation not in seen_workstations:
             seen_workstations.add(workstation)
-            workstation_rows.append(project_process_row("Workstation", workstation, row.get("workstation_name") or workstation, row.get("status") or row.get("live_status"), row.get("current_operation") or row.get("operation")))
+            workstation_rows.append(
+                project_process_row(
+                    "Workstation",
+                    workstation,
+                    row.get("workstation_name") or workstation,
+                    row.get("status") or row.get("live_status"),
+                    row.get("current_operation") or row.get("operation"),
+                )
+            )
     if workstation_rows:
         records["workstation"] = workstation_rows
 
@@ -1502,23 +1825,76 @@ def project_process_records(
         routing = row.get("routing")
         if routing and routing not in seen_routing:
             seen_routing.add(routing)
-            routing_rows.append(project_process_row("Routing", routing, routing, "Ready", row.get("name")))
+            routing_rows.append(
+                project_process_row(
+                    "Routing", routing, routing, "Ready", row.get("name")
+                )
+            )
     if routing_rows:
         records["routing"] = routing_rows
 
     if boms:
-        records["bom"] = [project_process_row("BOM", row.get("name"), row.get("item_name") or row.get("item"), "Submitted" if row.get("docstatus") == 1 else "Draft") for row in boms if row.get("name")]
+        records["bom"] = [
+            project_process_row(
+                "BOM",
+                row.get("name"),
+                row.get("item_name") or row.get("item"),
+                "Submitted" if row.get("docstatus") == 1 else "Draft",
+            )
+            for row in boms
+            if row.get("name")
+        ]
     if work_orders:
-        records["work_order"] = [project_process_row("Work Order", row.get("name"), row.get("item_name") or row.get("production_item"), row.get("status"), row.get("bom_no")) for row in work_orders if row.get("name")]
+        records["work_order"] = [
+            project_process_row(
+                "Work Order",
+                row.get("name"),
+                row.get("item_name") or row.get("production_item"),
+                row.get("status"),
+                row.get("bom_no"),
+            )
+            for row in work_orders
+            if row.get("name")
+        ]
     if stock_entries:
-        records["stock_entry"] = [project_process_row("Stock Entry", row.get("name"), row.get("purpose"), ["Draft", "Submitted", "Cancelled"][int(row.get("docstatus") or 0)] if row.get("docstatus") is not None else "Open", row.get("work_order")) for row in stock_entries if row.get("name")]
+        records["stock_entry"] = [
+            project_process_row(
+                "Stock Entry",
+                row.get("name"),
+                row.get("purpose"),
+                (
+                    ["Draft", "Submitted", "Cancelled"][int(row.get("docstatus") or 0)]
+                    if row.get("docstatus") is not None
+                    else "Open"
+                ),
+                row.get("work_order"),
+            )
+            for row in stock_entries
+            if row.get("name")
+        ]
     if job_cards:
-        records["job_card"] = [project_process_row("Job Card", row.get("name"), row.get("operation"), row.get("status"), row.get("workstation")) for row in job_cards if row.get("name")]
+        records["job_card"] = [
+            project_process_row(
+                "Job Card",
+                row.get("name"),
+                row.get("operation"),
+                row.get("status"),
+                row.get("workstation"),
+            )
+            for row in job_cards
+            if row.get("name")
+        ]
 
     return records
 
 
-def project_process_row(doctype: str, name: str | None, title: str | None, status: str | None = None, detail: str | None = None) -> dict[str, Any]:
+def project_process_row(
+    doctype: str,
+    name: str | None,
+    title: str | None,
+    status: str | None = None,
+    detail: str | None = None,
+) -> dict[str, Any]:
     return {
         "name": name,
         "title": title or name,
@@ -1526,7 +1902,11 @@ def project_process_row(doctype: str, name: str | None, title: str | None, statu
         "detail": detail,
         "docstatus": None,
         "modified": "",
-        "url": f"/app/{route_slug(doctype)}/{name}" if name else f"/app/{route_slug(doctype)}",
+        "url": (
+            f"/app/{route_slug(doctype)}/{name}"
+            if name
+            else f"/app/{route_slug(doctype)}"
+        ),
     }
 
 
@@ -1543,12 +1923,18 @@ def process_filters(
         return {"project": project_name}
     if filter_mode == "bom_names" and bom_names and has_field(doctype, "name"):
         return [[doctype, "name", "in", bom_names]]
-    if filter_mode == "work_order" and work_order_names and has_field(doctype, "work_order"):
+    if (
+        filter_mode == "work_order"
+        and work_order_names
+        and has_field(doctype, "work_order")
+    ):
         return [[doctype, "work_order", "in", work_order_names]]
     return None
 
 
-def process_recent_records(doctype: str, filters: dict | list | None) -> list[dict[str, Any]]:
+def process_recent_records(
+    doctype: str, filters: dict | list | None
+) -> list[dict[str, Any]]:
     fields = ["name", "modified", "docstatus"]
     for fieldname in [
         "item_name",
@@ -1596,7 +1982,15 @@ def process_progress(
     bom_names: list[str],
     work_order_names: list[str],
 ) -> float:
-    if doctype in {"Item", "Warehouse", "Operation", "Workstation Type", "Workstation", "Plant Floor", "Routing"}:
+    if doctype in {
+        "Item",
+        "Warehouse",
+        "Operation",
+        "Workstation Type",
+        "Workstation",
+        "Plant Floor",
+        "Routing",
+    }:
         return 100 if count else 0
     if doctype == "BOM":
         return 100 if bom_names else 0
@@ -1612,12 +2006,21 @@ def process_progress(
         completed = len([row for row in recent if row.get("status") == "Completed"])
         return round((completed / len(recent)) * 100, 2) if recent else 0
     if doctype == "Stock Entry":
-        submitted = len([row for row in recent if int(row.get("docstatus") or 0) == 1 or row.get("status") == "Submitted"])
+        submitted = len(
+            [
+                row
+                for row in recent
+                if int(row.get("docstatus") or 0) == 1
+                or row.get("status") == "Submitted"
+            ]
+        )
         return round((submitted / len(recent)) * 100, 2) if recent else 0
     return 100 if count else 0
 
 
-def process_status(installed: bool, count: int, progress: float, filter_mode: str | None) -> str:
+def process_status(
+    installed: bool, count: int, progress: float, filter_mode: str | None
+) -> str:
     if not installed:
         return "Not installed"
     if not count:
@@ -1632,7 +2035,19 @@ def process_status(installed: bool, count: int, progress: float, filter_mode: st
 def get_integration_rows(project_name: str) -> list[dict[str, Any]]:
     rows = get_all_safe(
         "Sarathi Machine Integration Log",
-        ["name", "project", "source_system", "machine", "program", "planned_qty", "completed_qty", "rejected_qty", "sync_status", "timestamp", "modified"],
+        [
+            "name",
+            "project",
+            "source_system",
+            "machine",
+            "program",
+            "planned_qty",
+            "completed_qty",
+            "rejected_qty",
+            "sync_status",
+            "timestamp",
+            "modified",
+        ],
         filters={"project": project_name},
         order_by="modified desc",
         limit_page_length=50,
@@ -1641,30 +2056,55 @@ def get_integration_rows(project_name: str) -> list[dict[str, Any]]:
         return rows
 
     return [
-        {"source_system": "TubePro P1", "sync_status": "Not configured", "pending_syncs": 0},
-        {"source_system": "CypCut", "sync_status": "Not configured", "pending_syncs": 0},
+        {
+            "source_system": "TubePro P1",
+            "sync_status": "Not configured",
+            "pending_syncs": 0,
+        },
+        {
+            "source_system": "CypCut",
+            "sync_status": "Not configured",
+            "pending_syncs": 0,
+        },
         {"source_system": "Tally", "sync_status": "Not configured", "pending_syncs": 0},
     ]
 
 
-def organization_summary(company: str | None, projects: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def organization_summary(
+    company: str | None, projects: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     projects = projects if projects is not None else get_project_cards(company)
     project_names = [row["name"] for row in projects if row.get("name")]
-    completed_projects = len([row for row in projects if row.get("status") == "Completed"])
-    active_projects = len([row for row in projects if row.get("status") not in {"Completed", "Cancelled"}])
+    completed_projects = len(
+        [row for row in projects if row.get("status") == "Completed"]
+    )
+    active_projects = len(
+        [row for row in projects if row.get("status") not in {"Completed", "Cancelled"}]
+    )
 
     wo_filters: dict | list | None = {}
     if project_names and has_field("Work Order", "project"):
         wo_filters = [["Work Order", "project", "in", project_names]]
     if has_field("Work Order", "status"):
         if isinstance(wo_filters, list):
-            wo_filters.append(["Work Order", "status", "not in", ["Completed", "Cancelled", "Stopped"]])
+            wo_filters.append(
+                [
+                    "Work Order",
+                    "status",
+                    "not in",
+                    ["Completed", "Cancelled", "Stopped"],
+                ]
+            )
         else:
             wo_filters["status"] = ["not in", ["Completed", "Cancelled", "Stopped"]]
     active_wos = count_safe("Work Order", wo_filters)
 
     work_order_names = []
-    if project_names and doctype_exists("Work Order") and has_field("Work Order", "project"):
+    if (
+        project_names
+        and doctype_exists("Work Order")
+        and has_field("Work Order", "project")
+    ):
         work_order_names = [
             row["name"]
             for row in get_all_safe(
@@ -1680,16 +2120,23 @@ def organization_summary(company: str | None, projects: list[dict[str, Any]] | N
         job_card_filters = [["Job Card", "work_order", "in", work_order_names]]
     if has_field("Job Card", "status"):
         if isinstance(job_card_filters, list):
-            job_card_filters.append(["Job Card", "status", "not in", ["Completed", "Cancelled"]])
+            job_card_filters.append(
+                ["Job Card", "status", "not in", ["Completed", "Cancelled"]]
+            )
         else:
             job_card_filters["status"] = ["not in", ["Completed", "Cancelled"]]
     open_job_cards = count_safe("Job Card", job_card_filters)
 
     production_today = 0
     if doctype_exists("Stock Entry") and has_field("Stock Entry", "purpose"):
-        production_today = count_safe("Stock Entry", {"purpose": "Manufacture", "posting_date": today(), "docstatus": 1})
+        production_today = count_safe(
+            "Stock Entry",
+            {"purpose": "Manufacture", "posting_date": today(), "docstatus": 1},
+        )
 
-    computed_shortages = len([row for row in projects if flt(row.get("shortage_qty")) > 0])
+    computed_shortages = len(
+        [row for row in projects if flt(row.get("shortage_qty")) > 0]
+    )
     finished_goods_qty = sum(flt(row.get("finished_goods_qty")) for row in projects)
 
     return {
@@ -1699,14 +2146,18 @@ def organization_summary(company: str | None, projects: list[dict[str, Any]] | N
         "delayed_projects": count_delayed_projects(),
         "active_work_orders": active_wos,
         "open_job_cards": open_job_cards,
-        "shortages": computed_shortages or count_safe("Sarathi Material Requirement", {"shortage_qty": [">", 0]}),
+        "shortages": computed_shortages
+        or count_safe("Sarathi Material Requirement", {"shortage_qty": [">", 0]}),
         "production_today": production_today,
-        "finished_goods": finished_goods_qty or count_safe("Bin", {"warehouse": "Finished Goods - PMPL"}),
+        "finished_goods": finished_goods_qty
+        or count_safe("Bin", {"warehouse": "Finished Goods - PMPL"}),
     }
 
 
 def count_delayed_projects() -> int:
-    if not doctype_exists("Task") or not all(has_field("Task", field) for field in ["project", "exp_end_date", "status"]):
+    if not doctype_exists("Task") or not all(
+        has_field("Task", field) for field in ["project", "exp_end_date", "status"]
+    ):
         return 0
     rows = get_all_safe(
         "Task",
@@ -1721,30 +2172,48 @@ def count_delayed_projects() -> int:
 
 
 @frappe.whitelist()
-def get_dashboard(company: str | None = None, project: str | None = None) -> dict[str, Any]:
+def get_dashboard(
+    company: str | None = None, project: str | None = None
+) -> dict[str, Any]:
     project_doc = resolve_project(project, company)
     project_name = project_doc["name"]
     tasks = get_project_tasks(project_name)
     work_orders = get_work_orders_for_project(project_name)
     job_cards = get_job_cards_for_work_orders(work_orders)
-    selected_company = company or project_doc.get("company") or get_default_company_from_erp()
+    selected_company = (
+        company or project_doc.get("company") or get_default_company_from_erp()
+    )
     projects = get_project_cards(selected_company)
     boms = get_bom_rows(project_doc, work_orders)
     materials = get_material_rows(project_name, work_orders, boms)
     workstations = get_workstation_rows(project_name, job_cards)
     stock_entries = get_stock_entry_rows(project_name, work_orders)
     finished_goods = get_finished_goods_rows(work_orders)
-    project_doc = apply_production_completion(project_doc, work_orders, job_cards, finished_goods)
+    project_doc = apply_production_completion(
+        project_doc, work_orders, job_cards, finished_goods
+    )
     bom_operations = get_bom_operation_rows(boms, job_cards)
     alerts = get_alert_rows(materials, tasks, workstations, work_orders)
 
-    active_wos = len([wo for wo in work_orders if wo.get("status") not in {"Completed", "Cancelled", "Stopped"}])
-    open_job_cards = len([jc for jc in job_cards if jc.get("status") not in {"Completed", "Cancelled"}])
+    active_wos = len(
+        [
+            wo
+            for wo in work_orders
+            if wo.get("status") not in {"Completed", "Cancelled", "Stopped"}
+        ]
+    )
+    open_job_cards = len(
+        [jc for jc in job_cards if jc.get("status") not in {"Completed", "Cancelled"}]
+    )
     computed_shortages = len([m for m in materials if flt(m.get("shortage_qty")) > 0])
     finished_goods_qty = sum(flt(fg.get("balance_qty")) for fg in finished_goods)
     production_today = 0
     if doctype_exists("Stock Entry") and has_field("Stock Entry", "purpose"):
-        se_filters: dict[str, Any] = {"purpose": "Manufacture", "posting_date": today(), "docstatus": 1}
+        se_filters: dict[str, Any] = {
+            "purpose": "Manufacture",
+            "posting_date": today(),
+            "docstatus": 1,
+        }
         if has_field("Stock Entry", "project"):
             se_filters["project"] = project_name
         production_today = count_safe("Stock Entry", se_filters)
@@ -1897,7 +2366,13 @@ def get_organization_summary(company: str | None = None) -> dict[str, Any]:
 def get_project_summary(project: str | None = None) -> dict[str, Any]:
     project_doc = resolve_project(project)
     tasks = get_project_tasks(project_doc["name"])
-    return envelope({"project": project_doc, "tasks": tasks, "pipeline": get_pipeline(tasks, project_doc)})
+    return envelope(
+        {
+            "project": project_doc,
+            "tasks": tasks,
+            "pipeline": get_pipeline(tasks, project_doc),
+        }
+    )
 
 
 @frappe.whitelist()
@@ -1912,14 +2387,21 @@ def get_project_materials(project: str | None = None) -> dict[str, Any]:
     project_doc = resolve_project(project)
     work_orders = get_work_orders_for_project(project_doc["name"])
     boms = get_bom_rows(project_doc, work_orders)
-    return envelope({"materials": get_material_rows(project_doc["name"], work_orders, boms)})
+    return envelope(
+        {"materials": get_material_rows(project_doc["name"], work_orders, boms)}
+    )
 
 
 @frappe.whitelist()
 def get_project_production(project: str | None = None) -> dict[str, Any]:
     project_doc = resolve_project(project)
     work_orders = get_work_orders_for_project(project_doc["name"])
-    return envelope({"work_orders": work_orders, "job_cards": get_job_cards_for_work_orders(work_orders)})
+    return envelope(
+        {
+            "work_orders": work_orders,
+            "job_cards": get_job_cards_for_work_orders(work_orders),
+        }
+    )
 
 
 @frappe.whitelist()
@@ -1927,14 +2409,18 @@ def get_workstations(project: str | None = None) -> dict[str, Any]:
     project_doc = resolve_project(project)
     work_orders = get_work_orders_for_project(project_doc["name"])
     job_cards = get_job_cards_for_work_orders(work_orders)
-    return envelope({"workstations": get_workstation_rows(project_doc["name"], job_cards)})
+    return envelope(
+        {"workstations": get_workstation_rows(project_doc["name"], job_cards)}
+    )
 
 
 @frappe.whitelist()
 def get_stock_entries(project: str | None = None) -> dict[str, Any]:
     project_doc = resolve_project(project)
     work_orders = get_work_orders_for_project(project_doc["name"])
-    return envelope({"stock_entries": get_stock_entry_rows(project_doc["name"], work_orders)})
+    return envelope(
+        {"stock_entries": get_stock_entry_rows(project_doc["name"], work_orders)}
+    )
 
 
 @frappe.whitelist()
@@ -1988,7 +2474,9 @@ def recalculate_progress(project: str | None = None) -> dict[str, Any]:
         doc.percent_complete = progress
         doc.save()
 
-    return envelope({"project": project_payload(project_doc["name"]), "progress": progress})
+    return envelope(
+        {"project": project_payload(project_doc["name"]), "progress": progress}
+    )
 
 
 def sync_integration(source_system: str, payload: dict[str, Any]) -> dict[str, Any]:

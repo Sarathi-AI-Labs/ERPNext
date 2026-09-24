@@ -24,14 +24,29 @@ doc_events = {
         "before_update_after_submit": "sarathi_visibility.setup.dashboard.validate_bom",
         "on_submit": "sarathi_visibility.setup.dashboard.on_bom_submit",
     },
-    "Sales Order": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
-    "Work Order": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
+    "Sales Order": {
+        "validate": "sarathi_visibility.setup.dashboard.validate_transaction"
+    },
+    "Work Order": {
+        "validate": "sarathi_visibility.setup.dashboard.validate_transaction"
+    },
     "Job Card": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
-    "Stock Entry": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
+    "Stock Entry": {
+        "validate": "sarathi_visibility.setup.dashboard.validate_transaction"
+    },
 }
 
-for _doctype in ('Material Request', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 'Delivery Note', 'Sales Invoice'):
-    doc_events.setdefault(_doctype, {})['validate'] = 'sarathi_visibility.setup.dashboard.validate_transaction'
+for _doctype in (
+    "Material Request",
+    "Purchase Order",
+    "Purchase Receipt",
+    "Purchase Invoice",
+    "Delivery Note",
+    "Sales Invoice",
+):
+    doc_events.setdefault(_doctype, {})[
+        "validate"
+    ] = "sarathi_visibility.setup.dashboard.validate_transaction"
 
 for _doctype in (
     "Material Request",
@@ -75,12 +90,12 @@ for _doctype in (
     "Employee",
     "Sarathi Machine Integration Log",
 ):
-    doc_events.setdefault(_doctype, {}).update({
-        "on_update": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_update_after_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_cancel": "sarathi_visibility.setup.dashboard.notify_dashboard",
-        "on_trash": "sarathi_visibility.setup.dashboard.notify_dashboard",
-    })
-
-
+    doc_events.setdefault(_doctype, {}).update(
+        {
+            "on_update": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_update_after_submit": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_cancel": "sarathi_visibility.setup.dashboard.notify_dashboard",
+            "on_trash": "sarathi_visibility.setup.dashboard.notify_dashboard",
+        }
+    )

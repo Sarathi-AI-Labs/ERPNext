@@ -3,8 +3,10 @@
     data: null,
     employeePreview: false,
     filter: "",
-    selectedCompany: new URLSearchParams(window.location.search).get("company") || "",
-    selectedProject: new URLSearchParams(window.location.search).get("project") || "",
+    selectedCompany:
+      new URLSearchParams(window.location.search).get("company") || "",
+    selectedProject:
+      new URLSearchParams(window.location.search).get("project") || "",
     selectedBom: new URLSearchParams(window.location.search).get("bom") || "",
     formSchemas: {},
   };
@@ -84,10 +86,36 @@
 
   function badgeClass(label) {
     const text = String(label || "").toLowerCase();
-    if (text.includes("complete") || text.includes("received") || text.includes("available") || text.includes("submitted")) return "success";
-    if (text.includes("progress") || text.includes("running") || text.includes("open") || text.includes("process")) return "info";
-    if (text.includes("short") || text.includes("critical") || text.includes("down") || text.includes("cancel") || text.includes("blocked")) return "critical";
-    if (text.includes("delay") || text.includes("warning") || text.includes("pending") || text.includes("not configured") || text.includes("hold")) return "warning";
+    if (
+      text.includes("complete") ||
+      text.includes("received") ||
+      text.includes("available") ||
+      text.includes("submitted")
+    )
+      return "success";
+    if (
+      text.includes("progress") ||
+      text.includes("running") ||
+      text.includes("open") ||
+      text.includes("process")
+    )
+      return "info";
+    if (
+      text.includes("short") ||
+      text.includes("critical") ||
+      text.includes("down") ||
+      text.includes("cancel") ||
+      text.includes("blocked")
+    )
+      return "critical";
+    if (
+      text.includes("delay") ||
+      text.includes("warning") ||
+      text.includes("pending") ||
+      text.includes("not configured") ||
+      text.includes("hold")
+    )
+      return "warning";
     return "";
   }
 
@@ -103,7 +131,7 @@
         .map((field) => row[field])
         .join(" ")
         .toLowerCase()
-        .includes(state.filter)
+        .includes(state.filter),
     );
   }
 
@@ -126,7 +154,9 @@
   function link(label, doctype, name) {
     if (!label) return "";
     const href = recordUrl(doctype, name);
-    return href ? `<a class="sarathi-link" href="${href}">${value(label)}</a>` : value(label);
+    return href
+      ? `<a class="sarathi-link" href="${href}">${value(label)}</a>`
+      : value(label);
   }
 
   function permission() {
@@ -175,14 +205,70 @@
 
   function renderKpis(summary) {
     const kpis = [
-      ["Active Projects", summary.active_projects, "info", listUrl("Project"), "projects", "ERPNext project portfolio"],
-      ["Completed", summary.completed_projects, "success", listUrl("Project"), "completed", "Completed manufacturing projects"],
-      ["Delayed", summary.delayed_projects, "warning", listUrl("Project"), "delayed", "Projects needing attention"],
-      ["Active WOs", summary.active_work_orders, "info", listUrl("Work Order"), "work-order", "Open production execution"],
-      ["Open Job Cards", summary.open_job_cards, "warning", listUrl("Job Card"), "job-card", "Shop-floor work queue"],
-      ["Shortages", summary.shortages, "critical", listUrl("Material Request"), "shortage", "Material exceptions"],
-      ["Production Today", summary.production_today, "success", listUrl("Stock Entry"), "production", "Today stock movement"],
-      ["Finished Goods", summary.finished_goods, "success", listUrl("Item"), "finished", "Finished inventory signal"],
+      [
+        "Active Projects",
+        summary.active_projects,
+        "info",
+        listUrl("Project"),
+        "projects",
+        "ERPNext project portfolio",
+      ],
+      [
+        "Completed",
+        summary.completed_projects,
+        "success",
+        listUrl("Project"),
+        "completed",
+        "Completed manufacturing projects",
+      ],
+      [
+        "Delayed",
+        summary.delayed_projects,
+        "warning",
+        listUrl("Project"),
+        "delayed",
+        "Projects needing attention",
+      ],
+      [
+        "Active WOs",
+        summary.active_work_orders,
+        "info",
+        listUrl("Work Order"),
+        "work-order",
+        "Open production execution",
+      ],
+      [
+        "Open Job Cards",
+        summary.open_job_cards,
+        "warning",
+        listUrl("Job Card"),
+        "job-card",
+        "Shop-floor work queue",
+      ],
+      [
+        "Shortages",
+        summary.shortages,
+        "critical",
+        listUrl("Material Request"),
+        "shortage",
+        "Material exceptions",
+      ],
+      [
+        "Production Today",
+        summary.production_today,
+        "success",
+        listUrl("Stock Entry"),
+        "production",
+        "Today stock movement",
+      ],
+      [
+        "Finished Goods",
+        summary.finished_goods,
+        "success",
+        listUrl("Item"),
+        "finished",
+        "Finished inventory signal",
+      ],
     ];
 
     root.querySelector("[data-section='kpis']").innerHTML = kpis
@@ -196,21 +282,29 @@
             <small>Open</small>
             <i aria-hidden="true"></i>
           </a>
-        `
+        `,
       )
       .join("");
   }
 
   function kpiIcon(name) {
     const icons = {
-      projects: '<svg viewBox="0 0 24 24"><path d="M3 7.5h6l2 2h10v8.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 7.5V6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1.5"/></svg>',
-      completed: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.6 2.7L16.5 9"/></svg>',
-      delayed: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
-      "work-order": '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v3M12 18.2v3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M2.8 12h3M18.2 12h3M4.8 19.2l2.1-2.1M17.1 6.9l2.1-2.1"/></svg>',
-      "job-card": '<svg viewBox="0 0 24 24"><path d="M9 4h6l1 2h3v14H5V6h3Z"/><path d="M9 10h6M9 14h5"/></svg>',
-      shortage: '<svg viewBox="0 0 24 24"><path d="M12 3 22 20H2Z"/><path d="M12 9v4M12 17h.01"/></svg>',
-      production: '<svg viewBox="0 0 24 24"><path d="M4 8 12 4l8 4-8 4Z"/><path d="M4 8v8l8 4 8-4V8"/><path d="M12 12v8"/></svg>',
-      finished: '<svg viewBox="0 0 24 24"><path d="M3 9h8v10H3Z"/><path d="M13 5h8v14h-8Z"/><path d="M5 12h4M15 9h4"/></svg>',
+      projects:
+        '<svg viewBox="0 0 24 24"><path d="M3 7.5h6l2 2h10v8.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 7.5V6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1.5"/></svg>',
+      completed:
+        '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.6 2.7L16.5 9"/></svg>',
+      delayed:
+        '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+      "work-order":
+        '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v3M12 18.2v3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M2.8 12h3M18.2 12h3M4.8 19.2l2.1-2.1M17.1 6.9l2.1-2.1"/></svg>',
+      "job-card":
+        '<svg viewBox="0 0 24 24"><path d="M9 4h6l1 2h3v14H5V6h3Z"/><path d="M9 10h6M9 14h5"/></svg>',
+      shortage:
+        '<svg viewBox="0 0 24 24"><path d="M12 3 22 20H2Z"/><path d="M12 9v4M12 17h.01"/></svg>',
+      production:
+        '<svg viewBox="0 0 24 24"><path d="M4 8 12 4l8 4-8 4Z"/><path d="M4 8v8l8 4 8-4V8"/><path d="M12 12v8"/></svg>',
+      finished:
+        '<svg viewBox="0 0 24 24"><path d="M3 9h8v10H3Z"/><path d="M13 5h8v14h-8Z"/><path d="M5 12h4M15 9h4"/></svg>',
     };
     return icons[name] || icons.projects;
   }
@@ -246,7 +340,13 @@
   }
 
   function renderProjects(projects, selectedProject) {
-    const visible = filtered(projects || [], ["name", "project_name", "status", "company", "customer"]);
+    const visible = filtered(projects || [], [
+      "name",
+      "project_name",
+      "status",
+      "company",
+      "customer",
+    ]);
     setText("project-count", `${visible.length} projects`);
     const node = root.querySelector("[data-section='projects']");
     if (!node) return;
@@ -275,7 +375,10 @@
 
   function renderBomDetail(payload) {
     const boms = payload.boms || [];
-    if (state.selectedBom && !boms.some((row) => row.name === state.selectedBom)) {
+    if (
+      state.selectedBom &&
+      !boms.some((row) => row.name === state.selectedBom)
+    ) {
       persistSelectedBom("");
     }
     const bom = boms.find((row) => row.name === state.selectedBom) || {};
@@ -286,22 +389,39 @@
       ? operations.filter((row) => row.parent === bom.name)
       : operations;
     const selectedMaterials = bom.name
-      ? materials.filter((row) => row.bom === bom.name || row.parent === bom.name)
+      ? materials.filter(
+          (row) => row.bom === bom.name || row.parent === bom.name,
+        )
       : materials;
-    const visibleOperations = bom.name && selectedOperations.length ? selectedOperations : operations;
-    const visibleMaterials = bom.name && selectedMaterials.length ? selectedMaterials : materials;
+    const visibleOperations =
+      bom.name && selectedOperations.length ? selectedOperations : operations;
+    const visibleMaterials =
+      bom.name && selectedMaterials.length ? selectedMaterials : materials;
     const cards = root.querySelector("[data-section='bom-cards']");
     const detailPanel = root.querySelector("[data-section='bom-detail-panel']");
     const summary = root.querySelector("[data-section='bom-summary']");
     if (!summary || !detailPanel) return;
 
     if (cards) {
-      const visibleBoms = filtered(boms, ["name", "item", "item_name", "routing", "company", "source"]);
+      const visibleBoms = filtered(boms, [
+        "name",
+        "item",
+        "item_name",
+        "routing",
+        "company",
+        "source",
+      ]);
       cards.innerHTML = visibleBoms.length
         ? visibleBoms
             .map((row) => {
-              const status = ["Draft", "Submitted", "Cancelled"][Number(row.docstatus)] || "Open";
-              const productName = row.product_name || row.custom_product_name || row.item_name || row.item;
+              const status =
+                ["Draft", "Submitted", "Cancelled"][Number(row.docstatus)] ||
+                "Open";
+              const productName =
+                row.product_name ||
+                row.custom_product_name ||
+                row.item_name ||
+                row.item;
               return `
                 <article class="sarathi-bom-card ${row.name === state.selectedBom ? "active" : ""} ${badgeClass(status)}" data-bom-card data-bom-name="${value(row.name)}" role="button" tabindex="0">
                   <span>${value(status)}</span>
@@ -331,10 +451,20 @@
     detailPanel.hidden = false;
     const facts = [
       ["BOM", link(bom.name, "BOM", bom.name)],
-      ["Production Item", link(bom.item || workOrder.production_item, "Item", bom.item || workOrder.production_item)],
+      [
+        "Production Item",
+        link(
+          bom.item || workOrder.production_item,
+          "Item",
+          bom.item || workOrder.production_item,
+        ),
+      ],
       ["Item Name", value(bom.item_name || workOrder.item_name)],
       ["Company", value(bom.company)],
-      ["Quantity", `${value(bom.quantity)} ${value(bom.uom || workOrder.stock_uom || "Nos")}`],
+      [
+        "Quantity",
+        `${value(bom.quantity)} ${value(bom.uom || workOrder.stock_uom || "Nos")}`,
+      ],
       ["Routing", link(bom.routing, "Routing", bom.routing)],
       ["Operations", value(visibleOperations.length)],
       ["Components", value(bom.component_count || visibleMaterials.length)],
@@ -342,31 +472,65 @@
       ["Status", docstatus(bom.docstatus)],
     ];
     summary.innerHTML = facts
-      .map(([label, text]) => `<div><span>${value(label)}</span><strong>${text}</strong></div>`)
+      .map(
+        ([label, text]) =>
+          `<div><span>${value(label)}</span><strong>${text}</strong></div>`,
+      )
       .join("");
 
-    table("bom-operations-summary", ["No", "Operation", "Workstation Type", "Workstation", "Operation Time", "Cost"], visibleOperations, (row, index) => [
-      value(row.idx || index + 1),
-      link(row.operation, "Operation", row.operation),
-      link(row.workstation_type, "Workstation Type", row.workstation_type),
-      link(row.workstation, "Workstation", row.workstation),
-      value(row.time_in_mins),
-      value(row.operating_cost),
-    ]);
+    table(
+      "bom-operations-summary",
+      [
+        "No",
+        "Operation",
+        "Workstation Type",
+        "Workstation",
+        "Operation Time",
+        "Cost",
+      ],
+      visibleOperations,
+      (row, index) => [
+        value(row.idx || index + 1),
+        link(row.operation, "Operation", row.operation),
+        link(row.workstation_type, "Workstation Type", row.workstation_type),
+        link(row.workstation, "Workstation", row.workstation),
+        value(row.time_in_mins),
+        value(row.operating_cost),
+      ],
+    );
 
-    table("bom-components-summary", ["No", "Item Code", "Item Name", "Required", "Available", "Shortage", "Warehouse"], visibleMaterials, (row, index) => [
-      value(index + 1),
-      link(row.item_code, "Item", row.item_code),
-      value(row.item_name),
-      value(row.required_qty),
-      value(row.available_qty),
-      shortage(row.shortage_qty),
-      value(row.warehouse),
-    ]);
+    table(
+      "bom-components-summary",
+      [
+        "No",
+        "Item Code",
+        "Item Name",
+        "Required",
+        "Available",
+        "Shortage",
+        "Warehouse",
+      ],
+      visibleMaterials,
+      (row, index) => [
+        value(index + 1),
+        link(row.item_code, "Item", row.item_code),
+        value(row.item_name),
+        value(row.required_qty),
+        value(row.available_qty),
+        shortage(row.shortage_qty),
+        value(row.warehouse),
+      ],
+    );
   }
 
   function renderManufacturingProcess(rows) {
-    const visible = filtered(rows || [], ["phase", "label", "doctype", "summary", "status"]);
+    const visible = filtered(rows || [], [
+      "phase",
+      "label",
+      "doctype",
+      "summary",
+      "status",
+    ]);
     const node = root.querySelector("[data-section='manufacturing-process']");
     if (!node) return;
     node.innerHTML = visible.length
@@ -397,7 +561,9 @@
 
   function openProcessDrawer(key) {
     const payload = state.data?.data || {};
-    const step = (payload.manufacturing_process || []).find((row) => row.key === key);
+    const step = (payload.manufacturing_process || []).find(
+      (row) => row.key === key,
+    );
     if (!step) return;
 
     const recentRows = (step.recent || [])
@@ -409,7 +575,7 @@
             <td>${badge(row.status || ["Draft", "Submitted", "Cancelled"][Number(row.docstatus)] || "Open")}</td>
             <td>${value(row.modified || "")}</td>
           </tr>
-        `
+        `,
       )
       .join("");
 
@@ -455,7 +621,10 @@
 
   function optionTags(options, selected) {
     return (options || [])
-      .map((option) => `<option value="${value(option)}" ${option === selected ? "selected" : ""}>${value(option || "Not Set")}</option>`)
+      .map(
+        (option) =>
+          `<option value="${value(option)}" ${option === selected ? "selected" : ""}>${value(option || "Not Set")}</option>`,
+      )
       .join("");
   }
 
@@ -478,12 +647,19 @@
       return state.formSchemas[doctype];
     }
     const params = new URLSearchParams({ doctype });
-    const response = await fetch(`/api/method/sarathi_visibility.api.control_tower.get_form_schema?${params}`, {
-      credentials: "same-origin",
-    });
+    const response = await fetch(
+      `/api/method/sarathi_visibility.api.control_tower.get_form_schema?${params}`,
+      {
+        credentials: "same-origin",
+      },
+    );
     const payload = await response.json();
     if (!response.ok || payload.exc || !payload.message?.success) {
-      throw new Error(payload._server_messages || payload.exception || `Unable to load ${doctype} fields.`);
+      throw new Error(
+        payload._server_messages ||
+          payload.exception ||
+          `Unable to load ${doctype} fields.`,
+      );
     }
     state.formSchemas[doctype] = payload.message.data.schema;
     return state.formSchemas[doctype];
@@ -509,7 +685,10 @@
     const required = field.reqd ? `data-required="1"` : "";
     const disabled = field.read_only ? "disabled" : "";
     const common = `name="${value(fieldname)}" data-doctype="${value(doctype)}" data-fieldname="${value(fieldname)}" class="sarathi-erpnext-field" ${required} ${disabled}`;
-    const placeholder = field.options && fieldtype === "Link" ? `Select ${field.options}` : field.label || fieldname;
+    const placeholder =
+      field.options && fieldtype === "Link"
+        ? `Select ${field.options}`
+        : field.label || fieldname;
 
     if (fieldtype === "Select") {
       const choices = field.select_options || [];
@@ -526,8 +705,12 @@
       const linkDoctype = field.options || "";
       const renderedOptions = choices
         .map((row) => {
-          const displayLabel = row.label && row.label !== row.value ? `${row.label} (${row.value})` : row.value;
-          const isSelected = String(row.value || "") === String(fieldValue || "");
+          const displayLabel =
+            row.label && row.label !== row.value
+              ? `${row.label} (${row.value})`
+              : row.value;
+          const isSelected =
+            String(row.value || "") === String(fieldValue || "");
           return `
             <button type="button" class="sarathi-combobox-item ${isSelected ? "selected" : ""}" data-value="${value(row.value)}" data-label="${value(displayLabel)}">
               <span class="sarathi-combobox-item-title">${value(displayLabel)}</span>
@@ -601,7 +784,11 @@
       `;
     }
 
-    if (["Text", "Text Editor", "Small Text", "Long Text", "Code"].includes(fieldtype)) {
+    if (
+      ["Text", "Text Editor", "Small Text", "Long Text", "Code"].includes(
+        fieldtype,
+      )
+    ) {
       return `<textarea ${common} rows="3" placeholder="${value(placeholder)}">${value(fieldValue)}</textarea>`;
     }
 
@@ -622,8 +809,14 @@
     const fieldname = field.fieldname || "";
     if (!fieldname) return "";
     const conditionallyRequired = !field.reqd && field.mandatory_depends_on;
-    const requiredBadge = field.reqd ? `<em class="sarathi-badge-req">Required</em>` : conditionallyRequired ? `<em class="sarathi-badge-cond">Conditional</em>` : "";
-    const roBadge = field.read_only ? `<em class="sarathi-badge-ro">Read Only</em>` : "";
+    const requiredBadge = field.reqd
+      ? `<em class="sarathi-badge-req">Required</em>`
+      : conditionallyRequired
+        ? `<em class="sarathi-badge-cond">Conditional</em>`
+        : "";
+    const roBadge = field.read_only
+      ? `<em class="sarathi-badge-ro">Read Only</em>`
+      : "";
 
     if (field.fieldtype === "Check") {
       return `
@@ -640,7 +833,13 @@
         </div>
       `;
     }
-    const isWide = ["Text", "Text Editor", "Small Text", "Long Text", "Code"].includes(field.fieldtype);
+    const isWide = [
+      "Text",
+      "Text Editor",
+      "Small Text",
+      "Long Text",
+      "Code",
+    ].includes(field.fieldtype);
     const wideClass = isWide ? "wide" : "";
     const roClass = field.read_only ? "is-readonly" : "";
 
@@ -682,7 +881,11 @@
       const ftype = field.fieldtype;
 
       if (ftype === "Tab Break") {
-        const tabKey = field.fieldname || String(field.label || `tab_${tabs.length}`).toLowerCase().replace(/\s+/g, "_");
+        const tabKey =
+          field.fieldname ||
+          String(field.label || `tab_${tabs.length}`)
+            .toLowerCase()
+            .replace(/\s+/g, "_");
         const tabTitle = field.label || field.fieldname || "Details";
         currentTab = {
           key: tabKey,
@@ -727,7 +930,11 @@
         const validSections = tab.sections
           .map((sec) => {
             const validCols = sec.columns
-              .map((col) => col.map((f) => renderMetaField(f, overrides, doctype)).filter(Boolean))
+              .map((col) =>
+                col
+                  .map((f) => renderMetaField(f, overrides, doctype))
+                  .filter(Boolean),
+              )
               .filter((col) => col.length > 0);
             return {
               ...sec,
@@ -748,7 +955,7 @@
           <button class="${index === 0 ? "active" : ""}" type="button" data-wrapper-tab-button="${value(doctype)}:${value(tab.key)}">
             ${value(tab.title)}
           </button>
-        `
+        `,
       )
       .join("");
 
@@ -763,7 +970,7 @@
                   <div class="sarathi-form-col">
                     ${colFields.join("")}
                   </div>
-                `
+                `,
               )
               .join("");
 
@@ -806,7 +1013,8 @@
   async function openCreateProjectPanel() {
     const payload = state.data?.data || {};
     const companies = payload.companies || [];
-    const currentCompany = routeCompany() || payload.organization?.company || "";
+    const currentCompany =
+      routeCompany() || payload.organization?.company || "";
     const hasCompanies = companies.length > 0;
     const drawer = root.querySelector("[data-section='process-drawer']");
     const body = root.querySelector("[data-section='process-drawer-body']");
@@ -826,7 +1034,10 @@
     let projectSchema = null;
     let companySchema = null;
     try {
-      [projectSchema, companySchema] = await Promise.all([getFormSchema("Project"), getFormSchema("Company")]);
+      [projectSchema, companySchema] = await Promise.all([
+        getFormSchema("Project"),
+        getFormSchema("Company"),
+      ]);
     } catch (error) {
       body.innerHTML = `
         <div class="sarathi-drawer-title">
@@ -960,9 +1171,11 @@
     if (existing) existing.hidden = mode !== "existing";
     if (fresh) fresh.hidden = mode !== "new";
     if (existing) {
-      existing.querySelectorAll("input, select, textarea").forEach((control) => {
-        control.disabled = mode !== "existing";
-      });
+      existing
+        .querySelectorAll("input, select, textarea")
+        .forEach((control) => {
+          control.disabled = mode !== "existing";
+        });
     }
     if (fresh) {
       fresh.querySelectorAll("input, select, textarea").forEach((control) => {
@@ -982,9 +1195,15 @@
       if (submitBtn) submitBtn.textContent = "Continue with New Company";
     }
 
-    const existingCompany = form.querySelector("[data-existing-company] select[name='company']");
-    const newCompanyNameInput = form.querySelector("[data-doctype='Company'][data-fieldname='company_name']");
-    const projectCompany = form.querySelector("[data-doctype='Project'][data-fieldname='company']");
+    const existingCompany = form.querySelector(
+      "[data-existing-company] select[name='company']",
+    );
+    const newCompanyNameInput = form.querySelector(
+      "[data-doctype='Company'][data-fieldname='company_name']",
+    );
+    const projectCompany = form.querySelector(
+      "[data-doctype='Project'][data-fieldname='company']",
+    );
     if (mode === "existing" && existingCompany && projectCompany) {
       projectCompany.value = existingCompany.value || "";
     } else if (mode === "new" && newCompanyNameInput && projectCompany) {
@@ -1006,7 +1225,10 @@
       item.classList.toggle("active", item === button);
     });
     group.querySelectorAll("[data-wrapper-tab-panel]").forEach((panel) => {
-      panel.classList.toggle("active", panel.dataset.wrapperTabPanel === target);
+      panel.classList.toggle(
+        "active",
+        panel.dataset.wrapperTabPanel === target,
+      );
     });
   }
 
@@ -1026,31 +1248,38 @@
 
   function collectDoctypeOptions(form, doctype) {
     const options = {};
-    form.querySelectorAll(`[data-doctype="${doctype}"][data-fieldname]`).forEach((control) => {
-      if (control.disabled) return;
-      const fieldname = control.dataset.fieldname;
-      if (!fieldname) return;
-      if (control.type === "checkbox") {
-        options[fieldname] = control.checked ? "1" : "0";
-        return;
-      }
-      const text = String(control.value || "").trim();
-      if (text) {
-        options[fieldname] = text;
-      }
-    });
+    form
+      .querySelectorAll(`[data-doctype="${doctype}"][data-fieldname]`)
+      .forEach((control) => {
+        if (control.disabled) return;
+        const fieldname = control.dataset.fieldname;
+        if (!fieldname) return;
+        if (control.type === "checkbox") {
+          options[fieldname] = control.checked ? "1" : "0";
+          return;
+        }
+        const text = String(control.value || "").trim();
+        if (text) {
+          options[fieldname] = text;
+        }
+      });
     return options;
   }
 
   function firstMissingRequired(form, doctype) {
-    const missing = Array.from(form.querySelectorAll(`[data-doctype="${doctype}"][data-required="1"]`)).find((control) => {
+    const missing = Array.from(
+      form.querySelectorAll(`[data-doctype="${doctype}"][data-required="1"]`),
+    ).find((control) => {
       if (control.disabled || control.readOnly) return false;
       if (control.type === "checkbox") return !control.checked;
       return !String(control.value || "").trim();
     });
     if (!missing) return "";
     const field = missing.closest(".sarathi-meta-field");
-    const label = field?.querySelector("span")?.textContent || missing.dataset.fieldname || "Required field";
+    const label =
+      field?.querySelector("span")?.textContent ||
+      missing.dataset.fieldname ||
+      "Required field";
     return label.replace("Required", "").trim();
   }
 
@@ -1071,7 +1300,8 @@
       if (!company) {
         if (error) {
           error.hidden = false;
-          error.textContent = "Choose an organization before opening the ERPNext Project form.";
+          error.textContent =
+            "Choose an organization before opening the ERPNext Project form.";
         }
         return;
       }
@@ -1106,30 +1336,74 @@
       return;
     }
 
-    sessionStorage.setItem("sarathi_pending_project_after_company", JSON.stringify({ ...projectOptions, company: companyName }));
+    sessionStorage.setItem(
+      "sarathi_pending_project_after_company",
+      JSON.stringify({ ...projectOptions, company: companyName }),
+    );
     openDeskForm("Company", { ...companyOptions, sarathi_continue: "project" });
   }
 
   function renderProjectFacts(project, payload) {
     const materials = payload.materials || [];
-    const required = materials.reduce((total, row) => total + number(row.required_qty), 0);
-    const available = materials.reduce((total, row) => total + number(row.available_qty), 0);
-    const shortageQty = materials.reduce((total, row) => total + number(row.shortage_qty), 0);
+    const required = materials.reduce(
+      (total, row) => total + number(row.required_qty),
+      0,
+    );
+    const available = materials.reduce(
+      (total, row) => total + number(row.available_qty),
+      0,
+    );
+    const shortageQty = materials.reduce(
+      (total, row) => total + number(row.shortage_qty),
+      0,
+    );
     const workOrders = payload.work_orders || [];
     const jobCards = payload.job_cards || [];
-    const completedJobCards = jobCards.filter((row) => String(row.status || "").toLowerCase().includes("complete")).length;
+    const completedJobCards = jobCards.filter((row) =>
+      String(row.status || "")
+        .toLowerCase()
+        .includes("complete"),
+    ).length;
 
     root.querySelector("[data-section='project-facts']").innerHTML = [
-      ["ERPNext Project", link(project.name || "PROJ-0002", "Project", project.name), recordUrl("Project", project.name)],
-      ["Sales Reference", value(project.sales_order || "No sales order linked"), listUrl("Sales Order")],
+      [
+        "ERPNext Project",
+        link(project.name || "PROJ-0002", "Project", project.name),
+        recordUrl("Project", project.name),
+      ],
+      [
+        "Sales Reference",
+        value(project.sales_order || "No sales order linked"),
+        listUrl("Sales Order"),
+      ],
       ["Material Required", value(required), listUrl("BOM")],
       ["Material Available", value(available), listUrl("Stock Ledger Entry")],
-      ["Shortage Qty", `<span class="${shortageQty ? "sarathi-text-critical" : "sarathi-text-success"}">${value(shortageQty)}</span>`, listUrl("Material Request")],
+      [
+        "Shortage Qty",
+        `<span class="${shortageQty ? "sarathi-text-critical" : "sarathi-text-success"}">${value(shortageQty)}</span>`,
+        listUrl("Material Request"),
+      ],
       ["Work Orders", value(workOrders.length), listUrl("Work Order")],
-      ["Job Cards", `${completedJobCards} / ${jobCards.length}`, listUrl("Job Card")],
-      ["Finished Goods", value((payload.finished_goods || []).reduce((total, row) => total + number(row.balance_qty), 0)), listUrl("Item")],
+      [
+        "Job Cards",
+        `${completedJobCards} / ${jobCards.length}`,
+        listUrl("Job Card"),
+      ],
+      [
+        "Finished Goods",
+        value(
+          (payload.finished_goods || []).reduce(
+            (total, row) => total + number(row.balance_qty),
+            0,
+          ),
+        ),
+        listUrl("Item"),
+      ],
     ]
-      .map(([label, text, href]) => `<a href="${value(href)}"><span>${label}</span><strong>${text}</strong></a>`)
+      .map(
+        ([label, text, href]) =>
+          `<a href="${value(href)}"><span>${label}</span><strong>${text}</strong></a>`,
+      )
       .join("");
   }
 
@@ -1137,35 +1411,67 @@
     const jobCards = payload.job_cards || [];
     const workOrders = payload.work_orders || [];
     const materials = payload.materials || [];
-    const shortageQty = materials.reduce((total, row) => total + number(row.shortage_qty), 0);
+    const shortageQty = materials.reduce(
+      (total, row) => total + number(row.shortage_qty),
+      0,
+    );
     const currentWorkOrder = workOrders[0] || {};
     const cards = [
       {
         title: "Current Work Order",
         value: currentWorkOrder.name || "No active work order",
         detail: currentWorkOrder.production_item || "Waiting for assignment",
-        href: currentWorkOrder.name ? recordUrl("Work Order", currentWorkOrder.name) : listUrl("Work Order"),
+        href: currentWorkOrder.name
+          ? recordUrl("Work Order", currentWorkOrder.name)
+          : listUrl("Work Order"),
         tone: badgeClass(currentWorkOrder.status || "Open"),
       },
       {
         title: "Completed Job Cards",
-        value: `${jobCards.filter((row) => String(row.status || "").toLowerCase().includes("complete")).length} / ${jobCards.length}`,
-        detail: jobCards.map((row) => row.operation).filter(Boolean).slice(0, 4).join(", ") || "No operations assigned",
+        value: `${
+          jobCards.filter((row) =>
+            String(row.status || "")
+              .toLowerCase()
+              .includes("complete"),
+          ).length
+        } / ${jobCards.length}`,
+        detail:
+          jobCards
+            .map((row) => row.operation)
+            .filter(Boolean)
+            .slice(0, 4)
+            .join(", ") || "No operations assigned",
         href: listUrl("Job Card"),
         tone: "success",
       },
       {
         title: "Material Shortage",
         value: shortageQty ? `Short ${shortageQty}` : "Ready",
-        detail: shortageQty ? "Check material exception before starting next batch" : "Material is available for this order",
-        href: shortageQty ? listUrl("Material Request") : listUrl("Stock Entry"),
+        detail: shortageQty
+          ? "Check material exception before starting next batch"
+          : "Material is available for this order",
+        href: shortageQty
+          ? listUrl("Material Request")
+          : listUrl("Stock Entry"),
         tone: shortageQty ? "critical" : "success",
       },
       {
         title: "Next Operation",
-        value: (jobCards.find((row) => !String(row.status || "").toLowerCase().includes("complete")) || jobCards[0] || {}).operation || "Inspection complete",
+        value:
+          (
+            jobCards.find(
+              (row) =>
+                !String(row.status || "")
+                  .toLowerCase()
+                  .includes("complete"),
+            ) ||
+            jobCards[0] ||
+            {}
+          ).operation || "Inspection complete",
         detail: (jobCards[0] || {}).workstation || "No workstation assigned",
-        href: jobCards[0] ? recordUrl("Job Card", jobCards[0].name) : listUrl("Job Card"),
+        href: jobCards[0]
+          ? recordUrl("Job Card", jobCards[0].name)
+          : listUrl("Job Card"),
         tone: "info",
       },
     ];
@@ -1179,7 +1485,7 @@
             <strong>${value(row.name)}</strong>
             <em>${value(row.workstation || "No workstation")} / ${value(row.status || "Open")}</em>
           </a>
-        `
+        `,
       )
       .join("");
 
@@ -1193,7 +1499,7 @@
                 <strong>${value(card.value)}</strong>
                 <em>${value(card.detail)}</em>
               </a>
-            `
+            `,
           )
           .join("")}
       </div>
@@ -1203,7 +1509,7 @@
     `;
   }
 
-  function renderRing(name, label, percent, detail, tone) {
+  function renderProgressRing(name, label, percent, detail, tone) {
     const safePercent = pct(percent);
     const dash = `${safePercent} ${100 - safePercent}`;
     const node = root.querySelector(`[data-chart='${name}']`);
@@ -1224,7 +1530,9 @@
   function setRingRoutes() {
     const project = state.data?.data?.project || {};
     const routes = {
-      "project-progress": project.name ? recordUrl("Project", project.name) : listUrl("Project"),
+      "project-progress": project.name
+        ? recordUrl("Project", project.name)
+        : listUrl("Project"),
       "jobcard-progress": listUrl("Job Card"),
       "workorder-progress": listUrl("Work Order"),
     };
@@ -1277,7 +1585,12 @@
 
   function renderMaterialBars(rows) {
     const visible = (rows || []).slice(0, 5);
-    const max = Math.max(1, ...visible.map((row) => Math.max(number(row.required_qty), number(row.available_qty))));
+    const max = Math.max(
+      1,
+      ...visible.map((row) =>
+        Math.max(number(row.required_qty), number(row.available_qty)),
+      ),
+    );
     const node = root.querySelector("[data-chart='material-bars']");
     node.innerHTML = visible.length
       ? visible
@@ -1314,7 +1627,7 @@
                 <strong>${value(row.title || row.type)}</strong>
                 <span>${value(row.detail || row.severity)}</span>
               </a>
-            `
+            `,
           )
           .join("")
       : `<div class="sarathi-empty">No alerts</div>`;
@@ -1324,45 +1637,62 @@
     const payload = state.data?.data || {};
     const title = String(row?.title || "").toLowerCase();
     const material = (payload.materials || []).find(
-      (item) => String(item.item_name || "").toLowerCase() === title || String(item.item_code || "").toLowerCase() === title
+      (item) =>
+        String(item.item_name || "").toLowerCase() === title ||
+        String(item.item_code || "").toLowerCase() === title,
     );
-    return material ? recordUrl("Item", material.item_code) : listUrl("Material Request");
+    return material
+      ? recordUrl("Item", material.item_code)
+      : listUrl("Material Request");
   }
 
   function renderWorkstations(rows) {
-    const visible = filtered(rows, ["name", "workstation_type", "current_work_order", "current_operation", "live_status"]);
-    root.querySelector("[data-section='workstations']").innerHTML = visible.length
-      ? visible
-          .map(
-            (row) => `
+    const visible = filtered(rows, [
+      "name",
+      "workstation_type",
+      "current_work_order",
+      "current_operation",
+      "live_status",
+    ]);
+    root.querySelector("[data-section='workstations']").innerHTML =
+      visible.length
+        ? visible
+            .map(
+              (row) => `
               <a class="sarathi-machine ${badgeClass(row.live_status || row.status)}" href="${recordUrl("Workstation", row.name)}">
                 <strong>${value(row.workstation_name || row.name || "Workstation")}</strong>
                 <span>${value(row.workstation_type || "Not configured")}</span>
                 <span>${value(row.current_operation || "Idle")}</span>
                 <em class="${badgeClass(row.live_status || row.status)}">${value(row.live_status || row.status || "Available")}</em>
               </a>
-            `
-          )
-          .join("")
-      : `<div class="sarathi-empty">No workstations</div>`;
+            `,
+            )
+            .join("")
+        : `<div class="sarathi-empty">No workstations</div>`;
   }
 
   function renderIntegrations(rows) {
-    const visible = filtered(rows, ["source_system", "machine", "program", "sync_status"]);
-    root.querySelector("[data-section='integrations']").innerHTML = visible.length
-      ? visible
-          .map(
-            (row) => `
+    const visible = filtered(rows, [
+      "source_system",
+      "machine",
+      "program",
+      "sync_status",
+    ]);
+    root.querySelector("[data-section='integrations']").innerHTML =
+      visible.length
+        ? visible
+            .map(
+              (row) => `
               <a class="sarathi-machine ${badgeClass(row.sync_status)}" href="${listUrl("Sarathi Machine Integration Log")}">
                 <strong>${value(row.source_system || "Integration")}</strong>
                 <span>${value(row.machine || row.program || "No endpoint connected")}</span>
                 <span>Pending syncs: ${value(row.pending_syncs ?? 0)}</span>
                 <em class="${badgeClass(row.sync_status)}">${value(row.sync_status || "Not configured")}</em>
               </a>
-            `
-          )
-          .join("")
-      : `<div class="sarathi-empty">No integrations</div>`;
+            `,
+            )
+            .join("")
+        : `<div class="sarathi-empty">No integrations</div>`;
   }
 
   function table(name, headers, rows, mapRow) {
@@ -1374,7 +1704,14 @@
       <tbody>
         ${
           visible.length
-            ? visible.map((row, index) => `<tr>${mapRow(row, index).map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")
+            ? visible
+                .map(
+                  (row, index) =>
+                    `<tr>${mapRow(row, index)
+                      .map((cell) => `<td>${cell}</td>`)
+                      .join("")}</tr>`,
+                )
+                .join("")
             : `<tr><td colspan="${headers.length}" class="sarathi-empty-cell">No data</td></tr>`
         }
       </tbody>
@@ -1382,103 +1719,215 @@
   }
 
   function renderTables(payload) {
-    table("boms", ["BOM", "Item", "Item Name", "Qty", "Routing", "Operations", "Components", "Status"], payload.boms, (row) => [
-      link(row.name, "BOM", row.name),
-      link(row.item, "Item", row.item),
-      value(row.item_name),
-      value(row.quantity),
-      link(row.routing, "Routing", row.routing),
-      value(row.with_operations ? "Yes" : "No"),
-      value(row.component_count),
-      docstatus(row.docstatus),
-    ]);
+    table(
+      "boms",
+      [
+        "BOM",
+        "Item",
+        "Item Name",
+        "Qty",
+        "Routing",
+        "Operations",
+        "Components",
+        "Status",
+      ],
+      payload.boms,
+      (row) => [
+        link(row.name, "BOM", row.name),
+        link(row.item, "Item", row.item),
+        value(row.item_name),
+        value(row.quantity),
+        link(row.routing, "Routing", row.routing),
+        value(row.with_operations ? "Yes" : "No"),
+        value(row.component_count),
+        docstatus(row.docstatus),
+      ],
+    );
 
-    table("materials", ["Item", "Required", "Available", "Reserved", "Transferred", "Consumed", "Shortage", "Purchase"], payload.materials, (row) => [
-      link(row.item_code || row.item_name, "Item", row.item_code),
-      value(row.required_qty),
-      value(row.available_qty),
-      value(row.reserved_qty),
-      value(row.transferred_qty),
-      value(row.consumed_qty),
-      shortage(row.shortage_qty),
-      badge(row.purchase_status || row.status || "Not configured"),
-    ]);
+    table(
+      "materials",
+      [
+        "Item",
+        "Required",
+        "Available",
+        "Reserved",
+        "Transferred",
+        "Consumed",
+        "Shortage",
+        "Purchase",
+      ],
+      payload.materials,
+      (row) => [
+        link(row.item_code || row.item_name, "Item", row.item_code),
+        value(row.required_qty),
+        value(row.available_qty),
+        value(row.reserved_qty),
+        value(row.transferred_qty),
+        value(row.consumed_qty),
+        shortage(row.shortage_qty),
+        badge(row.purchase_status || row.status || "Not configured"),
+      ],
+    );
 
-    table("work-orders", ["Work Order", "Item", "Qty", "Produced", "Status", "BOM"], payload.work_orders, (row) => [
-      link(row.name, "Work Order", row.name),
-      link(row.production_item || row.item_name, "Item", row.production_item),
+    table(
+      "work-orders",
+      ["Work Order", "Item", "Qty", "Produced", "Status", "BOM"],
+      payload.work_orders,
+      (row) => [
+        link(row.name, "Work Order", row.name),
+        link(row.production_item || row.item_name, "Item", row.production_item),
+        value(row.qty),
+        value(row.produced_qty),
+        badge(row.status),
+        link(row.bom_no, "BOM", row.bom_no),
+      ],
+    );
+
+    table(
+      "job-cards",
+      ["Job Card", "Operation", "Workstation", "Status", "Qty", "Done", "Time"],
+      payload.job_cards,
+      (row) => [
+        link(row.name, "Job Card", row.name),
+        value(row.operation),
+        link(row.workstation, "Workstation", row.workstation),
+        badge(row.status),
+        value(row.for_quantity),
+        value(row.total_completed_qty),
+        value(row.total_time_in_mins),
+      ],
+    );
+
+    table(
+      "bom-operations",
+      [
+        "BOM / Source",
+        "Operation",
+        "Workstation",
+        "Type",
+        "Time",
+        "Cost",
+        "Status",
+      ],
+      payload.bom_operations,
+      (row) => [
+        link(
+          row.parent,
+          row.source === "Job Card" ? "Work Order" : "BOM",
+          row.parent,
+        ),
+        link(row.operation, "Operation", row.operation),
+        link(row.workstation, "Workstation", row.workstation),
+        link(row.workstation_type, "Workstation Type", row.workstation_type),
+        value(row.time_in_mins),
+        value(row.operating_cost),
+        badge(row.status || row.source || "Ready"),
+      ],
+    );
+
+    table(
+      "stock-entries",
+      [
+        "Stock Entry",
+        "Purpose",
+        "Work Order",
+        "From",
+        "To",
+        "Status",
+        "Posting",
+      ],
+      payload.stock_entries,
+      (row) => [
+        link(row.name, "Stock Entry", row.name),
+        value(row.purpose),
+        link(row.work_order, "Work Order", row.work_order),
+        value(row.from_warehouse),
+        value(row.to_warehouse),
+        docstatus(row.docstatus),
+        value(row.posting_date),
+      ],
+    );
+
+    table(
+      "finished-goods",
+      ["Item", "Warehouse", "Balance", "Source"],
+      payload.finished_goods,
+      (row) => [
+        link(row.item_code, "Item", row.item_code),
+        value(row.warehouse),
+        value(row.balance_qty),
+        value(row.source),
+      ],
+    );
+
+    table(
+      "engineering-components",
+      ["No", "Material", "Cutting Size", "Qty"],
+      payload.engineering_components,
+      (row) => [
+        value(row.no),
+        value(row.material),
+        value(row.cutting_size),
+        value(row.qty),
+      ],
+    );
+
+    table("bop-items", ["BOP Item", "Qty"], payload.bop_items, (row) => [
+      value(row.item),
       value(row.qty),
-      value(row.produced_qty),
-      badge(row.status),
-      link(row.bom_no, "BOM", row.bom_no),
     ]);
 
-    table("job-cards", ["Job Card", "Operation", "Workstation", "Status", "Qty", "Done", "Time"], payload.job_cards, (row) => [
-      link(row.name, "Job Card", row.name),
-      value(row.operation),
-      link(row.workstation, "Workstation", row.workstation),
-      badge(row.status),
-      value(row.for_quantity),
-      value(row.total_completed_qty),
-      value(row.total_time_in_mins),
-    ]);
-
-    table("bom-operations", ["BOM / Source", "Operation", "Workstation", "Type", "Time", "Cost", "Status"], payload.bom_operations, (row) => [
-      link(row.parent, row.source === "Job Card" ? "Work Order" : "BOM", row.parent),
-      link(row.operation, "Operation", row.operation),
-      link(row.workstation, "Workstation", row.workstation),
-      link(row.workstation_type, "Workstation Type", row.workstation_type),
-      value(row.time_in_mins),
-      value(row.operating_cost),
-      badge(row.status || row.source || "Ready"),
-    ]);
-
-    table("stock-entries", ["Stock Entry", "Purpose", "Work Order", "From", "To", "Status", "Posting"], payload.stock_entries, (row) => [
-      link(row.name, "Stock Entry", row.name),
-      value(row.purpose),
-      link(row.work_order, "Work Order", row.work_order),
-      value(row.from_warehouse),
-      value(row.to_warehouse),
-      docstatus(row.docstatus),
-      value(row.posting_date),
-    ]);
-
-    table("finished-goods", ["Item", "Warehouse", "Balance", "Source"], payload.finished_goods, (row) => [
-      link(row.item_code, "Item", row.item_code),
-      value(row.warehouse),
-      value(row.balance_qty),
-      value(row.source),
-    ]);
-
-    table("engineering-components", ["No", "Material", "Cutting Size", "Qty"], payload.engineering_components, (row) => [
-      value(row.no),
-      value(row.material),
-      value(row.cutting_size),
-      value(row.qty),
-    ]);
-
-    table("bop-items", ["BOP Item", "Qty"], payload.bop_items, (row) => [value(row.item), value(row.qty)]);
-
-    table("raw-stock", ["Raw Stock", "Planned Qty", "Weight Kg"], payload.raw_stock_plan, (row) => [
-      value(row.stock),
-      value(row.planned_qty),
-      value(row.weight_kg),
-    ]);
+    table(
+      "raw-stock",
+      ["Raw Stock", "Planned Qty", "Weight Kg"],
+      payload.raw_stock_plan,
+      (row) => [value(row.stock), value(row.planned_qty), value(row.weight_kg)],
+    );
   }
 
   function renderCompletionCharts(payload) {
     const project = payload.project || {};
     const jobCards = payload.job_cards || [];
-    const completedJobCards = jobCards.filter((row) => String(row.status || "").toLowerCase().includes("complete")).length;
-    const jobCardPercent = jobCards.length ? (completedJobCards / jobCards.length) * 100 : 0;
+    const completedJobCards = jobCards.filter((row) =>
+      String(row.status || "")
+        .toLowerCase()
+        .includes("complete"),
+    ).length;
+    const jobCardPercent = jobCards.length
+      ? (completedJobCards / jobCards.length) * 100
+      : 0;
     const workOrders = payload.work_orders || [];
-    const produced = workOrders.reduce((total, row) => total + number(row.produced_qty), 0);
-    const planned = workOrders.reduce((total, row) => total + number(row.qty), 0);
+    const produced = workOrders.reduce(
+      (total, row) => total + number(row.produced_qty),
+      0,
+    );
+    const planned = workOrders.reduce(
+      (total, row) => total + number(row.qty),
+      0,
+    );
     const workOrderPercent = planned ? (produced / planned) * 100 : 0;
 
-    renderRing("project-progress", "Project progress", project.percent_complete || 0, project.status || "Open", "info");
-    renderRing("jobcard-progress", "Job cards", jobCardPercent, `${completedJobCards} of ${jobCards.length} completed`, "success");
-    renderRing("workorder-progress", "Work orders", workOrderPercent, `${produced} of ${planned} produced`, "success");
+    renderProgressRing(
+      "project-progress",
+      "Project progress",
+      project.percent_complete || 0,
+      project.status || "Open",
+      "info",
+    );
+    renderProgressRing(
+      "jobcard-progress",
+      "Job cards",
+      jobCardPercent,
+      `${completedJobCards} of ${jobCards.length} completed`,
+      "success",
+    );
+    renderProgressRing(
+      "workorder-progress",
+      "Work orders",
+      workOrderPercent,
+      `${produced} of ${planned} produced`,
+      "success",
+    );
     setRingRoutes();
   }
 
@@ -1487,7 +1936,12 @@
     if (text.includes("bom")) return "bom";
     if (text.includes("material")) return "material_request";
     if (text.includes("completion")) return "stock_entry";
-    if (["cutting", "fabrication", "welding", "painting", "inspection"].some((name) => text.includes(name))) return "job_card";
+    if (
+      ["cutting", "fabrication", "welding", "painting", "inspection"].some(
+        (name) => text.includes(name),
+      )
+    )
+      return "job_card";
     return "work_order";
   }
 
@@ -1501,8 +1955,12 @@
     const summary = {
       organizations: {
         title: "Organizations",
-        detail: "ERPNext companies available on the Sarathi Industrial Dashboard.",
-        actions: [["Open Companies", listUrl("Company")], ["Open Projects", listUrl("Project")]],
+        detail:
+          "ERPNext companies available on the Sarathi Industrial Dashboard.",
+        actions: [
+          ["Open Companies", listUrl("Company")],
+          ["Open Projects", listUrl("Project")],
+        ],
         stats: [
           ["Organizations", (payload.companies || []).length],
           ["Selected", (payload.organization || {}).company || ""],
@@ -1512,7 +1970,8 @@
       },
       process: {
         title: "Manufacturing Process Builder",
-        detail: "All ERPNext setup and execution documents for the selected project.",
+        detail:
+          "All ERPNext setup and execution documents for the selected project.",
         actions: [
           ["Open Items", listUrl("Item")],
           ["Open BOMs", listUrl("BOM")],
@@ -1520,28 +1979,47 @@
         ],
         stats: [
           ["Steps", (payload.manufacturing_process || []).length],
-          ["Ready Steps", (payload.manufacturing_process || []).filter((row) => row.progress > 0).length],
+          [
+            "Ready Steps",
+            (payload.manufacturing_process || []).filter(
+              (row) => row.progress > 0,
+            ).length,
+          ],
           ["Job Cards", (payload.job_cards || []).length],
           ["Stock Entries", (payload.stock_entries || []).length],
         ],
       },
       projects: {
         title: "Organization Projects",
-        detail: "Every ERPNext project for the selected company. Click a project card to load its own manufacturing dashboard.",
+        detail:
+          "Every ERPNext project for the selected company. Click a project card to load its own manufacturing dashboard.",
         actions: [
           ["Open ERPNext Projects", listUrl("Project")],
           ["Open Work Orders", listUrl("Work Order")],
         ],
         stats: [
           ["Projects", (payload.projects || []).length],
-          ["Active", (payload.projects || []).filter((row) => row.status !== "Completed" && row.status !== "Cancelled").length],
-          ["Completed", (payload.projects || []).filter((row) => row.status === "Completed").length],
-          ["Company", (payload.organization || {}).company || project.company || ""],
+          [
+            "Active",
+            (payload.projects || []).filter(
+              (row) => row.status !== "Completed" && row.status !== "Cancelled",
+            ).length,
+          ],
+          [
+            "Completed",
+            (payload.projects || []).filter((row) => row.status === "Completed")
+              .length,
+          ],
+          [
+            "Company",
+            (payload.organization || {}).company || project.company || "",
+          ],
         ],
       },
       project: {
         title: "Project Command",
-        detail: "Project, sales reference, material quantity, shortage and finished goods status.",
+        detail:
+          "Project, sales reference, material quantity, shortage and finished goods status.",
         actions: [
           ["Open Project", recordUrl("Project", project.name || "PROJ-0002")],
           ["Open Work Orders", listUrl("Work Order")],
@@ -1551,30 +2029,59 @@
           ["Project", project.name || "No project selected"],
           ["Status", project.status || "Open"],
           ["Sales", project.sales_order || "No sales order linked"],
-          ["Finished Goods", (payload.finished_goods || []).reduce((total, row) => total + number(row.balance_qty), 0)],
+          [
+            "Finished Goods",
+            (payload.finished_goods || []).reduce(
+              (total, row) => total + number(row.balance_qty),
+              0,
+            ),
+          ],
         ],
       },
       exceptions: {
         title: "Exception Console",
-        detail: "Current material shortages, delays and machine/integration issues.",
+        detail:
+          "Current material shortages, delays and machine/integration issues.",
         actions: [
           ["Open Material Requests", listUrl("Material Request")],
           ["Open Items", listUrl("Item")],
         ],
         stats: [
           ["Alerts", (payload.alerts || []).length],
-          ["Shortage Qty", (payload.materials || []).reduce((total, row) => total + number(row.shortage_qty), 0)],
-          ["Critical", (payload.alerts || []).filter((row) => badgeClass(row.severity) === "critical").length],
+          [
+            "Shortage Qty",
+            (payload.materials || []).reduce(
+              (total, row) => total + number(row.shortage_qty),
+              0,
+            ),
+          ],
+          [
+            "Critical",
+            (payload.alerts || []).filter(
+              (row) => badgeClass(row.severity) === "critical",
+            ).length,
+          ],
           ["Integrations", (payload.integrations || []).length],
         ],
       },
       analysis: {
         title: "Live Project Analysis",
-        detail: "Clickable summary of project, BOM, work order, job cards, finished goods and current alert.",
+        detail:
+          "Clickable summary of project, BOM, work order, job cards, finished goods and current alert.",
         actions: [
           ["Open Project", recordUrl("Project", project.name || "PROJ-0002")],
-          ["Open BOM", (payload.boms || [])[0] ? recordUrl("BOM", payload.boms[0].name) : listUrl("BOM")],
-          ["Open Work Order", (payload.work_orders || [])[0] ? recordUrl("Work Order", payload.work_orders[0].name) : listUrl("Work Order")],
+          [
+            "Open BOM",
+            (payload.boms || [])[0]
+              ? recordUrl("BOM", payload.boms[0].name)
+              : listUrl("BOM"),
+          ],
+          [
+            "Open Work Order",
+            (payload.work_orders || [])[0]
+              ? recordUrl("Work Order", payload.work_orders[0].name)
+              : listUrl("Work Order"),
+          ],
         ],
         stats: [
           ["Cards", (payload.live_analysis || []).length],
@@ -1585,36 +2092,65 @@
       },
       "bom-detail": {
         title: "Project BOM Details",
-        detail: "BOM header, production item, routing, operation sequence and component demand for this project.",
+        detail:
+          "BOM header, production item, routing, operation sequence and component demand for this project.",
         actions: [
-          ["Open BOM", (payload.boms || [])[0] ? recordUrl("BOM", payload.boms[0].name) : listUrl("BOM")],
-          ["Open Routing", (payload.boms || [])[0]?.routing ? recordUrl("Routing", payload.boms[0].routing) : listUrl("Routing")],
+          [
+            "Open BOM",
+            (payload.boms || [])[0]
+              ? recordUrl("BOM", payload.boms[0].name)
+              : listUrl("BOM"),
+          ],
+          [
+            "Open Routing",
+            (payload.boms || [])[0]?.routing
+              ? recordUrl("Routing", payload.boms[0].routing)
+              : listUrl("Routing"),
+          ],
           ["Open Items", listUrl("Item")],
         ],
         stats: [
           ["BOMs", (payload.boms || []).length],
           ["Operations", (payload.bom_operations || []).length],
           ["Components", (payload.materials || []).length],
-          ["Shortage Qty", (payload.materials || []).reduce((total, row) => total + number(row.shortage_qty), 0)],
+          [
+            "Shortage Qty",
+            (payload.materials || []).reduce(
+              (total, row) => total + number(row.shortage_qty),
+              0,
+            ),
+          ],
         ],
       },
       pipeline: {
         title: "Manufacturing Pipeline",
-        detail: "Design to finished goods stage visibility. Click a stage card to open the matching ERPNext process.",
+        detail:
+          "Design to finished goods stage visibility. Click a stage card to open the matching ERPNext process.",
         actions: [
           ["Open Work Orders", listUrl("Work Order")],
           ["Open Job Cards", listUrl("Job Card")],
         ],
         stats: [
           ["Stages", (payload.pipeline || []).length],
-          ["Average Progress", `${Math.round((payload.pipeline || []).reduce((total, row) => total + number(row.progress), 0) / Math.max(1, (payload.pipeline || []).length))}%`],
-          ["Completed Cards", (payload.job_cards || []).filter((row) => String(row.status || "").toLowerCase().includes("complete")).length],
+          [
+            "Average Progress",
+            `${Math.round((payload.pipeline || []).reduce((total, row) => total + number(row.progress), 0) / Math.max(1, (payload.pipeline || []).length))}%`,
+          ],
+          [
+            "Completed Cards",
+            (payload.job_cards || []).filter((row) =>
+              String(row.status || "")
+                .toLowerCase()
+                .includes("complete"),
+            ).length,
+          ],
           ["Work Orders", (payload.work_orders || []).length],
         ],
       },
       "material-readiness": {
         title: "Material Readiness",
-        detail: "Required quantity, available quantity and shortages from BOM material demand.",
+        detail:
+          "Required quantity, available quantity and shortages from BOM material demand.",
         actions: [
           ["Open Items", listUrl("Item")],
           ["Open Material Requests", listUrl("Material Request")],
@@ -1622,14 +2158,33 @@
         ],
         stats: [
           ["Materials", (payload.materials || []).length],
-          ["Required", (payload.materials || []).reduce((total, row) => total + number(row.required_qty), 0)],
-          ["Available", (payload.materials || []).reduce((total, row) => total + number(row.available_qty), 0)],
-          ["Shortage", (payload.materials || []).reduce((total, row) => total + number(row.shortage_qty), 0)],
+          [
+            "Required",
+            (payload.materials || []).reduce(
+              (total, row) => total + number(row.required_qty),
+              0,
+            ),
+          ],
+          [
+            "Available",
+            (payload.materials || []).reduce(
+              (total, row) => total + number(row.available_qty),
+              0,
+            ),
+          ],
+          [
+            "Shortage",
+            (payload.materials || []).reduce(
+              (total, row) => total + number(row.shortage_qty),
+              0,
+            ),
+          ],
         ],
       },
       "production-completion": {
         title: "Production Completion",
-        detail: "Work order production completion and job card operation completion.",
+        detail:
+          "Work order production completion and job card operation completion.",
         actions: [
           ["Open Work Orders", listUrl("Work Order")],
           ["Open Job Cards", listUrl("Job Card")],
@@ -1637,14 +2192,28 @@
         ],
         stats: [
           ["Work Orders", (payload.work_orders || []).length],
-          ["Produced", (payload.work_orders || []).reduce((total, row) => total + number(row.produced_qty), 0)],
+          [
+            "Produced",
+            (payload.work_orders || []).reduce(
+              (total, row) => total + number(row.produced_qty),
+              0,
+            ),
+          ],
           ["Job Cards", (payload.job_cards || []).length],
-          ["Completed", (payload.job_cards || []).filter((row) => String(row.status || "").toLowerCase().includes("complete")).length],
+          [
+            "Completed",
+            (payload.job_cards || []).filter((row) =>
+              String(row.status || "")
+                .toLowerCase()
+                .includes("complete"),
+            ).length,
+          ],
         ],
       },
       "employee-work": {
         title: "Employee Shop-Floor View",
-        detail: "View-only work queue for operators: work order, job card sequence, workstation and shortage status.",
+        detail:
+          "View-only work queue for operators: work order, job card sequence, workstation and shortage status.",
         actions: [
           ["Open Job Cards", listUrl("Job Card")],
           ["Open Work Orders", listUrl("Work Order")],
@@ -1659,7 +2228,8 @@
       },
       tables: {
         title: "ERPNext Detail Tables",
-        detail: "Materials, Manufacturing, Inventory, Workstations, Integrations and Engineering Source views.",
+        detail:
+          "Materials, Manufacturing, Inventory, Workstations, Integrations and Engineering Source views.",
         actions: [
           ["Open Materials", listUrl("Item")],
           ["Open Manufacturing", listUrl("Work Order")],
@@ -1699,24 +2269,49 @@
     const payload = state.data.data || {};
     const project = payload.project || {};
     const organization = payload.organization || {};
-    const projectLabel = [project.name, project.display_name || project.project_name].filter(Boolean).join(" / ");
+    const projectLabel = [
+      project.name,
+      project.display_name || project.project_name,
+    ]
+      .filter(Boolean)
+      .join(" / ");
     const projectMode = isProjectMode();
-    const selectedCompany = projectMode ? project.company || routeCompany() || state.selectedCompany : routeCompany();
+    const selectedCompany = projectMode
+      ? project.company || routeCompany() || state.selectedCompany
+      : routeCompany();
 
     root.classList.toggle("sarathi-project-mode", projectMode);
     root.classList.toggle("sarathi-organization-mode", !projectMode);
 
-    setText("organization-title", organization.company || project.company || "Organization Dashboard");
-    setText("organization-projects", `${(payload.projects || []).length} Projects`);
-    setText("organization-status", projectMode ? "Selected project dashboard" : "All organization projects");
+    setText(
+      "organization-title",
+      organization.company || project.company || "Organization Dashboard",
+    );
+    setText(
+      "organization-projects",
+      `${(payload.projects || []).length} Projects`,
+    );
+    setText(
+      "organization-status",
+      projectMode ? "Selected project dashboard" : "All organization projects",
+    );
     setText(
       "selected-project-summary",
-      projectLabel ? `${projectLabel} / ${project.status || "Not configured"}` : "Select a project to load live data"
+      projectLabel
+        ? `${projectLabel} / ${project.status || "Not configured"}`
+        : "Select a project to load live data",
     );
-    state.selectedProject = projectMode ? project.name || state.selectedProject : "";
+    state.selectedProject = projectMode
+      ? project.name || state.selectedProject
+      : "";
     state.selectedCompany = selectedCompany || "";
 
-    setText("generated-at", state.data.generated_at ? new Date(state.data.generated_at).toLocaleString() : "");
+    setText(
+      "generated-at",
+      state.data.generated_at
+        ? new Date(state.data.generated_at).toLocaleString()
+        : "",
+    );
 
     renderKpis(payload.organization || {});
     renderOrganizations(payload.companies || [], selectedCompany);
@@ -1746,7 +2341,10 @@
     try {
       state.selectedProject = routeProject();
       state.selectedCompany = routeCompany() || state.selectedCompany;
-      state.selectedBom = new URLSearchParams(window.location.search).get("bom") || sessionStorage.getItem(selectedBomKey()) || "";
+      state.selectedBom =
+        new URLSearchParams(window.location.search).get("bom") ||
+        sessionStorage.getItem(selectedBomKey()) ||
+        "";
       const params = new URLSearchParams();
       const method = state.selectedProject
         ? "sarathi_visibility.api.control_tower.get_dashboard"
@@ -1757,36 +2355,51 @@
         params.set("company", state.selectedCompany);
       }
       const query = params.toString();
-      const response = await fetch(`/api/method/${method}${query ? `?${query}` : ""}`, {
-        credentials: "same-origin",
-      });
+      const response = await fetch(
+        `/api/method/${method}${query ? `?${query}` : ""}`,
+        {
+          credentials: "same-origin",
+        },
+      );
       const payload = await response.json();
       state.data = payload.message;
       render();
     } catch (error) {
-      root.querySelector("[data-section='live-analysis']").innerHTML = `<div class="sarathi-empty">Unable to load dashboard data</div>`;
+      root.querySelector("[data-section='live-analysis']").innerHTML =
+        `<div class="sarathi-empty">Unable to load dashboard data</div>`;
     } finally {
       root.classList.remove("loading");
     }
   }
 
   root.querySelector("[data-action='refresh']").addEventListener("click", load);
-  root.querySelector("[data-action='open-project-create']")?.addEventListener("click", openCreateProjectPanel);
-  root.querySelector("[data-action='toggle-employee-view']")?.addEventListener("click", () => {
-    state.employeePreview = !state.employeePreview;
-    render();
-  });
-  root.querySelector("[data-action='filter']").addEventListener("input", (event) => {
-    state.filter = event.target.value.toLowerCase();
-    render();
-  });
+  root
+    .querySelector("[data-action='open-project-create']")
+    ?.addEventListener("click", openCreateProjectPanel);
+  root
+    .querySelector("[data-action='toggle-employee-view']")
+    ?.addEventListener("click", () => {
+      state.employeePreview = !state.employeePreview;
+      render();
+    });
+  root
+    .querySelector("[data-action='filter']")
+    .addEventListener("input", (event) => {
+      state.filter = event.target.value.toLowerCase();
+      render();
+    });
 
   root.addEventListener("input", (event) => {
     const input = event.target;
 
     // Synchronize Company name to Project company field in New Org mode
-    if (input.dataset?.doctype === "Company" && input.dataset?.fieldname === "company_name") {
-      const projectCompany = root.querySelector("[data-doctype='Project'][data-fieldname='company']");
+    if (
+      input.dataset?.doctype === "Company" &&
+      input.dataset?.fieldname === "company_name"
+    ) {
+      const projectCompany = root.querySelector(
+        "[data-doctype='Project'][data-fieldname='company']",
+      );
       if (projectCompany) {
         projectCompany.value = input.value || "";
       }
@@ -1804,7 +2417,11 @@
       const items = wrap.querySelectorAll(".sarathi-combobox-item");
       let matchesCount = 0;
       items.forEach((item) => {
-        const text = (item.dataset.label || item.textContent || "").toLowerCase();
+        const text = (
+          item.dataset.label ||
+          item.textContent ||
+          ""
+        ).toLowerCase();
         const matches = !query || text.includes(query);
         item.style.display = matches ? "flex" : "none";
         if (matches) matchesCount++;
@@ -1813,7 +2430,8 @@
       if (matchesCount === 0 && items.length > 0) {
         if (!emptyMsg) {
           emptyMsg = document.createElement("div");
-          emptyMsg.className = "sarathi-combobox-empty sarathi-combobox-no-match";
+          emptyMsg.className =
+            "sarathi-combobox-empty sarathi-combobox-no-match";
           emptyMsg.textContent = "No matching records found";
           wrap.querySelector(".sarathi-combobox-list")?.appendChild(emptyMsg);
         }
@@ -1827,9 +2445,11 @@
   root.addEventListener("focusin", (event) => {
     const wrap = event.target.closest("[data-combobox-wrap]");
     if (wrap) {
-      document.querySelectorAll("[data-combobox-wrap].is-open").forEach((el) => {
-        if (el !== wrap) el.classList.remove("is-open");
-      });
+      document
+        .querySelectorAll("[data-combobox-wrap].is-open")
+        .forEach((el) => {
+          if (el !== wrap) el.classList.remove("is-open");
+        });
       wrap.classList.add("is-open");
     }
   });
@@ -1847,7 +2467,11 @@
     if (form && target.name === "org_mode") {
       syncCreateProjectMode(form);
     }
-    if (form && target.closest("[data-existing-company]") && target.name === "company") {
+    if (
+      form &&
+      target.closest("[data-existing-company]") &&
+      target.name === "company"
+    ) {
       syncCreateProjectMode(form);
     }
   });
@@ -1857,7 +2481,9 @@
       if (state.selectedBom) {
         closeBomDetail();
       }
-      document.querySelectorAll("[data-combobox-wrap].is-open").forEach((el) => el.classList.remove("is-open"));
+      document
+        .querySelectorAll("[data-combobox-wrap].is-open")
+        .forEach((el) => el.classList.remove("is-open"));
     }
   });
 
@@ -1903,7 +2529,9 @@
       const wrap = trigger.closest("[data-combobox-wrap]");
       if (wrap) {
         const isOpen = wrap.classList.contains("is-open");
-        document.querySelectorAll("[data-combobox-wrap].is-open").forEach((el) => el.classList.remove("is-open"));
+        document
+          .querySelectorAll("[data-combobox-wrap].is-open")
+          .forEach((el) => el.classList.remove("is-open"));
         if (!isOpen) {
           wrap.classList.add("is-open");
           wrap.querySelector("input")?.focus();
@@ -1922,7 +2550,11 @@
           input.value = comboboxItem.dataset.value || "";
           const clearBtn = wrap.querySelector("[data-combobox-clear]");
           if (clearBtn) clearBtn.style.display = input.value ? "flex" : "none";
-          wrap.querySelectorAll(".sarathi-combobox-item").forEach((it) => it.classList.toggle("selected", it === comboboxItem));
+          wrap
+            .querySelectorAll(".sarathi-combobox-item")
+            .forEach((it) =>
+              it.classList.toggle("selected", it === comboboxItem),
+            );
           input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
         }
@@ -1932,7 +2564,9 @@
     }
 
     if (!event.target.closest("[data-combobox-wrap]")) {
-      document.querySelectorAll("[data-combobox-wrap].is-open").forEach((el) => el.classList.remove("is-open"));
+      document
+        .querySelectorAll("[data-combobox-wrap].is-open")
+        .forEach((el) => el.classList.remove("is-open"));
     }
 
     const wrapperTab = event.target.closest("[data-wrapper-tab-button]");
@@ -1946,8 +2580,14 @@
       return;
     }
 
-    const bomBackdrop = event.target.closest("[data-section='bom-detail-panel']");
-    if (state.selectedBom && bomBackdrop && !event.target.closest(".sarathi-bom-window")) {
+    const bomBackdrop = event.target.closest(
+      "[data-section='bom-detail-panel']",
+    );
+    if (
+      state.selectedBom &&
+      bomBackdrop &&
+      !event.target.closest(".sarathi-bom-window")
+    ) {
       closeBomDetail();
       return;
     }
@@ -1972,7 +2612,10 @@
       return;
     }
 
-    if (state.selectedBom && !event.target.closest("[data-section='bom-detail-panel']")) {
+    if (
+      state.selectedBom &&
+      !event.target.closest("[data-section='bom-detail-panel']")
+    ) {
       closeBomDetail();
     }
 
@@ -2009,20 +2652,31 @@
     }
 
     const section = event.target.closest("[data-section-panel]");
-    if (section && !event.target.closest("a, button, input, table, [data-process-card], [data-pipeline-stage]")) {
+    if (
+      section &&
+      !event.target.closest(
+        "a, button, input, table, [data-process-card], [data-pipeline-stage]",
+      )
+    ) {
       openSectionPanel(section.dataset.sectionPanel);
     }
   });
 
   root.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      document.querySelectorAll("[data-combobox-wrap].is-open").forEach((el) => el.classList.remove("is-open"));
+      document
+        .querySelectorAll("[data-combobox-wrap].is-open")
+        .forEach((el) => el.classList.remove("is-open"));
     }
     const card = event.target.closest("[data-process-card]");
     const bomCard = event.target.closest("[data-bom-card]");
     const stage = event.target.closest("[data-pipeline-stage]");
     const routeTarget = event.target.closest("[data-dashboard-route]");
-    if ((!card && !bomCard && !stage && !routeTarget) || (event.key !== "Enter" && event.key !== " ")) return;
+    if (
+      (!card && !bomCard && !stage && !routeTarget) ||
+      (event.key !== "Enter" && event.key !== " ")
+    )
+      return;
     event.preventDefault();
     if (card) {
       openProcessDrawer(card.dataset.processCard);
@@ -2038,14 +2692,22 @@
 
   root.querySelectorAll("[data-tab-target]").forEach((button) => {
     button.addEventListener("click", () => {
-      root.querySelectorAll("[data-tab-target]").forEach((node) => node.classList.remove("active"));
-      root.querySelectorAll("[data-tab]").forEach((node) => node.classList.remove("active"));
+      root
+        .querySelectorAll("[data-tab-target]")
+        .forEach((node) => node.classList.remove("active"));
+      root
+        .querySelectorAll("[data-tab]")
+        .forEach((node) => node.classList.remove("active"));
       button.classList.add("active");
-      root.querySelector(`[data-tab='${button.dataset.tabTarget}']`)?.classList.add("active");
+      root
+        .querySelector(`[data-tab='${button.dataset.tabTarget}']`)
+        ?.classList.add("active");
     });
   });
 
-  window.addEventListener("hashchange", () => setActiveNav(window.location.hash || "#projects"));
+  window.addEventListener("hashchange", () =>
+    setActiveNav(window.location.hash || "#projects"),
+  );
   setActiveNav(window.location.hash || "#projects");
   load();
   setInterval(load, 30000);
