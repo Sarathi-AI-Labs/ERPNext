@@ -8,8 +8,9 @@ patches = {
         ('if (conf.developer_mode)', 'if (conf.developer_mode && !process.env.SARATHI_SOCKET_BACKEND_URL)'),
     ],
     root / 'middlewares/authenticate.js': [
-        ('let headers = {};', 'let headers = {};\n\t\tif (process.env.SARATHI_SOCKET_BACKEND_URL) {\n\t\t\theaders["X-Frappe-Site-Name"] = socket.site_name;\n\t\t}'),
+        ('let headers = {};', 'let headers = { "Connection": "close" };\n\t\tif (process.env.SARATHI_SOCKET_BACKEND_URL) {\n\t\t\theaders["X-Frappe-Site-Name"] = socket.site_name;\n\t\t}'),
     ],
+
 }
 for path, replacements in patches.items():
     source = path.read_text()

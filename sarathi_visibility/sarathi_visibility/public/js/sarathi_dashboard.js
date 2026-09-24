@@ -18,7 +18,17 @@ frappe.SarathiIndustrialDashboard = class {
     this.accActiveKpi = "";
     this.search = ""; this.customerPage = this.projectPage = 0;
     this.tabs = {overview: "Overview", sales: "Sales", production: "Production", engineering: "Engineering & BOM", materials: "Materials & Stock", procurement: "Procurement", quality: "Quality & Rework", fulfillment: "Delivery & Billing", reports: "Reports", integrations: "Integrations"};
-    this.tabReports = {sales: ["orders", "order_items"], procurement: ["requests", "purchases", "receipts", "purchase_invoices", "procurement_exceptions"], quality: ["quality", "job_cards", "job_logs", "job_suboperations"], fulfillment: ["deliveries", "sales_invoices"], production: ["part_production", "live_activity", "production_summary", "operation_balance", "work_orders", "job_cards", "workstations", "tasks"], engineering: ["tracking_setup", "boms", "components", "operations"], materials: ["material_history", "stock_details", "stock_ledger", "reservations", "wip_stock", "materials", "stock", "finished"], integrations: ["integrations"]};
+    this.tabReports = {
+      sales: ["customers", "orders", "order_items"],
+      procurement: ["suppliers", "requests", "purchases", "receipts", "purchase_invoices", "procurement_exceptions"],
+      quality: ["quality", "job_cards", "job_logs", "job_suboperations"],
+      fulfillment: ["deliveries", "sales_invoices"],
+      production: ["workstations", "workstation_types", "plant_floors", "part_production", "live_activity", "production_summary", "operation_balance", "work_orders", "job_cards", "tasks"],
+      engineering: ["tracking_setup", "boms", "components", "operations_catalogue", "operations", "routings"],
+      materials: ["items", "inventory", "warehouses", "material_history", "stock_details", "stock_ledger", "reservations", "wip_stock", "materials", "stock", "finished"],
+      integrations: ["integrations"]
+    };
+
     this.root.addEventListener("click", e => this.click(e));
     this.root.addEventListener("change", e => {
       if (e.target.dataset.filter) this.filterChanged(e.target);
@@ -27,8 +37,29 @@ frappe.SarathiIndustrialDashboard = class {
     });
     this.el("[data-search]").addEventListener("input", e => { this.search = e.target.value.toLowerCase(); this.customerPage = this.projectPage = 0; this.renderCards(); });
     window.addEventListener("popstate", () => { if (this.visible) { this.readUrl(); this.load(); } });
+    window.addEventListener("focus", () => { if (this.visible) this.load(true); });
     document.addEventListener("visibilitychange", () => { if (!document.hidden && this.visible) this.load(true); });
-    frappe.realtime?.on("sarathi_dashboard_changed", () => { if (this.visible) this.load(true); });
+
+    const onRealtimeChange = () => { if (this.visible) this.load(true); };
+    const setupRealtime = () => {
+      if (frappe.realtime) {
+        frappe.realtime.off("sarathi_dashboard_changed", onRealtimeChange);
+        frappe.realtime.on("sarathi_dashboard_changed", onRealtimeChange);
+      }
+      if (frappe.realtime?.socket) {
+        frappe.realtime.socket.off("sarathi_dashboard_changed", onRealtimeChange);
+        frappe.realtime.socket.on("sarathi_dashboard_changed", onRealtimeChange);
+        frappe.realtime.socket.off("connect", setupRealtime);
+        frappe.realtime.socket.on("connect", setupRealtime);
+      }
+    };
+    setupRealtime();
+    this.rtInterval = setInterval(() => {
+      if (frappe.realtime?.socket) {
+        setupRealtime();
+        clearInterval(this.rtInterval);
+      }
+    }, 1000);
     this.show();
   }
   el(s) { return this.root.querySelector(s); }
@@ -55,8 +86,8 @@ frappe.SarathiIndustrialDashboard = class {
     if (this.view) url.searchParams.set("view", this.view);
     history[replace ? "replaceState" : "pushState"]({}, "", url);
   }
-  show() { if (this.visible) return; this.visible = true; this.readUrl(); this.load(); this.timer = setInterval(() => { if (!document.hidden) this.load(true); }, 30000); }
-  hide() { this.visible = false; clearInterval(this.timer); this.sequence++; this.detailSequence++; }
+  show() { if (this.visible) return; this.visible = true; this.readUrl(); this.load(); this.timer = setInterval(() => { if (!document.hidden) this.load(true); }, 5000); }
+  hide() { this.visible = false; clearInterval(this.timer); clearInterval(this.rtInterval); this.sequence++; this.detailSequence++; }
   navigate(change) {
     Object.assign(this.filters, change); this.search = ""; this.el("[data-search]").value = "";
     this.customerPage = this.projectPage = 0; this.tab = "overview"; this.reportState = null;
@@ -280,7 +311,7 @@ frappe.SarathiIndustrialDashboard = class {
   }
   create(doctype) {
     const f = this.filters, p = this.data?.selected_project;
-    if (["Customer", "Project", "Sarathi Customer Organization"].includes(doctype) && !f.company) return frappe.msgprint("Choose an organization first.");
+    if (["Project", "Sarathi Customer Organization"].includes(doctype) && !f.company) return frappe.msgprint("Choose an organization first.");
     if (doctype === "Project" && (!f.customer || f.customer === "__unassigned__")) return frappe.msgprint("Choose a customer before creating a manufacturing project.");
     if (["BOM", "Sales Order", "Work Order", "Material Request", "Stock Entry", "Pick List", "Job Card", "Purchase Order", "Purchase Receipt", "Purchase Invoice", "Delivery Note", "Sales Invoice"].includes(doctype) && !f.project) return frappe.msgprint("Choose a project first so the new record is linked correctly.");
     if (["Job Card", "Stock Entry", "Pick List"].includes(doctype)) { frappe.msgprint(`Open the project's Work Order to create a linked ${doctype} using ERPNext's workflow.`); this.openReport("work_orders"); return; }

@@ -42,8 +42,10 @@ for _doctype in (
     "Sales Invoice",
     "Quality Inspection",
     "Stock Reservation Entry",
+    "Stock Ledger Entry",
     "Company",
     "Customer",
+    "Supplier",
     "Project",
     "BOM",
     "Sales Order",
@@ -56,11 +58,22 @@ for _doctype in (
     "Subcontracting Receipt",
     "Item",
     "Warehouse",
+    "Bin",
     "Workstation",
+    "Workstation Type",
+    "Plant Floor",
+    "Routing",
     "Operation",
+    "Production Plan",
+    "Pick List",
     "Stock Reconciliation",
     "Journal Entry",
     "Payment Entry",
+    "GL Entry",
+    "Account",
+    "Cost Center",
+    "Employee",
+    "Sarathi Machine Integration Log",
 ):
     doc_events.setdefault(_doctype, {}).update({
         "on_update": "sarathi_visibility.setup.dashboard.notify_dashboard",
@@ -69,4 +82,5 @@ for _doctype in (
         "on_cancel": "sarathi_visibility.setup.dashboard.notify_dashboard",
         "on_trash": "sarathi_visibility.setup.dashboard.notify_dashboard",
     })
+
 

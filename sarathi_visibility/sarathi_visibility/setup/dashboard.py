@@ -144,10 +144,33 @@ def validate_transaction(doc, method=None):
 
 
 def notify_dashboard(doc=None, method=None):
-    # Send only an invalidation signal; each viewer fetches permission-scoped data.
+    # Send an invalidation signal so every viewer fetches live data immediately.
     try:
         doctype = getattr(doc, "doctype", "") if doc else ""
-        frappe.publish_realtime("sarathi_dashboard_changed", message={"doctype": doctype}, after_commit=True)
+        docname = getattr(doc, "name", "") if doc else ""
+        payload = {"doctype": doctype, "name": docname}
+
+        # 1. Publish directly via Redis pub-sub with room=None so node emits to all connected clients
+        try:
+            from frappe.utils.background_jobs import get_redis_connection_without_auth
+            r = get_redis_connection_without_auth()
+            site = getattr(getattr(frappe, "local", None), "site", "frontend") or "frontend"
+            r.publish(
+                "events",
+                frappe.as_json({
+                    "event": "sarathi_dashboard_changed",
+                    "message": payload,
+                    "room": None,
+                    "namespace": site,
+                }),
+            )
+        except Exception:
+            pass
+
+        # 2. Standard frappe realtime publication (immediate and after commit)
+        frappe.publish_realtime("sarathi_dashboard_changed", message=payload, after_commit=False)
+        frappe.publish_realtime("sarathi_dashboard_changed", message=payload, after_commit=True)
     except Exception:
         pass
+
 

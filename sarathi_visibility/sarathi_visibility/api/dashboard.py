@@ -61,8 +61,11 @@ PROJECT = col("project", "Project", "Link", "Project")
 REPORTS = {
 
 
+    "items": ("Items catalogue", "Item", [col("name", "Item Code", "Link", "Item"), col("item_name", "Item Name"), col("item_group", "Item Group", "Link", "Item Group"), col("stock_uom", "Stock Unit"), col("is_stock_item", "Stock Item", "Check"), col("default_warehouse", "Default Warehouse", "Link", "Warehouse"), col("valuation_rate", "Valuation Rate", "Currency"), col("standard_rate", "Standard Rate", "Currency")]),
+    "inventory": ("Warehouse stock & inventory balance", "Bin", [col("item_code", "Item Code", "Link", "Item"), col("item_name", "Item Name"), col("warehouse", "Warehouse", "Link", "Warehouse"), col("actual_qty", "Current Stock Qty", "Float"), col("stock_uom", "Unit"), col("valuation_rate", "Valuation Rate", "Currency"), col("stock_value", "Total Stock Value", "Currency"), col("reserved_qty", "Reserved Qty", "Float")]),
     "procurement_exceptions": ("Unassigned / conflicting procurement", "Purchase Order", [col("doctype", "Record type"), col("name", "Record", "Dynamic Link", "doctype"), PROJECT, col("item_code", "Item", "Link", "Item"), col("issue", "Action needed", width=360)]),
     "material_history": ("Lifetime material consumption", "Work Order", [PROJECT, col("work_order", "Work Order", "Link", "Work Order"), col("work_order_status", "Production status"), col("item_code", "Material", "Link", "Item"), col("unit", "Stock unit"), col("required_qty", "Required", "Float"), col("transferred_qty", "Transferred", "Float"), col("consumed_qty", "Consumed", "Float"), col("source_warehouse", "Source warehouse", "Link", "Warehouse")]),
+
     "stock_details": ("Lifetime stock movement items", "Stock Entry", [PROJECT, col("parent", "Stock Entry", "Link", "Stock Entry"), col("work_order", "Work Order", "Link", "Work Order"), col("job_card", "Job Card", "Link", "Job Card"), col("item_code", "Item", "Link", "Item"), col("transfer_qty", "Movement quantity", "Float"), col("stock_uom", "Unit"), col("s_warehouse", "From warehouse", "Link", "Warehouse"), col("t_warehouse", "To warehouse", "Link", "Warehouse"), col("purpose", "Purpose"), col("batch_no", "Batch"), col("posting_date", "Posting date", "Date")]),
     "stock_ledger": ("Project voucher stock ledger", "Stock Ledger Entry", [PROJECT, col("voucher_type", "Voucher type"), col("voucher_no", "Voucher", "Dynamic Link", "voucher_type"), col("item_code", "Item", "Link", "Item"), col("warehouse", "Warehouse", "Link", "Warehouse"), col("actual_qty", "Signed stock movement", "Float"), col("stock_uom", "Unit"), col("posting_date", "Posting date", "Date"), col("posting_time", "Posting time")]),
     "reservations": ("Project stock reservations", "Stock Reservation Entry", [PROJECT, col("name", "Reservation", "Link", "Stock Reservation Entry"), col("voucher_type", "Voucher type"), col("voucher_no", "Voucher", "Dynamic Link", "voucher_type"), col("item_code", "Item", "Link", "Item"), col("warehouse", "Warehouse", "Link", "Warehouse"), col("stock_uom", "Unit"), col("reserved_qty", "Reserved", "Float"), col("consumed_qty", "Consumed", "Float"), col("delivered_qty", "Delivered", "Float"), col("transferred_qty", "Transferred", "Float"), col("status", "Status")]),
@@ -108,10 +111,15 @@ REPORTS = {
 
     "issues": ("Data quality and alerts", "Project", [col("doctype", "Record type"), col("name", "Record", "Dynamic Link", "doctype"), PROJECT, col("issue", "Action needed", width=460)]),
 
-    "workstations": ("Selected project workstation workload", "Job Card", [col("workstation", "Workstation", "Link", "Workstation"), col("jobs", "Job cards", "Int"), col("open_jobs", "Open job cards", "Int"), col("planned_hours", "Planned hours", "Float"), col("actual_hours", "Actual hours", "Float")]),
-
+    "workstations": ("Workstations & workload", "Workstation", [col("name", "Workstation", "Link", "Workstation"), col("workstation_name", "Workstation Name"), col("workstation_type", "Workstation Type", "Link", "Workstation Type"), col("status", "Status"), col("production_capacity", "Capacity", "Float"), col("jobs", "Job cards", "Int"), col("open_jobs", "Open job cards", "Int"), col("planned_hours", "Planned hours", "Float"), col("actual_hours", "Actual hours", "Float"), col("plant_floor", "Plant Floor", "Link", "Plant Floor")]),
+    "operations_catalogue": ("Operations catalogue", "Operation", [col("name", "Operation ID", "Link", "Operation"), col("operation_name", "Operation Name"), col("workstation", "Default Workstation", "Link", "Workstation"), col("description", "Description")]),
+    "warehouses": ("Warehouses catalogue", "Warehouse", [col("name", "Warehouse", "Link", "Warehouse"), col("warehouse_name", "Warehouse Name"), col("company", "Organization", "Link", "Company"), col("is_group", "Is Group", "Check"), col("parent_warehouse", "Parent Warehouse", "Link", "Warehouse")]),
+    "customers": ("Customers catalogue", "Customer", [col("name", "Customer ID", "Link", "Customer"), col("customer_name", "Customer Name"), col("customer_type", "Type"), col("customer_group", "Customer Group", "Link", "Customer Group"), col("territory", "Territory", "Link", "Territory")]),
+    "suppliers": ("Suppliers catalogue", "Supplier", [col("name", "Supplier ID", "Link", "Supplier"), col("supplier_name", "Supplier Name"), col("supplier_group", "Supplier Group", "Link", "Supplier Group"), col("country", "Country"), col("is_transporter", "Transporter", "Check")]),
+    "workstation_types": ("Workstation types", "Workstation Type", [col("name", "Workstation Type", "Link", "Workstation Type"), col("description", "Description")]),
+    "plant_floors": ("Plant floors", "Plant Floor", [col("name", "Floor", "Link", "Plant Floor"), col("floor_name", "Floor Name"), col("warehouse", "Warehouse", "Link", "Warehouse"), col("company", "Company", "Link", "Company")]),
+    "routings": ("Routings", "Routing", [col("name", "Routing", "Link", "Routing"), col("routing_name", "Routing Name"), col("disabled", "Disabled", "Check")]),
 }
-
 
 
 
@@ -127,33 +135,16 @@ def report_data(data, report, subset="", search=""):
 
         frappe.throw("Unknown dashboard report.")
 
-    if report == "workstations":
-
-        stations = {}
-
-        for j in data["job_cards"]:
-
-            if j.docstatus == 2:
-
-                continue
-
-            key = j.get("workstation") or ""
-
-            r = stations.setdefault(key, dict(workstation=key, jobs=0, open_jobs=0, planned_hours=0, actual_hours=0))
-
-            r["jobs"] += 1
-
-            r["open_jobs"] += j.status != "Completed"
-
-            r["planned_hours"] += j.planned_hours
-
-            r["actual_hours"] += j.actual_hours
-
-        result = list(stations.values())
-
+    if report in ("workstations", "operations_catalogue", "warehouses", "customers", "suppliers", "workstation_types", "plant_floors", "routings", "items", "inventory"):
+        result = data.get(report, [])
+        if subset == "open" and report == "workstations":
+            result = [r for r in result if r.get("open_jobs", 0) > 0]
+        elif subset == "production" and report == "workstations":
+            result = [r for r in result if r.get("status") == "Production"]
     else:
 
-        result = data[report]
+        result = data.get(report, [])
+
 
     if subset == "active" and report == "projects":
 
@@ -246,7 +237,26 @@ def get_summary(filters=None):
 
         return dict(label=label, value=len(report_data(data, report, subset)), report=report, subset=subset)
 
-    cards = [kpi("Total projects", "projects"), kpi("Completed projects", "projects", "completed"), kpi("Not started", "production_summary", "not_started"), kpi("In progress", "production_summary", "in_progress"), kpi("On hold / Stopped", "production_summary", "paused"), kpi("Closure pending", "production_summary", "closure_pending"), kpi("Delayed projects", "projects", "delayed"), kpi("Open orders", "orders", "open"), kpi("Active work orders", "work_orders", "open"), kpi("Executable Job Cards", "job_cards", "open"), kpi("Planned Job Cards", "job_cards", "planned")]
+    cards = [
+        kpi("Total projects", "projects"),
+        kpi("Active items", "items"),
+        kpi("Warehouse stock", "inventory"),
+        kpi("Workstations", "workstations"),
+        kpi("Operations", "operations_catalogue"),
+        kpi("Warehouses", "warehouses"),
+        kpi("Active BOMs", "boms"),
+        kpi("Customers", "customers"),
+        kpi("Suppliers", "suppliers"),
+        kpi("Open orders", "orders", "open"),
+        kpi("Active work orders", "work_orders", "open"),
+        kpi("Executable Job Cards", "job_cards", "open"),
+        kpi("Planned Job Cards", "job_cards", "planned"),
+        kpi("Completed projects", "projects", "completed"),
+        kpi("In progress", "production_summary", "in_progress"),
+        kpi("Not started", "production_summary", "not_started"),
+        kpi("Delayed projects", "projects", "delayed"),
+    ]
+
 
     selected = next(iter(projects), None) if data["filters"]["project"] else None
 
@@ -376,7 +386,17 @@ def get_record(filters, doctype, name):
     data = load(filters)
 
     keys = {dt: key for key, (dt, child) in DOCUMENTS.items()}
-    keys.update({"Quality Inspection": "quality", "Stock Reservation Entry": "reservations"})
+    keys.update({"Item": "items", "Bin": "inventory", "Quality Inspection": "quality", "Stock Reservation Entry": "reservations"})
+    keys.update({
+        "Workstation": "workstations",
+        "Operation": "operations_catalogue",
+        "Warehouse": "warehouses",
+        "Customer": "customers",
+        "Supplier": "suppliers",
+        "Workstation Type": "workstation_types",
+        "Plant Floor": "plant_floors",
+        "Routing": "routings",
+    })
     keys.update({"Project": "projects", "BOM": "boms", "Sales Order": "orders", "Work Order": "work_orders", "Job Card": "job_cards", "Stock Entry": "stock", "Task": "tasks", "Sarathi Machine Integration Log": "integrations"})
 
     key = keys.get(doctype)
@@ -394,7 +414,19 @@ def get_record(filters, doctype, name):
     related = []
 
     links = {dt: [(key, "name")] for key, (dt, child) in DOCUMENTS.items()}
-    links.update({"Job Card": [("job_logs", "job_card"), ("job_suboperations", "job_card"), ("part_production", "job_card")], "Stock Entry": [("stock_details", "parent")], "BOM": [("components", "parent"), ("operations", "parent")], "Work Order": [("job_cards", "work_order"), ("stock", "work_order")], "Sales Order": [("order_items", "parent")], "Project": [("tasks", "project"), ("work_orders", "project"), ("material_history", "project"), ("part_production", "project")]})
+    links.update({
+        "Workstation": [("job_cards", "workstation")],
+        "Warehouse": [("inventory", "warehouse")],
+        "Customer": [("projects", "customer"), ("orders", "customer")],
+        "Supplier": [("purchases", "supplier")],
+        "Job Card": [("job_logs", "job_card"), ("job_suboperations", "job_card"), ("part_production", "job_card")],
+        "Stock Entry": [("stock_details", "parent")],
+        "BOM": [("components", "parent"), ("operations", "parent")],
+        "Work Order": [("job_cards", "work_order"), ("stock", "work_order")],
+        "Sales Order": [("order_items", "parent")],
+        "Project": [("tasks", "project"), ("work_orders", "project"), ("material_history", "project"), ("part_production", "project")],
+    })
+
 
     for report, field in links.get(doctype, []):
 
