@@ -1,12 +1,17 @@
 """Unit and integration tests for Sarathi Owner Dashboard."""
 
 import unittest
+
 import frappe
 from frappe.utils import flt
 
-from sarathi_owner.api.permissions import can_access_owner, can_view_finance, get_permission_context
-from sarathi_owner.api.pipeline import get_project_pipeline
 import sarathi_owner.api.owner_dashboard as od
+from sarathi_owner.api.permissions import (
+    can_access_owner,
+    can_view_finance,
+    get_permission_context,
+)
+from sarathi_owner.api.pipeline import get_project_pipeline
 
 
 class TestOwnerDashboard(unittest.TestCase):
@@ -94,13 +99,19 @@ class TestOwnerDashboard(unittest.TestCase):
             self.assertIn("cards", data, f"Module {mod} missing KPI cards")
             self.assertTrue(len(data["cards"]) >= 1, f"Module {mod} has no cards")
             self.assertIn("shortcuts", data, f"Module {mod} missing shortcuts")
-            self.assertTrue(len(data["shortcuts"]) >= 3, f"Module {mod} has insufficient shortcuts")
+            self.assertTrue(
+                len(data["shortcuts"]) >= 3, f"Module {mod} has insufficient shortcuts"
+            )
             self.assertIn("table", data, f"Module {mod} missing table")
             self.assertIn("headers", data["table"])
             self.assertIn("rows", data["table"])
             if data["table"]["rows"]:
                 for row in data["table"]["rows"]:
-                    self.assertEqual(len(row), len(data["table"]["headers"]), f"Module {mod} row length mismatch with headers")
+                    self.assertEqual(
+                        len(row),
+                        len(data["table"]["headers"]),
+                        f"Module {mod} row length mismatch with headers",
+                    )
 
     def test_reports_page_executive_focus(self):
         """Verify reports page provides 100% executive reports and excludes shop-floor noise."""
@@ -140,6 +151,7 @@ class TestOwnerDashboard(unittest.TestCase):
     def test_production_manager_dashboard_isolation(self):
         """Verify that sarathi_visibility production manager dashboard remains 100% operational."""
         import sarathi_visibility.api.dashboard as pm_dash
+
         pm_data = pm_dash.load()
         self.assertIsInstance(pm_data, dict)
         self.assertIn("projects", pm_data)
@@ -148,12 +160,14 @@ class TestOwnerDashboard(unittest.TestCase):
         """Verify multi-WO planned vs produced aggregation and Stock Entry completion rule."""
         try:
             # Create test project using autoname
-            proj = frappe.get_doc({
-                "doctype": "Project",
-                "project_name": "Test Pipeline Multi WO Project",
-                "company": "SarathiAILabs",
-                "status": "Open",
-            }).insert(ignore_permissions=True)
+            proj = frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": "Test Pipeline Multi WO Project",
+                    "company": "SarathiAILabs",
+                    "status": "Open",
+                }
+            ).insert(ignore_permissions=True)
             p_name = proj.name
 
             # Test 1: Project with No Production Plan -> Stage 2 must be 'optional'
@@ -163,18 +177,20 @@ class TestOwnerDashboard(unittest.TestCase):
             self.assertEqual(stages["production_plan"]["badge"], "Optional / Not used")
 
             # Test 2: Project with Work Order -> Stage 4 is Production Execution
-            wo1 = frappe.get_doc({
-                "doctype": "Work Order",
-                "company": "SarathiAILabs",
-                "production_item": "001",
-                "qty": 10,
-                "produced_qty": 5,
-                "project": p_name,
-                "status": "In Process",
-                "wip_warehouse": "Work In Progress - S",
-                "fg_warehouse": "Finished Goods - S",
-                "docstatus": 1,
-            })
+            wo1 = frappe.get_doc(
+                {
+                    "doctype": "Work Order",
+                    "company": "SarathiAILabs",
+                    "production_item": "001",
+                    "qty": 10,
+                    "produced_qty": 5,
+                    "project": p_name,
+                    "status": "In Process",
+                    "wip_warehouse": "Work In Progress - S",
+                    "fg_warehouse": "Finished Goods - S",
+                    "docstatus": 1,
+                }
+            )
             wo1.flags.ignore_mandatory = True
             wo1.flags.ignore_validate = True
             wo1.insert(ignore_permissions=True)
@@ -185,18 +201,20 @@ class TestOwnerDashboard(unittest.TestCase):
             self.assertEqual(stages["job_card"]["label"], "Production Execution")
 
             # Test 3: Multiple Work Orders aggregation
-            wo2 = frappe.get_doc({
-                "doctype": "Work Order",
-                "company": "SarathiAILabs",
-                "production_item": "002",
-                "qty": 20,
-                "produced_qty": 15,
-                "project": p_name,
-                "status": "In Process",
-                "wip_warehouse": "Work In Progress - S",
-                "fg_warehouse": "Finished Goods - S",
-                "docstatus": 1,
-            })
+            wo2 = frappe.get_doc(
+                {
+                    "doctype": "Work Order",
+                    "company": "SarathiAILabs",
+                    "production_item": "002",
+                    "qty": 20,
+                    "produced_qty": 15,
+                    "project": p_name,
+                    "status": "In Process",
+                    "wip_warehouse": "Work In Progress - S",
+                    "fg_warehouse": "Finished Goods - S",
+                    "docstatus": 1,
+                }
+            )
             wo2.flags.ignore_mandatory = True
             wo2.flags.ignore_validate = True
             wo2.insert(ignore_permissions=True)
@@ -207,17 +225,19 @@ class TestOwnerDashboard(unittest.TestCase):
             self.assertEqual(pipe["manufacturing_progress"], 66.7)
 
             # Test 4: Manufacture Stock Entry satisfying planned qty completes Stage 5
-            se = frappe.get_doc({
-                "doctype": "Stock Entry",
-                "purpose": "Manufacture",
-                "company": "SarathiAILabs",
-                "project": p_name,
-                "work_order": wo1.name,
-                "from_warehouse": "Work In Progress - S",
-                "to_warehouse": "Finished Goods - S",
-                "fg_completed_qty": 30.0,
-                "docstatus": 1,
-            })
+            se = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "purpose": "Manufacture",
+                    "company": "SarathiAILabs",
+                    "project": p_name,
+                    "work_order": wo1.name,
+                    "from_warehouse": "Work In Progress - S",
+                    "to_warehouse": "Finished Goods - S",
+                    "fg_completed_qty": 30.0,
+                    "docstatus": 1,
+                }
+            )
             se.flags.ignore_mandatory = True
             se.flags.ignore_validate = True
             se.insert(ignore_permissions=True)
@@ -233,7 +253,9 @@ class TestOwnerDashboard(unittest.TestCase):
     def test_live_report_runner(self):
         """Verify get_live_report_data executes native ERPNext reports in-memory and returns structured columns and results."""
         # 1. Project Summary Report
-        proj_res = od.get_live_report_data("Project Summary", {"company": "SarathiAILabs"})
+        proj_res = od.get_live_report_data(
+            "Project Summary", {"company": "SarathiAILabs"}
+        )
         self.assertEqual(proj_res["report_name"], "Project Summary")
         self.assertIn("columns", proj_res)
         self.assertIn("result", proj_res)
@@ -241,13 +263,17 @@ class TestOwnerDashboard(unittest.TestCase):
         self.assertTrue(len(proj_res["columns"]) > 0)
 
         # 2. Accounts Receivable Report
-        ar_res = od.get_live_report_data("Accounts Receivable", {"company": "SarathiAILabs"})
+        ar_res = od.get_live_report_data(
+            "Accounts Receivable", {"company": "SarathiAILabs"}
+        )
         self.assertEqual(ar_res["report_name"], "Accounts Receivable")
         self.assertIn("columns", ar_res)
         self.assertIn("result", ar_res)
 
         # 3. Profit and Loss Statement Report
-        pnl_res = od.get_live_report_data("Profit and Loss Statement", {"company": "SarathiAILabs"})
+        pnl_res = od.get_live_report_data(
+            "Profit and Loss Statement", {"company": "SarathiAILabs"}
+        )
         self.assertEqual(pnl_res["report_name"], "Profit and Loss Statement")
         self.assertIn("columns", pnl_res)
         self.assertIn("result", pnl_res)
@@ -262,7 +288,9 @@ class TestOwnerDashboard(unittest.TestCase):
         self.assertEqual(fin_chart["datasets"][2]["name"], "Net Profit")
 
         cap_chart = od._get_working_capital_chart_data(100.0, 50.0, 75.0)
-        self.assertEqual(cap_chart["labels"], ["Raw Materials", "Work In Progress", "Finished Goods"])
+        self.assertEqual(
+            cap_chart["labels"], ["Raw Materials", "Work In Progress", "Finished Goods"]
+        )
         self.assertEqual(cap_chart["datasets"][0]["values"], [100.0, 50.0, 75.0])
 
         prod_chart = od._get_production_chart_data("SarathiAILabs")
@@ -282,4 +310,3 @@ class TestOwnerDashboard(unittest.TestCase):
         from_d, to_d = od._get_date_bounds("all")
         self.assertIsNone(from_d)
         self.assertIsNone(to_d)
-

@@ -8,10 +8,12 @@ frappe.pages["sarathiownertower"].on_page_load = function (wrapper) {
     ],
     () => {
       if (!wrapper.sarathi_owner_dashboard) {
-        wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(wrapper);
+        wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(
+          wrapper,
+        );
       }
       wrapper.sod_initializing = false;
-    }
+    },
   );
 };
 
@@ -32,10 +34,12 @@ frappe.pages["sarathiownertower"].on_page_show = function (wrapper) {
       ],
       () => {
         if (!wrapper.sarathi_owner_dashboard) {
-          wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(wrapper);
+          wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(
+            wrapper,
+          );
         }
         wrapper.sod_initializing = false;
-      }
+      },
     );
   }
 };

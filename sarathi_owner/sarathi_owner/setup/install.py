@@ -87,7 +87,8 @@ def ensure_manufacturing_sidebar_link():
         (
             index
             for index, row in enumerate(item_rows)
-            if row.get("type") == "Link" and "Sarathi Industrial Dashboard" in (row.get("label") or "")
+            if row.get("type") == "Link"
+            and "Sarathi Industrial Dashboard" in (row.get("label") or "")
         ),
         None,
     )

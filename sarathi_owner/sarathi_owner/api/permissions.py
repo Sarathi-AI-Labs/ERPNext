@@ -1,6 +1,11 @@
 import frappe
 
-OWNER_ROLES = {"Sarathi Owner", "System Manager", "Administrator", "Manufacturing Manager"}
+OWNER_ROLES = {
+    "Sarathi Owner",
+    "System Manager",
+    "Administrator",
+    "Manufacturing Manager",
+}
 FINANCE_ROLES = {
     "Accounts Manager",
     "Accounts User",
@@ -28,9 +33,9 @@ def can_view_finance(user: str | None = None) -> bool:
     roles = set(frappe.get_roles(user))
     if FINANCE_ROLES.intersection(roles):
         return True
-    return frappe.has_permission("GL Entry", "read", user=user) and frappe.has_permission(
-        "Sales Invoice", "read", user=user
-    )
+    return frappe.has_permission(
+        "GL Entry", "read", user=user
+    ) and frappe.has_permission("Sales Invoice", "read", user=user)
 
 
 def get_permission_context() -> dict:

@@ -9,6 +9,7 @@ Evaluates in-progress projects across the 5 stages:
 """
 
 from collections import defaultdict
+
 import frappe
 from frappe.utils import flt, getdate
 
@@ -34,7 +35,9 @@ def get_project_pipeline(project_name: str) -> dict:
 
     # 2. Stage 1: Bill of Materials (BOM)
     boms = _resolve_project_boms(project)
-    submitted_active_boms = [b for b in boms if b.get("docstatus") == 1 and b.get("is_active")]
+    submitted_active_boms = [
+        b for b in boms if b.get("docstatus") == 1 and b.get("is_active")
+    ]
     if submitted_active_boms:
         bom_status = "done"
         bom_badge = f"{len(submitted_active_boms)} Active BOM{'s' if len(submitted_active_boms) > 1 else ''}"
@@ -99,14 +102,21 @@ def get_project_pipeline(project_name: str) -> dict:
     mfg_progress = (
         round((wo_produced_qty / wo_planned_qty) * 100, 1)
         if wo_planned_qty > 0
-        else (100.0 if (work_orders and all(w.status == "Completed" for w in work_orders)) else 0.0)
+        else (
+            100.0
+            if (work_orders and all(w.status == "Completed" for w in work_orders))
+            else 0.0
+        )
     )
 
     completed_wos = [w for w in work_orders if w.status == "Completed"]
     if work_orders and len(completed_wos) == len(work_orders):
         wo_status = "done"
         wo_badge = f"{len(work_orders)} Completed"
-    elif any(w.status in ("In Process", "Not Started") and w.docstatus == 1 for w in work_orders):
+    elif any(
+        w.status in ("In Process", "Not Started") and w.docstatus == 1
+        for w in work_orders
+    ):
         wo_status = "current"
         wo_badge = f"{wo_produced_qty:g} / {wo_planned_qty:g} Units ({mfg_progress}%)"
     elif work_orders:
@@ -120,7 +130,11 @@ def get_project_pipeline(project_name: str) -> dict:
     # Executive view: focuses on Work Order assembly progress without operator job card clutter
     wo_names = [w.name for w in work_orders]
     completed_wos = [w for w in work_orders if w.status == "Completed"]
-    in_process_wos = [w for w in work_orders if w.status in ("In Process", "Not Started") and w.docstatus == 1]
+    in_process_wos = [
+        w
+        for w in work_orders
+        if w.status in ("In Process", "Not Started") and w.docstatus == 1
+    ]
 
     if not work_orders:
         exec_status = "wait"
@@ -132,7 +146,9 @@ def get_project_pipeline(project_name: str) -> dict:
         exec_info = f"100% production completed ({wo_produced_qty:g} units)"
     elif in_process_wos or wo_produced_qty > 0:
         exec_status = "current"
-        exec_badge = f"{wo_produced_qty:g} / {wo_planned_qty:g} Assembled ({mfg_progress}%)"
+        exec_badge = (
+            f"{wo_produced_qty:g} / {wo_planned_qty:g} Assembled ({mfg_progress}%)"
+        )
         exec_info = f"{len(in_process_wos)} Work Order(s) in active production"
     else:
         exec_status = "wait"

@@ -22,9 +22,19 @@
     <!-- Main Content Area -->
     <main class="sod-main">
       <div class="sod-top">
-        <span class="sod-breadcrumb" id="sod-breadcrumb">Workspace / <a href="javascript:void(0)" class="sod-link" data-action="go-home">Owner</a> / <b id="sod-crumb-text">Home</b></span>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="sod-live-status-pill" id="sod-live-status-pill" title="Connected to ERPNext Realtime Socket.IO Gateway">
+        <span class="sod-breadcrumb" id="sod-breadcrumb"
+          >Workspace /
+          <a href="javascript:void(0)" class="sod-link" data-action="go-home"
+            >Owner</a
+          >
+          / <b id="sod-crumb-text">Home</b></span
+        >
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div
+            class="sod-live-status-pill"
+            id="sod-live-status-pill"
+            title="Connected to ERPNext Realtime Socket.IO Gateway"
+          >
             <span class="sod-pulse-dot"></span>
             <span id="sod-live-status-text">LIVE SYNCED</span>
           </div>
@@ -40,11 +50,26 @@
         <div>
           <div class="sod-eyebrow">SARATHI CONTROL TOWER · OWNER EDITION</div>
           <h1 id="sod-title">Sarathi Owner Overview</h1>
-          <p id="sod-subtitle">ERPNext projects, financial health, and strategic operations in one live view.</p>
+          <p id="sod-subtitle">
+            ERPNext projects, financial health, and strategic operations in one
+            live view.
+          </p>
         </div>
         <div class="sod-hero-actions">
-          <button class="sod-btn sod-btn-glass" data-action="run-quick-report" title="Open embedded live reports inside the tower">⚡ Live Report Runner</button>
-          <button class="sod-btn sod-btn-glass" data-action="refresh" title="Sync all live values">↻ Refresh</button>
+          <button
+            class="sod-btn sod-btn-glass"
+            data-action="run-quick-report"
+            title="Open embedded live reports inside the tower"
+          >
+            ⚡ Live Report Runner
+          </button>
+          <button
+            class="sod-btn sod-btn-glass"
+            data-action="refresh"
+            title="Sync all live values"
+          >
+            ↻ Refresh
+          </button>
           <div class="sod-hero-symbol">✧</div>
         </div>
       </section>
@@ -53,13 +78,21 @@
       <section class="sod-filters" id="sod-filters" aria-label="Global Filters">
         <div class="sod-filter-group">
           <label>Company</label>
-          <select id="sod-filter-company" class="sod-select" aria-label="Company filter">
+          <select
+            id="sod-filter-company"
+            class="sod-select"
+            aria-label="Company filter"
+          >
             <option value="">All Companies</option>
           </select>
         </div>
         <div class="sod-filter-group">
           <label>Date Range</label>
-          <select id="sod-filter-date" class="sod-select" aria-label="Date Range filter">
+          <select
+            id="sod-filter-date"
+            class="sod-select"
+            aria-label="Date Range filter"
+          >
             <option value="all">All Dates</option>
             <option value="this_month">This Month</option>
             <option value="last_month">Last Month</option>
@@ -69,19 +102,31 @@
         </div>
         <div class="sod-filter-group">
           <label>Customer</label>
-          <select id="sod-filter-customer" class="sod-select" aria-label="Customer filter">
+          <select
+            id="sod-filter-customer"
+            class="sod-select"
+            aria-label="Customer filter"
+          >
             <option value="">All Customers</option>
           </select>
         </div>
         <div class="sod-filter-group">
           <label>Project</label>
-          <select id="sod-filter-project" class="sod-select" aria-label="Project filter">
+          <select
+            id="sod-filter-project"
+            class="sod-select"
+            aria-label="Project filter"
+          >
             <option value="">All Projects</option>
           </select>
         </div>
         <div class="sod-filter-group">
           <label>Status</label>
-          <select id="sod-filter-status" class="sod-select" aria-label="Project status filter">
+          <select
+            id="sod-filter-status"
+            class="sod-select"
+            aria-label="Project status filter"
+          >
             <option value="">All Statuses</option>
             <option value="Open">Open</option>
             <option value="Completed">Completed</option>
@@ -90,7 +135,13 @@
         </div>
         <div class="sod-filter-group sod-search-group">
           <label>Search ERPNext</label>
-          <input type="search" id="sod-search-input" class="sod-input" placeholder="Search ID, customer, item..." aria-label="Search records">
+          <input
+            type="search"
+            id="sod-search-input"
+            class="sod-input"
+            placeholder="Search ID, customer, item..."
+            aria-label="Search records"
+          />
         </div>
       </section>
 
@@ -109,7 +160,13 @@
     <div class="sod-detail-card" role="dialog" aria-modal="true">
       <div class="sod-modal-head">
         <h2 id="sod-modal-title">Stage Details</h2>
-        <button class="sod-btn-close" id="sod-modal-close" aria-label="Close dialog">✕</button>
+        <button
+          class="sod-btn-close"
+          id="sod-modal-close"
+          aria-label="Close dialog"
+        >
+          ✕
+        </button>
       </div>
       <div id="sod-modal-body" class="sod-modal-body"></div>
       <div class="sod-modal-foot" id="sod-modal-foot"></div>

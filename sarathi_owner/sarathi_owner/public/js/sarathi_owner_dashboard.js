@@ -18,7 +18,7 @@ frappe.SarathiOwnerDashboard = class {
 
     this.page.main.empty();
     this.root = $(frappe.render_template("sarathiownertower", {})).appendTo(
-      this.page.main
+      this.page.main,
     )[0];
 
     // Purge any duplicate sod-wrapper, footers, or switcher bars
@@ -27,25 +27,127 @@ frappe.SarathiOwnerDashboard = class {
     $(".sod-wrapper ~ .sod-wrapper").remove();
 
     this.pagesConfig = [
-      ["Owner Home", "◈", "Executive command center: financial health, order book, live charts, and manufacturing governance.", "home", "OPERATIONS"],
-      ["Projects", "▦", "Project portfolio, profitability margins, budget variance, and delivery status.", "projects", "OPERATIONS"],
-      ["Project Detail", "▤", "Detailed project financials, budget vs actuals, and executive pipeline.", "project_detail", "OPERATIONS"],
-      ["Customers", "♧", "Customer concentration, order commitments, and accounts receivable exposure.", "customers", "OPERATIONS"],
-      ["Sales Orders", "▣", "Commercial order book, fulfillment backlog, and delivery schedule adherence.", "sales_orders", "OPERATIONS"],
-      ["Manufacturing", "⚙", "Production throughput, output velocity, and factory schedule risk.", "manufacturing", "OPERATIONS"],
-      ["Working Capital & Stock", "◫", "Inventory asset valuation, warehouse capital distribution, and shortage risks.", "stock_quality", "OPERATIONS"],
+      [
+        "Owner Home",
+        "◈",
+        "Executive command center: financial health, order book, live charts, and manufacturing governance.",
+        "home",
+        "OPERATIONS",
+      ],
+      [
+        "Projects",
+        "▦",
+        "Project portfolio, profitability margins, budget variance, and delivery status.",
+        "projects",
+        "OPERATIONS",
+      ],
+      [
+        "Project Detail",
+        "▤",
+        "Detailed project financials, budget vs actuals, and executive pipeline.",
+        "project_detail",
+        "OPERATIONS",
+      ],
+      [
+        "Customers",
+        "♧",
+        "Customer concentration, order commitments, and accounts receivable exposure.",
+        "customers",
+        "OPERATIONS",
+      ],
+      [
+        "Sales Orders",
+        "▣",
+        "Commercial order book, fulfillment backlog, and delivery schedule adherence.",
+        "sales_orders",
+        "OPERATIONS",
+      ],
+      [
+        "Manufacturing",
+        "⚙",
+        "Production throughput, output velocity, and factory schedule risk.",
+        "manufacturing",
+        "OPERATIONS",
+      ],
+      [
+        "Working Capital & Stock",
+        "◫",
+        "Inventory asset valuation, warehouse capital distribution, and shortage risks.",
+        "stock_quality",
+        "OPERATIONS",
+      ],
       // Accounting Modules (The 9 sections in ERPNext Desk / Accounting)
-      ["Invoicing", "📑", "Customer & supplier invoicing, billing ledger, credit/debit notes, and receivables.", "invoicing", "ACCOUNTING & FINANCE"],
-      ["Payments", "💳", "Realized receipts, vendor payments, journal entries, and ledger reconciliation.", "payments", "ACCOUNTING & FINANCE"],
-      ["Financial Reports", "📊", "Official Balance Sheet, Profit and Loss Statement, Cash Flow, and General Ledger.", "financial_reports", "ACCOUNTING & FINANCE"],
-      ["Accounts Setup", "⚙️", "Chart of accounts, cost centers, accounting dimensions, currencies, and fiscal periods.", "accounts_setup", "ACCOUNTING & FINANCE"],
-      ["Taxes", "🏛️", "Tax rules, sales & purchase tax templates, TDS withholding, and tax computation.", "taxes", "ACCOUNTING & FINANCE"],
-      ["Banking", "🏦", "Bank accounts, liquid cash reserves, bank reconciliation statement, and clearance.", "banking", "ACCOUNTING & FINANCE"],
-      ["Budget", "📉", "Cost center budgets, variance tracking, quarterly allocations, and expense controls.", "budget", "ACCOUNTING & FINANCE"],
-      ["Share Management", "🤝", "Company shareholders, share ledger, equity transfers, and balance register.", "share_management", "ACCOUNTING & FINANCE"],
-      ["Subscription", "🔁", "Customer & vendor recurring subscriptions, subscription plans, and billing intervals.", "subscription", "ACCOUNTING & FINANCE"],
+      [
+        "Invoicing",
+        "📑",
+        "Customer & supplier invoicing, billing ledger, credit/debit notes, and receivables.",
+        "invoicing",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Payments",
+        "💳",
+        "Realized receipts, vendor payments, journal entries, and ledger reconciliation.",
+        "payments",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Financial Reports",
+        "📊",
+        "Official Balance Sheet, Profit and Loss Statement, Cash Flow, and General Ledger.",
+        "financial_reports",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Accounts Setup",
+        "⚙️",
+        "Chart of accounts, cost centers, accounting dimensions, currencies, and fiscal periods.",
+        "accounts_setup",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Taxes",
+        "🏛️",
+        "Tax rules, sales & purchase tax templates, TDS withholding, and tax computation.",
+        "taxes",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Banking",
+        "🏦",
+        "Bank accounts, liquid cash reserves, bank reconciliation statement, and clearance.",
+        "banking",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Budget",
+        "📉",
+        "Cost center budgets, variance tracking, quarterly allocations, and expense controls.",
+        "budget",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Share Management",
+        "🤝",
+        "Company shareholders, share ledger, equity transfers, and balance register.",
+        "share_management",
+        "ACCOUNTING & FINANCE",
+      ],
+      [
+        "Subscription",
+        "🔁",
+        "Customer & vendor recurring subscriptions, subscription plans, and billing intervals.",
+        "subscription",
+        "ACCOUNTING & FINANCE",
+      ],
       // Intelligence & Reports
-      ["Executive Decision Reports", "▥", "Run live ERPNext query reports in-memory inside the tower.", "reports", "INTELLIGENCE"],
+      [
+        "Executive Decision Reports",
+        "▥",
+        "Run live ERPNext query reports in-memory inside the tower.",
+        "reports",
+        "INTELLIGENCE",
+      ],
     ];
 
     this.currentPage = 0;
@@ -86,10 +188,13 @@ frappe.SarathiOwnerDashboard = class {
     // Live Date/Time
     const now = new Date();
     const options = { day: "numeric", month: "short", year: "numeric" };
-    this.$el.find("#sod-live-time").text(now.toLocaleDateString("en-IN", options));
+    this.$el
+      .find("#sod-live-time")
+      .text(now.toLocaleDateString("en-IN", options));
 
     // User Avatar Initials
-    const fullName = frappe.session.user_fullname || frappe.session.user || "Owner";
+    const fullName =
+      frappe.session.user_fullname || frappe.session.user || "Owner";
     const initials = fullName
       .split(" ")
       .map((n) => n[0])
@@ -112,7 +217,18 @@ frappe.SarathiOwnerDashboard = class {
 
       // Listen for standard Frappe document events
       frappe.realtime.on("doc_update", (data) => {
-        if (data && data.doctype && ["Sales Order", "Sales Invoice", "Payment Entry", "Work Order", "Stock Entry", "Project"].includes(data.doctype)) {
+        if (
+          data &&
+          data.doctype &&
+          [
+            "Sales Order",
+            "Sales Invoice",
+            "Payment Entry",
+            "Work Order",
+            "Stock Entry",
+            "Project",
+          ].includes(data.doctype)
+        ) {
           self.handleLiveSocketChange(data);
         }
       });
@@ -182,9 +298,13 @@ frappe.SarathiOwnerDashboard = class {
     });
 
     // Global Reactive Filters
-    this.$el.find("#sod-filter-company, #sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status").on("change", function () {
-      self.refreshCurrentPage();
-    });
+    this.$el
+      .find(
+        "#sod-filter-company, #sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status",
+      )
+      .on("change", function () {
+        self.refreshCurrentPage();
+      });
 
     let searchTimeout = null;
     this.$el.find("#sod-search-input").on("input", function () {
@@ -276,7 +396,9 @@ frappe.SarathiOwnerDashboard = class {
             e.preventDefault();
             this.accountingDropdownOpen = !this.accountingDropdownOpen;
             $group.toggleClass("collapsed", !this.accountingDropdownOpen);
-            $group.find("#sod-accounting-toggle").attr("aria-expanded", this.accountingDropdownOpen);
+            $group
+              .find("#sod-accounting-toggle")
+              .attr("aria-expanded", this.accountingDropdownOpen);
           });
 
           this.$nav.append($group);
@@ -284,8 +406,8 @@ frappe.SarathiOwnerDashboard = class {
         } else {
           $accountingMenu = null;
           const catIcons = {
-            "OPERATIONS": "⚙️",
-            "INTELLIGENCE": "💡",
+            OPERATIONS: "⚙️",
+            INTELLIGENCE: "💡",
           };
           const catIcon = catIcons[category] || "✦";
           this.$nav.append(`
@@ -299,7 +421,7 @@ frappe.SarathiOwnerDashboard = class {
 
       // 2. Render item button
       const $btn = $(`
-        <button class="${idx === this.currentPage ? "active" : ""}" data-page="${idx}" data-key="${frappe.utils.escape_html(pageKey || '')}" title="${frappe.utils.escape_html(title)}">
+        <button class="${idx === this.currentPage ? "active" : ""}" data-page="${idx}" data-key="${frappe.utils.escape_html(pageKey || "")}" title="${frappe.utils.escape_html(title)}">
           <span class="sod-icon">${icon}</span>
           <span class="sod-nav-label">${frappe.utils.escape_html(title)}</span>
         </button>
@@ -334,21 +456,27 @@ frappe.SarathiOwnerDashboard = class {
     const $co = this.$el.find("#sod-filter-company");
     $co.find("option:not(:first)").remove();
     (this.context.companies || []).forEach((c) => {
-      $co.append(`<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.company_name || c.name)}</option>`);
+      $co.append(
+        `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.company_name || c.name)}</option>`,
+      );
     });
 
     // Customers
     const $cust = this.$el.find("#sod-filter-customer");
     $cust.find("option:not(:first)").remove();
     (this.context.customers || []).forEach((c) => {
-      $cust.append(`<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.customer_name || c.name)}</option>`);
+      $cust.append(
+        `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.customer_name || c.name)}</option>`,
+      );
     });
 
     // Projects
     const $proj = this.$el.find("#sod-filter-project");
     $proj.find("option:not(:first)").remove();
     (this.context.projects || []).forEach((p) => {
-      $proj.append(`<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(p.project_name || p.name)}</option>`);
+      $proj.append(
+        `<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(p.project_name || p.name)}</option>`,
+      );
     });
   }
 
@@ -357,7 +485,10 @@ frappe.SarathiOwnerDashboard = class {
       company: this.$el.find("#sod-filter-company").val() || "",
       date_range: this.$el.find("#sod-filter-date").val() || "all",
       customer: this.$el.find("#sod-filter-customer").val() || "",
-      project: this.$el.find("#sod-filter-project").val() || this.selectedProject || "",
+      project:
+        this.$el.find("#sod-filter-project").val() ||
+        this.selectedProject ||
+        "",
       status: this.$el.find("#sod-filter-status").val() || "",
       search: this.$el.find("#sod-search-input").val() || "",
     };
@@ -482,7 +613,7 @@ frappe.SarathiOwnerDashboard = class {
     html += '<div class="sod-grid sod-cards" id="sod-kpi-cards-grid">';
     cards.forEach((c) => {
       html += `
-        <div class="sod-card ${c.color}" data-action="${frappe.utils.escape_html(c.action || '')}" role="button" tabindex="0" title="Click to drill down">
+        <div class="sod-card ${c.color}" data-action="${frappe.utils.escape_html(c.action || "")}" role="button" tabindex="0" title="Click to drill down">
           <div class="sod-label">${frappe.utils.escape_html(c.label)}</div>
           <strong class="sod-kpi-val">${frappe.utils.escape_html(c.value)}</strong>
           <small>${frappe.utils.escape_html(c.desc || "ERPNext records")}</small>
@@ -571,7 +702,8 @@ frappe.SarathiOwnerDashboard = class {
     `;
 
     if (!pipelines.length) {
-      html += '<div class="sod-empty">No active in-progress manufacturing projects found matching filters.</div>';
+      html +=
+        '<div class="sod-empty">No active in-progress manufacturing projects found matching filters.</div>';
     } else {
       pipelines.forEach((p) => {
         html += `
@@ -613,7 +745,8 @@ frappe.SarathiOwnerDashboard = class {
             <tbody>
     `;
     if (!activeProjects.length) {
-      html += '<tr><td colspan="8" style="text-align:center; color:#888;">No active projects recorded under current filters.</td></tr>';
+      html +=
+        '<tr><td colspan="8" style="text-align:center; color:#888;">No active projects recorded under current filters.</td></tr>';
     } else {
       activeProjects.forEach((row) => {
         html += `
@@ -652,12 +785,13 @@ frappe.SarathiOwnerDashboard = class {
         <div class="sod-activity-list" id="sod-activity-feed-list">
     `;
     if (!liveActivity.length) {
-      html += '<div style="color:#7788a0; font-size:12px; padding:16px 0; text-align:center;">No recent business transactions recorded in ERPNext.</div>';
+      html +=
+        '<div style="color:#7788a0; font-size:12px; padding:16px 0; text-align:center;">No recent business transactions recorded in ERPNext.</div>';
     } else {
       liveActivity.forEach((act) => {
         html += `
-          <div class="sod-activity-item" data-route="${frappe.utils.escape_html(act.route || '')}" title="Click to view document in Desk">
-            <div class="sod-activity-icon ${act.badge_color || 'blue'}">${act.icon || '✦'}</div>
+          <div class="sod-activity-item" data-route="${frappe.utils.escape_html(act.route || "")}" title="Click to view document in Desk">
+            <div class="sod-activity-icon ${act.badge_color || "blue"}">${act.icon || "✦"}</div>
             <div class="sod-activity-info">
               <div class="sod-activity-head">
                 <span class="sod-activity-title">${frappe.utils.escape_html(act.title)}</span>
@@ -737,12 +871,18 @@ frappe.SarathiOwnerDashboard = class {
           data: options.data || { labels: [], datasets: [] },
           type: options.type || "bar",
           height: options.height || 220,
-          colors: options.colors || ["#5369ef", "#12b886", "#f2a342", "#e03131"],
+          colors: options.colors || [
+            "#5369ef",
+            "#12b886",
+            "#f2a342",
+            "#e03131",
+          ],
           barOptions: options.barOptions || { spaceRatio: 0.3 },
           axisOptions: { xIsSeries: true },
           tooltipOptions: {
             formatTooltipX: (d) => (d + "").toUpperCase(),
-            formatTooltipY: (d) => (typeof d === "number" ? "₹" + d.toLocaleString("en-IN") : d),
+            formatTooltipY: (d) =>
+              typeof d === "number" ? "₹" + d.toLocaleString("en-IN") : d,
           },
         });
         this.chartInstances[selector] = chart;
@@ -771,17 +911,34 @@ frappe.SarathiOwnerDashboard = class {
 
     // 2. Update Charts
     if (newData.charts) {
-      if (this.chartInstances["#sod-chart-financial"] && newData.charts.financial) {
-        this.chartInstances["#sod-chart-financial"].update(newData.charts.financial);
+      if (
+        this.chartInstances["#sod-chart-financial"] &&
+        newData.charts.financial
+      ) {
+        this.chartInstances["#sod-chart-financial"].update(
+          newData.charts.financial,
+        );
       }
       if (this.chartInstances["#sod-chart-capital"] && newData.charts.capital) {
-        this.chartInstances["#sod-chart-capital"].update(newData.charts.capital);
+        this.chartInstances["#sod-chart-capital"].update(
+          newData.charts.capital,
+        );
       }
-      if (this.chartInstances["#sod-chart-orderbook"] && newData.charts.order_book) {
-        this.chartInstances["#sod-chart-orderbook"].update(newData.charts.order_book);
+      if (
+        this.chartInstances["#sod-chart-orderbook"] &&
+        newData.charts.order_book
+      ) {
+        this.chartInstances["#sod-chart-orderbook"].update(
+          newData.charts.order_book,
+        );
       }
-      if (this.chartInstances["#sod-chart-ar-aging"] && newData.charts.ar_aging) {
-        this.chartInstances["#sod-chart-ar-aging"].update(newData.charts.ar_aging);
+      if (
+        this.chartInstances["#sod-chart-ar-aging"] &&
+        newData.charts.ar_aging
+      ) {
+        this.chartInstances["#sod-chart-ar-aging"].update(
+          newData.charts.ar_aging,
+        );
       }
     }
   }
@@ -791,14 +948,54 @@ frappe.SarathiOwnerDashboard = class {
   ------------------------------------------------------------- */
   renderReportsPage() {
     const reportOptions = [
-      ["Accounts Receivable", "Customer unpaid invoice aging, overdue balances, and debt risks", "Finance", "₹"],
-      ["Profit and Loss Statement", "Official P&L statement: revenue vs operating expenses and net margin", "Finance", "📈"],
-      ["Gross and Net Profit Report", "Direct production costs, gross margin %, and business profit", "Finance", "⚖"],
-      ["Sales Order Analysis", "Commercial intake vs delivery backlog and pending fulfillment", "Commercial", "▣"],
-      ["Warehouse Wise Stock Balance", "Working capital valuation across warehouses", "Stock", "◫"],
-      ["Production Analytics", "Factory output volume and monthly completion velocity", "Manufacturing", "⚙"],
-      ["Work Order Summary", "Work orders status, planned vs produced quantities and cycle age", "Manufacturing", "🏭"],
-      ["Project Summary", "Project costing margins: budget vs actual costs and milestone health", "Projects", "▦"],
+      [
+        "Accounts Receivable",
+        "Customer unpaid invoice aging, overdue balances, and debt risks",
+        "Finance",
+        "₹",
+      ],
+      [
+        "Profit and Loss Statement",
+        "Official P&L statement: revenue vs operating expenses and net margin",
+        "Finance",
+        "📈",
+      ],
+      [
+        "Gross and Net Profit Report",
+        "Direct production costs, gross margin %, and business profit",
+        "Finance",
+        "⚖",
+      ],
+      [
+        "Sales Order Analysis",
+        "Commercial intake vs delivery backlog and pending fulfillment",
+        "Commercial",
+        "▣",
+      ],
+      [
+        "Warehouse Wise Stock Balance",
+        "Working capital valuation across warehouses",
+        "Stock",
+        "◫",
+      ],
+      [
+        "Production Analytics",
+        "Factory output volume and monthly completion velocity",
+        "Manufacturing",
+        "⚙",
+      ],
+      [
+        "Work Order Summary",
+        "Work orders status, planned vs produced quantities and cycle age",
+        "Manufacturing",
+        "🏭",
+      ],
+      [
+        "Project Summary",
+        "Project costing margins: budget vs actual costs and milestone health",
+        "Projects",
+        "▦",
+      ],
     ];
 
     let html = `
@@ -867,7 +1064,9 @@ frappe.SarathiOwnerDashboard = class {
       self.currentReportName = selectedReport;
       self.$content.find("#sod-report-name-text").text(selectedReport);
       self.$content.find("#sod-report-icon").text($opt.data("icon") || "▥");
-      self.$content.find("#sod-report-desc-text").text($opt.data("desc") || "Official ERPNext report");
+      self.$content
+        .find("#sod-report-desc-text")
+        .text($opt.data("desc") || "Official ERPNext report");
       self.executeLiveReport(selectedReport, true);
     });
 
@@ -927,21 +1126,33 @@ frappe.SarathiOwnerDashboard = class {
     const columns = reportData.columns || [];
     const rawResult = reportData.result || [];
     const summary = reportData.report_summary || [];
-    const execTime = reportData.execution_time ? `${reportData.execution_time.toFixed(2)}s` : "";
+    const execTime = reportData.execution_time
+      ? `${reportData.execution_time.toFixed(2)}s`
+      : "";
 
     // 1. Render Summary Bar
-    const $summaryContainer = this.$content.find("#sod-report-summary-container");
+    const $summaryContainer = this.$content.find(
+      "#sod-report-summary-container",
+    );
     $summaryContainer.empty();
     if (summary.length) {
       summary.forEach((kpi) => {
-        const numVal = typeof flt !== "undefined" ? flt(kpi.value) : (Number(kpi.value) || 0);
+        const numVal =
+          typeof flt !== "undefined" ? flt(kpi.value) : Number(kpi.value) || 0;
         let valFormatted = "";
         if (kpi.datatype === "Currency") {
-          valFormatted = "₹" + numVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          valFormatted =
+            "₹" +
+            numVal.toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
         } else if (kpi.datatype === "Percent") {
           valFormatted = numVal + "%";
         } else {
-          valFormatted = String(kpi.value !== null && kpi.value !== undefined ? kpi.value : "");
+          valFormatted = String(
+            kpi.value !== null && kpi.value !== undefined ? kpi.value : "",
+          );
         }
 
         $summaryContainer.append(`
@@ -995,12 +1206,20 @@ frappe.SarathiOwnerDashboard = class {
           let formatted = val;
 
           if (colDef.fieldtype === "Currency" && typeof val === "number") {
-            const numVal = typeof flt !== "undefined" ? flt(val) : (Number(val) || 0);
-            formatted = "₹" + numVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const numVal =
+              typeof flt !== "undefined" ? flt(val) : Number(val) || 0;
+            formatted =
+              "₹" +
+              numVal.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
           } else if (colDef.fieldtype === "Date" && val) {
             formatted = String(val);
           } else if (colDef.fieldtype === "Link" && val && colDef.options) {
-            const dtSlug = (colDef.options + "").toLowerCase().replace(/ /g, "-");
+            const dtSlug = (colDef.options + "")
+              .toLowerCase()
+              .replace(/ /g, "-");
             formatted = `<a href="/app/${dtSlug}/${encodeURIComponent(val)}" target="_blank" class="sod-link">${frappe.utils.escape_html(String(val))}</a>`;
           } else {
             formatted = frappe.utils.escape_html(String(val));
@@ -1018,8 +1237,12 @@ frappe.SarathiOwnerDashboard = class {
     `;
 
     this.$content.find("#sod-report-table-area").html(tableHtml);
-    this.$content.find("#sod-report-row-count").text(`Total Rows: ${rows.length}`);
-    this.$content.find("#sod-report-exec-time").text(execTime ? `Executed in ${execTime}` : "");
+    this.$content
+      .find("#sod-report-row-count")
+      .text(`Total Rows: ${rows.length}`);
+    this.$content
+      .find("#sod-report-exec-time")
+      .text(execTime ? `Executed in ${execTime}` : "");
   }
 
   filterReportRows() {
@@ -1038,16 +1261,27 @@ frappe.SarathiOwnerDashboard = class {
       }
     });
 
-    this.$content.find("#sod-report-row-count").text(q ? `Showing ${matched} matching rows` : `Total Rows: ${this.activeReportRows?.length || 0}`);
+    this.$content
+      .find("#sod-report-row-count")
+      .text(
+        q
+          ? `Showing ${matched} matching rows`
+          : `Total Rows: ${this.activeReportRows?.length || 0}`,
+      );
   }
 
   exportReportToCSV() {
     if (!this.activeReportData || !this.activeReportData.columns) {
-      frappe.show_alert({ message: "No report data available to export", indicator: "orange" });
+      frappe.show_alert({
+        message: "No report data available to export",
+        indicator: "orange",
+      });
       return;
     }
 
-    const cols = this.activeReportData.columns.map((c) => `"${(c.label || c.fieldname).replace(/"/g, '""')}"`);
+    const cols = this.activeReportData.columns.map(
+      (c) => `"${(c.label || c.fieldname).replace(/"/g, '""')}"`,
+    );
     const csvRows = [cols.join(",")];
 
     (this.activeReportRows || []).forEach((row) => {
@@ -1058,15 +1292,22 @@ frappe.SarathiOwnerDashboard = class {
       csvRows.push(escapedRow.join(","));
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join("\n"));
+    const csvContent =
+      "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join("\n"));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", csvContent);
-    downloadAnchor.setAttribute("download", `${this.currentReportName.toLowerCase().replace(/ /g, "_")}_${frappe.datetime.now_date()}.csv`);
+    downloadAnchor.setAttribute(
+      "download",
+      `${this.currentReportName.toLowerCase().replace(/ /g, "_")}_${frappe.datetime.now_date()}.csv`,
+    );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
 
-    frappe.show_alert({ message: "CSV exported successfully", indicator: "green" });
+    frappe.show_alert({
+      message: "CSV exported successfully",
+      indicator: "green",
+    });
   }
 
   /* -------------------------------------------------------------
@@ -1082,7 +1323,7 @@ frappe.SarathiOwnerDashboard = class {
       html += '<div class="sod-grid sod-cards">';
       data.cards.forEach(([label, value, color, desc, route]) => {
         html += `
-          <div class="sod-card ${color}" data-action="open-desk" data-route="${frappe.utils.escape_html(route || '')}" role="button" tabindex="0" title="Click to view in Desk">
+          <div class="sod-card ${color}" data-action="open-desk" data-route="${frappe.utils.escape_html(route || "")}" role="button" tabindex="0" title="Click to view in Desk">
             <div class="sod-label">${frappe.utils.escape_html(label)}</div>
             <strong class="sod-kpi-val">${frappe.utils.escape_html(value)}</strong>
             <small>${frappe.utils.escape_html(desc || "Open ERPNext list ↗")}</small>
@@ -1161,7 +1402,7 @@ frappe.SarathiOwnerDashboard = class {
                   <p>Budget vs actual costs and billing realization</p>
                 </div>
                 <div>
-                  <a href="/app/project/${encodeURIComponent(pf.name || '')}" target="_blank" class="sod-btn-sm">Open Project ↗</a>
+                  <a href="/app/project/${encodeURIComponent(pf.name || "")}" target="_blank" class="sod-btn-sm">Open Project ↗</a>
                 </div>
               </div>
               <div class="sod-feed"><b>Estimated Budget:</b> <span>${pf.estimated_cost}</span></div>
@@ -1208,10 +1449,16 @@ frappe.SarathiOwnerDashboard = class {
         data.table.rows.forEach((r) => {
           html += "<tr>";
           r.forEach((cell, ci) => {
-            const strCell = String(cell !== null && cell !== undefined ? cell : "");
+            const strCell = String(
+              cell !== null && cell !== undefined ? cell : "",
+            );
 
             // Pre-rendered HTML (links, buttons, pills)
-            if (strCell.includes("<a ") || strCell.includes("<span ") || strCell.includes("<button ")) {
+            if (
+              strCell.includes("<a ") ||
+              strCell.includes("<span ") ||
+              strCell.includes("<button ")
+            ) {
               html += `<td>${strCell}</td>`;
               return;
             }
@@ -1222,7 +1469,11 @@ frappe.SarathiOwnerDashboard = class {
             } else if (pageKey === "projects" && ci === 1) {
               const projId = r[0];
               html += `<td><a href="javascript:void(0)" data-project-drill="${encodeURIComponent(projId)}" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
-            } else if (pageKey === "projects" && ci === 2 && strCell !== "Unassigned") {
+            } else if (
+              pageKey === "projects" &&
+              ci === 2 &&
+              strCell !== "Unassigned"
+            ) {
               html += `<td><a href="/app/customer/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
             } else if (pageKey === "projects" && ci === 3 && strCell !== "—") {
               html += `<td><a href="/app/sales-order/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
@@ -1238,11 +1489,19 @@ frappe.SarathiOwnerDashboard = class {
             } else if (pageKey === "stock_quality" && (ci === 0 || ci === 1)) {
               const whId = r[0];
               html += `<td><a href="/app/warehouse/${encodeURIComponent(whId)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
-            } else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 0) {
-              const isPurchase = strCell.toUpperCase().startsWith("PINV") || strCell.toUpperCase().startsWith("PUR-");
+            } else if (
+              (pageKey === "invoicing" || pageKey === "finance") &&
+              ci === 0
+            ) {
+              const isPurchase =
+                strCell.toUpperCase().startsWith("PINV") ||
+                strCell.toUpperCase().startsWith("PUR-");
               const dt = isPurchase ? "purchase-invoice" : "sales-invoice";
               html += `<td><a href="/app/${dt}/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
-            } else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 1) {
+            } else if (
+              (pageKey === "invoicing" || pageKey === "finance") &&
+              ci === 1
+            ) {
               html += `<td><a href="/app/customer/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
             } else if (pageKey === "payments" && ci === 0) {
               html += `<td><a href="/app/payment-entry/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
@@ -1256,15 +1515,39 @@ frappe.SarathiOwnerDashboard = class {
               html += `<td><a href="/app/shareholder/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
             } else if (pageKey === "subscription" && ci === 0) {
               html += `<td><a href="/app/subscription/${encodeURIComponent(strCell)}" target="_blank" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
-            } else if (strCell === "Delayed" || strCell === "Stop" || strCell === "Disabled" || strCell.startsWith("Critical")) {
+            } else if (
+              strCell === "Delayed" ||
+              strCell === "Stop" ||
+              strCell === "Disabled" ||
+              strCell.startsWith("Critical")
+            ) {
               html += `<td><span class="sod-pill red">${frappe.utils.escape_html(strCell)}</span></td>`;
-            } else if (strCell === "On Track" || strCell === "On Time" || strCell === "Paid" || strCell === "Active" || strCell === "Registered" || strCell === "Submitted" || strCell === "Compliant" || strCell === "Primary Default") {
+            } else if (
+              strCell === "On Track" ||
+              strCell === "On Time" ||
+              strCell === "Paid" ||
+              strCell === "Active" ||
+              strCell === "Registered" ||
+              strCell === "Submitted" ||
+              strCell === "Compliant" ||
+              strCell === "Primary Default"
+            ) {
               html += `<td style="color:#0d825f; font-weight:700;"><span class="sod-pill green">${strCell}</span></td>`;
             } else if (strCell.startsWith("Overdue >30d")) {
               html += `<td><span class="sod-pill red">${frappe.utils.escape_html(strCell)}</span></td>`;
-            } else if (strCell.startsWith("Overdue 1-30d") || strCell === "Optional" || strCell === "Warn") {
+            } else if (
+              strCell.startsWith("Overdue 1-30d") ||
+              strCell === "Optional" ||
+              strCell === "Warn"
+            ) {
               html += `<td><span class="sod-pill amber">${frappe.utils.escape_html(strCell)}</span></td>`;
-            } else if (strCell === "Current (Not Due)" || strCell === "Open" || strCell === "Draft" || strCell === "Receive" || strCell === "Pay") {
+            } else if (
+              strCell === "Current (Not Due)" ||
+              strCell === "Open" ||
+              strCell === "Draft" ||
+              strCell === "Receive" ||
+              strCell === "Pay"
+            ) {
               html += `<td><span class="sod-pill blue">${frappe.utils.escape_html(strCell)}</span></td>`;
             } else {
               html += `<td>${frappe.utils.escape_html(strCell)}</td>`;
@@ -1329,7 +1612,10 @@ frappe.SarathiOwnerDashboard = class {
   }
 
   showStageModal(projectName, stageId) {
-    const pipelineData = (this.activeData?.pipelines || []).find((p) => p.project === projectName) || this.activeData?.pipeline;
+    const pipelineData =
+      (this.activeData?.pipelines || []).find(
+        (p) => p.project === projectName,
+      ) || this.activeData?.pipeline;
     if (!pipelineData) return;
 
     const stage = (pipelineData.stages || []).find((s) => s.id === stageId);
@@ -1340,7 +1626,10 @@ frappe.SarathiOwnerDashboard = class {
     let recordsHtml = "";
     if (stage.records && stage.records.length) {
       recordsHtml = stage.records
-        .map((rec) => `<li><a href="/app/${encodeURIComponent(stage.doctype.toLowerCase().replace(/ /g, "-"))}/${encodeURIComponent(rec)}" target="_blank" class="sod-link" style="font-size:12.5px;">${frappe.utils.escape_html(rec)} ↗</a></li>`)
+        .map(
+          (rec) =>
+            `<li><a href="/app/${encodeURIComponent(stage.doctype.toLowerCase().replace(/ /g, "-"))}/${encodeURIComponent(rec)}" target="_blank" class="sod-link" style="font-size:12.5px;">${frappe.utils.escape_html(rec)} ↗</a></li>`,
+        )
         .join("");
     } else {
       recordsHtml = `<li><em>No ${stage.doctype} records recorded (${stage.badge}).</em></li>`;

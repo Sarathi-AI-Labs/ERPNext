@@ -95,7 +95,10 @@
   word-break: break-word;
   overflow-wrap: break-word;
   box-shadow: 0 2px 6px rgba(18, 49, 77, 0.03);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .sarathi-kpi:hover {
