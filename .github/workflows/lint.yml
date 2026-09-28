@@ -26,16 +26,16 @@ jobs:
       - name: Install pre-commit
         run: pip install -U pre-commit
 
-      - name: Lint sarathi_visibility
+      - name: Lint sarathi_visibility and sarathi_owner
         run: |
-          mapfile -t FILES < <(git ls-files -- 'sarathi_visibility/**')
+          mapfile -t FILES < <(git ls-files -- 'sarathi_visibility/**' 'sarathi_owner/**')
 
           if [ ${#FILES[@]} -eq 0 ]; then
-            echo "No tracked files found in sarathi_visibility/"
+            echo "No tracked files found in sarathi_visibility/ or sarathi_owner/"
             exit 0
           fi
 
-          echo "Found ${#FILES[@]} files in sarathi_visibility/ to lint:"
+          echo "Found ${#FILES[@]} files in sarathi_visibility/ and sarathi_owner/ to lint:"
           printf ' - %s\n' "${FILES[@]}"
 
           pre-commit run --color=always --files "${FILES[@]}"

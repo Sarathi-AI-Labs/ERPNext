@@ -1,0 +1,20 @@
+{
+  "doctype": "Page",
+  "name": "sarathiownertower",
+  "page_name": "sarathiownertower",
+  "title": "Sarathi Owner Dashboard",
+  "module": "Sarathi Owner",
+  "standard": "Yes",
+  "system_page": 0,
+  "roles": [
+    {
+      "role": "Sarathi Owner"
+    },
+    {
+      "role": "System Manager"
+    },
+    {
+      "role": "Manufacturing Manager"
+    }
+  ]
+}

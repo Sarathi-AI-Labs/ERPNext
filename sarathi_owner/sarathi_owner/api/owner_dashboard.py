@@ -1,0 +1,2891 @@
+"""Sarathi Owner Dashboard API.
+
+High-performance, permission-aware executive endpoints for business owners:
+Real-time financial health, commercial order book, live interactive charts,
+live embedded ERPNext report runner, working capital, and manufacturing governance.
+"""
+
+import datetime
+import json
+from collections import defaultdict
+
+import frappe
+from frappe.utils import add_days, cint, flt, getdate, now_datetime, pretty_date, today
+
+from sarathi_owner.api.permissions import can_view_finance, get_permission_context
+from sarathi_owner.api.pipeline import get_project_pipeline
+
+
+def broadcast_live_event(doc, method=None):
+    """Publishes real-time WebSocket event via Socket.IO whenever ERPNext documents change."""
+    try:
+        frappe.publish_realtime(
+            "sarathi_owner_live_change",
+            {
+                "doctype": getattr(doc, "doctype", ""),
+                "name": getattr(doc, "name", ""),
+                "company": getattr(doc, "company", None),
+                "modified": str(getattr(doc, "modified", now_datetime())),
+            },
+        )
+    except Exception:
+        pass
+
+
+def _get_date_bounds(date_range_str):
+    """Parses date range presets into (from_date, to_date) ISO strings."""
+    if not date_range_str or date_range_str == "all":
+        return None, None
+
+    today_dt = getdate(today())
+
+    if date_range_str == "today":
+        return str(today_dt), str(today_dt)
+    elif date_range_str == "this_week":
+        start = today_dt - datetime.timedelta(days=today_dt.weekday())
+        end = start + datetime.timedelta(days=6)
+        return str(start), str(end)
+    elif date_range_str == "this_month":
+        start = today_dt.replace(day=1)
+        next_month = start.replace(day=28) + datetime.timedelta(days=4)
+        end = next_month - datetime.timedelta(days=next_month.day)
+        return str(start), str(end)
+    elif date_range_str == "last_month":
+        this_month_start = today_dt.replace(day=1)
+        last_month_end = this_month_start - datetime.timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+        return str(last_month_start), str(last_month_end)
+    elif date_range_str == "this_quarter":
+        quarter_month = ((today_dt.month - 1) // 3) * 3 + 1
+        start = today_dt.replace(month=quarter_month, day=1)
+        end_month = quarter_month + 2
+        next_m = today_dt.replace(month=end_month, day=28) + datetime.timedelta(days=4)
+        end = next_m - datetime.timedelta(days=next_m.day)
+        return str(start), str(end)
+    elif date_range_str == "this_year":
+        if today_dt.month >= 4:
+            start = today_dt.replace(month=4, day=1)
+            end = today_dt.replace(year=today_dt.year + 1, month=3, day=31)
+        else:
+            start = today_dt.replace(year=today_dt.year - 1, month=4, day=1)
+            end = today_dt.replace(month=3, day=31)
+        return str(start), str(end)
+
+    return None, None
+
+
+@frappe.whitelist()
+def get_owner_context():
+    """Returns baseline metadata for filters and user authorization."""
+    perm = get_permission_context()
+
+    companies = frappe.get_all(
+        "Company", fields=["name", "company_name"], order_by="name asc"
+    )
+    customers = frappe.get_all(
+        "Customer", fields=["name", "customer_name"], order_by="name asc", limit=100
+    )
+    projects = frappe.get_all(
+        "Project",
+        fields=["name", "project_name", "company", "status"],
+        order_by="name asc",
+    )
+
+    return {
+        "companies": companies,
+        "customers": customers,
+        "projects": projects,
+        "permissions": perm,
+        "current_date": today(),
+    }
+
+
+@frappe.whitelist()
+def get_owner_summary(filters=None):
+    """Aggregates executive metrics, live charts, activity, and pipelines for the Owner Home view."""
+    if isinstance(filters, str):
+        try:
+            filters = json.loads(filters)
+        except Exception:
+            filters = {}
+    filters = filters or {}
+
+    company = filters.get("company")
+    customer = filters.get("customer")
+    project_filter = filters.get("project")
+    status = filters.get("status")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
+    perm = get_permission_context()
+    financials_allowed = perm["can_view_finance"]
+    currency = (
+        frappe.db.get_single_value("Global Defaults", "default_currency") or "INR"
+    )
+    symbol = (
+        "₹" if currency == "INR" else ("$" if currency == "USD" else currency + " ")
+    )
+
+    def fmt_money(val):
+        if not financials_allowed:
+            return "Restricted"
+        val = flt(val)
+        if abs(val) >= 10000000:
+            return f"{symbol}{val / 10000000:.2f} Cr"
+        if abs(val) >= 100000:
+            return f"{symbol}{val / 100000:.2f} L"
+        return f"{symbol}{val:,.0f}"
+
+    # 1. Projects Analysis
+    project_conditions = {"docstatus": ["!=", 2]}
+    if company:
+        project_conditions["company"] = company
+    if customer:
+        project_conditions["customer"] = customer
+    if status:
+        project_conditions["status"] = status
+    if project_filter:
+        project_conditions["name"] = project_filter
+    if from_date and to_date:
+        project_conditions["creation"] = [
+            "between",
+            [f"{from_date} 00:00:00", f"{to_date} 23:59:59"],
+        ]
+
+    projects = frappe.get_all(
+        "Project",
+        filters=project_conditions,
+        fields=[
+            "name",
+            "project_name",
+            "company",
+            "customer",
+            "status",
+            "percent_complete",
+            "expected_end_date",
+            "estimated_costing",
+            "total_costing_amount",
+            "total_billed_amount",
+            "total_sales_amount",
+        ],
+        order_by="modified desc",
+    )
+
+    if search:
+        projects = [
+            p
+            for p in projects
+            if search in (p.name or "").lower()
+            or search in (p.project_name or "").lower()
+            or search in (p.customer or "").lower()
+        ]
+
+    open_projects = [p for p in projects if p.status in ("Open", "Ongoing", "Active")]
+    total_project_budget = sum(flt(p.estimated_costing) for p in open_projects)
+    total_project_actual_cost = sum(flt(p.total_costing_amount) for p in open_projects)
+
+    # 2. Executive Commercial Order Book (Sales Orders)
+    so_filters = {"docstatus": 1}
+    if company:
+        so_filters["company"] = company
+    if customer:
+        so_filters["customer"] = customer
+    if from_date and to_date:
+        so_filters["transaction_date"] = ["between", [from_date, to_date]]
+
+    sales_orders = frappe.get_all(
+        "Sales Order",
+        filters=so_filters,
+        fields=[
+            "name",
+            "customer",
+            "status",
+            "delivery_date",
+            "grand_total",
+            "per_delivered",
+            "per_billed",
+        ],
+    )
+
+    open_sales_orders = [
+        o for o in sales_orders if o.status not in ("Completed", "Closed", "Cancelled")
+    ]
+    total_order_book_value = sum(flt(o.grand_total) for o in open_sales_orders)
+    pending_delivery_orders = [
+        o for o in open_sales_orders if flt(o.per_delivered) < 100
+    ]
+
+    # 3. Accounts Receivable & Overdue Cash Flow (Sales Invoices)
+    si_filters = {"docstatus": 1}
+    if company:
+        si_filters["company"] = company
+    if customer:
+        si_filters["customer"] = customer
+    if from_date and to_date:
+        si_filters["posting_date"] = ["between", [from_date, to_date]]
+
+    sales_invoices = frappe.get_all(
+        "Sales Invoice",
+        filters=si_filters,
+        fields=[
+            "name",
+            "customer",
+            "project",
+            "due_date",
+            "posting_date",
+            "grand_total",
+            "outstanding_amount",
+            "status",
+        ],
+    )
+
+    unpaid_invoices = [i for i in sales_invoices if flt(i.outstanding_amount) > 0]
+    total_receivables = sum(flt(i.outstanding_amount) for i in unpaid_invoices)
+
+    today_date = getdate(today())
+    overdue_invoices = [
+        i for i in unpaid_invoices if i.due_date and getdate(i.due_date) < today_date
+    ]
+    overdue_receivables = sum(flt(i.outstanding_amount) for i in overdue_invoices)
+
+    # 4. Inventory Working Capital Allocation
+    total_stock_value = 0.0
+    rm_value = 0.0
+    fg_value = 0.0
+    wip_value = 0.0
+    low_stock_items = []
+
+    if frappe.db.table_exists("Bin"):
+        bin_filters = {}
+        if company:
+            company_whs = frappe.get_all(
+                "Warehouse", filters={"company": company}, pluck="name"
+            )
+            if company_whs:
+                bin_filters["warehouse"] = ["in", company_whs]
+
+        bins = frappe.get_all(
+            "Bin",
+            filters=bin_filters,
+            fields=[
+                "item_code",
+                "warehouse",
+                "actual_qty",
+                "valuation_rate",
+                "stock_value",
+            ],
+        )
+
+        item_groups = frappe.get_all(
+            "Item",
+            filters={"disabled": 0},
+            fields=["name", "item_name", "item_group", "safety_stock"],
+        )
+        ig_map = {i.name: i.item_group for i in item_groups}
+        safety_map = {i.name: flt(i.safety_stock) for i in item_groups}
+        item_name_map = {i.name: i.item_name for i in item_groups}
+
+        for b in bins:
+            val = (
+                flt(b.stock_value)
+                if b.stock_value is not None
+                else flt(b.actual_qty) * flt(b.valuation_rate)
+            )
+            total_stock_value += val
+
+            group = ig_map.get(b.item_code, "")
+            wh_lower = (b.warehouse or "").lower()
+
+            if group == "Raw Material" or "raw" in wh_lower or "store" in wh_lower:
+                rm_value += val
+            elif group == "Finished Goods" or "finished" in wh_lower:
+                fg_value += val
+            elif (
+                "wip" in wh_lower
+                or "progress" in wh_lower
+                or "work in process" in wh_lower
+            ):
+                wip_value += val
+            else:
+                rm_value += val
+
+            reorder = safety_map.get(b.item_code, 0.0)
+            if reorder > 0 and flt(b.actual_qty) <= reorder:
+                low_stock_items.append(
+                    {
+                        "item_code": b.item_code,
+                        "item_name": item_name_map.get(b.item_code, b.item_code),
+                        "warehouse": b.warehouse,
+                        "available": f"{flt(b.actual_qty):g} pcs",
+                        "reorder": f"{reorder:g} pcs",
+                    }
+                )
+
+    # 5. Financial Snapshot & Liquid Cash in Bank
+    total_income = 0.0
+    total_expenses = 0.0
+    net_profit = 0.0
+    cash_in_bank = 0.0
+
+    if financials_allowed and frappe.db.table_exists("GL Entry"):
+        # Cash & Bank Balance
+        cb_res = frappe.db.sql(
+            """
+            SELECT SUM(debit - credit) as total
+            FROM `tabGL Entry`
+            WHERE is_cancelled = 0
+            AND account IN (SELECT name FROM `tabAccount` WHERE account_type IN ('Bank', 'Cash'))
+            """ + (f" AND company = '{company}'" if company else ""),
+            as_dict=True,
+        )
+        if cb_res and cb_res[0].total:
+            cash_in_bank = flt(cb_res[0].total)
+
+        date_clause = (
+            f" AND posting_date BETWEEN '{from_date}' AND '{to_date}'"
+            if from_date and to_date
+            else ""
+        )
+
+        income_entries = frappe.db.sql(
+            """
+            SELECT SUM(credit - debit) as total
+            FROM `tabGL Entry`
+            WHERE is_cancelled = 0
+            AND voucher_type in ('Sales Invoice', 'Journal Entry')
+            AND account IN (SELECT name FROM `tabAccount` WHERE root_type = 'Income')
+            """ + (f" AND company = '{company}'" if company else "") + date_clause,
+            as_dict=True,
+        )
+        if income_entries and income_entries[0].total:
+            total_income = flt(income_entries[0].total)
+
+        expense_entries = frappe.db.sql(
+            """
+            SELECT SUM(debit - credit) as total
+            FROM `tabGL Entry`
+            WHERE is_cancelled = 0
+            AND voucher_type in ('Purchase Invoice', 'Journal Entry', 'Stock Entry')
+            AND account IN (SELECT name FROM `tabAccount` WHERE root_type = 'Expense')
+            """ + (f" AND company = '{company}'" if company else "") + date_clause,
+            as_dict=True,
+        )
+        if expense_entries and expense_entries[0].total:
+            total_expenses = flt(expense_entries[0].total)
+
+        net_profit = total_income - total_expenses
+
+    # 6. Strategic Manufacturing Pipelines
+    pipelines = []
+    for p in open_projects[:6]:
+        pipe = get_project_pipeline(p.name)
+        if pipe:
+            pipelines.append(pipe)
+
+    # 7. Interactive Frappe Chart Datasets
+    financial_chart = _get_financial_chart_data(company)
+    working_capital_chart = _get_working_capital_chart_data(
+        rm_value, wip_value, fg_value
+    )
+    order_book_chart = _get_order_book_chart_data(company)
+    ar_aging_chart = _get_ar_aging_chart_data(company)
+    production_velocity_chart = _get_production_chart_data(company)
+
+    # 8. Executive Action & Risk Alerts
+    action_alerts = []
+    if overdue_receivables > 0:
+        action_alerts.append(
+            {
+                "type": "finance",
+                "level": "red",
+                "title": f"Overdue Customer Receivables: {fmt_money(overdue_receivables)}",
+                "desc": f"{len(overdue_invoices)} invoice(s) past payment terms.",
+                "link": "/app/query-report/Accounts Receivable",
+            }
+        )
+
+    delayed_wos = frappe.db.sql(
+        """
+        SELECT name, production_item, planned_end_date, qty, produced_qty
+        FROM `tabWork Order`
+        WHERE docstatus = 1 AND status not in ('Completed', 'Closed', 'Cancelled')
+        AND planned_end_date IS NOT NULL AND planned_end_date < %s
+        ORDER BY planned_end_date ASC LIMIT 5
+        """,
+        (today(),),
+        as_dict=True,
+    )
+    if delayed_wos:
+        action_alerts.append(
+            {
+                "type": "production",
+                "level": "amber",
+                "title": f"{len(delayed_wos)} Work Order(s) Delayed",
+                "desc": f"Orders past planned completion: {', '.join(w.name for w in delayed_wos[:2])}",
+                "link": "/app/work-order?status=In%20Process",
+            }
+        )
+
+    if low_stock_items:
+        action_alerts.append(
+            {
+                "type": "stock",
+                "level": "amber",
+                "title": f"{len(low_stock_items)} Items Below Reorder Level",
+                "desc": f"Shortage risk: {', '.join(i['item_name'] for i in low_stock_items[:2])}",
+                "link": "/app/item",
+            }
+        )
+
+    # 9. Real-Time Curated Business Activity (Logins OMITTED, only real transactions)
+    live_activity = _get_live_activity(company=company, limit=10)
+
+    # 10. Active Projects Portfolio Table Rows
+    active_projects_rows = []
+    for p in open_projects:
+        so = frappe.db.get_value(
+            "Sales Order",
+            {"project": p.name, "docstatus": ["!=", 2]},
+            "name",
+        )
+        wo_stats = frappe.db.sql(
+            """
+            SELECT SUM(qty) as planned, SUM(produced_qty) as produced
+            FROM `tabWork Order`
+            WHERE project = %s AND docstatus != 2
+            """,
+            (p.name,),
+            as_dict=True,
+        )
+        planned = flt(wo_stats[0].planned) if wo_stats else 0
+        produced = flt(wo_stats[0].produced) if wo_stats else 0
+        wo_output = f"{produced:g} / {planned:g}" if planned > 0 else "No WOs"
+
+        budget = flt(p.estimated_costing)
+        actual_cost = flt(p.total_costing_amount)
+        cost_variance = budget - actual_cost
+
+        is_delayed = bool(
+            p.expected_end_date
+            and getdate(p.expected_end_date) < today_date
+            and p.status != "Completed"
+        )
+
+        active_projects_rows.append(
+            {
+                "project": p.name,
+                "project_name": p.project_name or p.name,
+                "customer": p.customer or "Unassigned",
+                "sales_order": so or "—",
+                "status": p.status,
+                "percent_complete": flt(p.percent_complete),
+                "wo_output": wo_output,
+                "budget": fmt_money(budget),
+                "actual_cost": fmt_money(actual_cost),
+                "variance": fmt_money(cost_variance),
+                "variance_positive": cost_variance >= 0,
+                "expected_end_date": str(p.expected_end_date or "—"),
+                "schedule_status": "Delayed" if is_delayed else "On Track",
+            }
+        )
+
+    # Calculate capital percentages
+    rm_pct = (
+        round((rm_value / total_stock_value) * 100, 1)
+        if total_stock_value > 0
+        else 50.0
+    )
+    fg_pct = (
+        round((fg_value / total_stock_value) * 100, 1)
+        if total_stock_value > 0
+        else 30.0
+    )
+    wip_pct = (
+        round((wip_value / total_stock_value) * 100, 1)
+        if total_stock_value > 0
+        else 20.0
+    )
+
+    return {
+        "cards": [
+            {
+                "label": "Active Manufacturing Projects",
+                "value": f"{len(open_projects)} Active",
+                "color": "blue",
+                "desc": f"Budget: {fmt_money(total_project_budget)}",
+                "action": "view-projects",
+            },
+            {
+                "label": "Commercial Order Book",
+                "value": fmt_money(total_order_book_value),
+                "color": "cyan",
+                "desc": f"{len(pending_delivery_orders)} orders pending delivery",
+                "action": "view-sales-orders",
+            },
+            {
+                "label": "Accounts Receivable (AR)",
+                "value": fmt_money(total_receivables),
+                "color": "amber" if overdue_receivables > 0 else "green",
+                "desc": f"Overdue: {fmt_money(overdue_receivables)}",
+                "action": "view-finance",
+            },
+            {
+                "label": "Inventory Working Capital",
+                "value": fmt_money(total_stock_value),
+                "color": "purple",
+                "desc": f"RM: {fmt_money(rm_value)} · FG: {fmt_money(fg_value)}",
+                "action": "view-stock",
+            },
+            {
+                "label": "Total Expenses",
+                "value": fmt_money(total_expenses),
+                "color": "amber",
+                "desc": "Operating & direct manufacturing costs",
+                "action": "view-pnl",
+            },
+            {
+                "label": "Net Profit",
+                "value": fmt_money(net_profit),
+                "color": "green" if net_profit >= 0 else "red",
+                "desc": f"Revenue: {fmt_money(total_income)}",
+                "action": "view-reports",
+            },
+        ],
+        "capital_allocation": {
+            "rm_val": fmt_money(rm_value),
+            "rm_pct": rm_pct,
+            "fg_val": fmt_money(fg_value),
+            "fg_pct": fg_pct,
+            "wip_val": fmt_money(wip_value),
+            "wip_pct": wip_pct,
+            "total_val": fmt_money(total_stock_value),
+        },
+        "pipelines": pipelines,
+        "output_trend": production_velocity_chart,
+        "charts": {
+            "financial": financial_chart,
+            "capital": working_capital_chart,
+            "order_book": order_book_chart,
+            "ar_aging": ar_aging_chart,
+            "production": production_velocity_chart,
+        },
+        "action_alerts": action_alerts,
+        "live_activity": live_activity,
+        "low_stock_items": low_stock_items[:10],
+        "active_projects": active_projects_rows,
+        "financial_snapshot": {
+            "income": fmt_money(total_income),
+            "expenses": fmt_money(total_expenses),
+            "net_profit": fmt_money(net_profit),
+            "receivables": fmt_money(total_receivables),
+            "overdue": fmt_money(overdue_receivables),
+            "cash_bank": fmt_money(cash_in_bank),
+            "allowed": financials_allowed,
+        },
+    }
+
+
+def _get_live_activity(company=None, limit=12) -> list:
+    """Aggregates real-time business events across Work Orders, Stock Entries, Sales Orders,
+    Sales Invoices, Payment Entries, and Projects (Routine logins strictly excluded).
+    """
+    events = []
+
+    # 1. Recent Projects
+    proj_filters = {"docstatus": ["!=", 2]}
+    if company:
+        proj_filters["company"] = company
+    projects = frappe.get_all(
+        "Project",
+        filters=proj_filters,
+        fields=[
+            "name",
+            "project_name",
+            "status",
+            "percent_complete",
+            "modified",
+            "modified_by",
+        ],
+        order_by="modified desc",
+        limit=4,
+    )
+    for p in projects:
+        events.append(
+            {
+                "doctype": "Project",
+                "docname": p.name,
+                "title": f"Project: {p.project_name or p.name}",
+                "desc": f"Status: {p.status} · Progress: {flt(p.percent_complete):g}%",
+                "timestamp": str(p.modified),
+                "time_ago": pretty_date(p.modified),
+                "icon": "▦",
+                "badge_color": (
+                    "blue" if p.status in ("Open", "Ongoing", "Active") else "green"
+                ),
+                "route": f"/app/project/{p.name}",
+            }
+        )
+
+    # 2. Recent Work Orders
+    if frappe.db.table_exists("Work Order"):
+        wo_filters = {"docstatus": ["!=", 2]}
+        if company:
+            wo_filters["company"] = company
+        work_orders = frappe.get_all(
+            "Work Order",
+            filters=wo_filters,
+            fields=[
+                "name",
+                "production_item",
+                "qty",
+                "produced_qty",
+                "status",
+                "modified",
+                "project",
+            ],
+            order_by="modified desc",
+            limit=4,
+        )
+        for w in work_orders:
+            events.append(
+                {
+                    "doctype": "Work Order",
+                    "docname": w.name,
+                    "title": f"Work Order: {w.production_item}",
+                    "desc": f"Produced {flt(w.produced_qty):g}/{flt(w.qty):g} units · {w.status}"
+                    + (f" · {w.project}" if w.project else ""),
+                    "timestamp": str(w.modified),
+                    "time_ago": pretty_date(w.modified),
+                    "icon": "⚙",
+                    "badge_color": "green" if w.status == "Completed" else "purple",
+                    "route": f"/app/work-order/{w.name}",
+                }
+            )
+
+    # 3. Recent Sales Orders
+    if frappe.db.table_exists("Sales Order"):
+        so_filters = {"docstatus": ["!=", 2]}
+        if company:
+            so_filters["company"] = company
+        orders = frappe.get_all(
+            "Sales Order",
+            filters=so_filters,
+            fields=[
+                "name",
+                "customer",
+                "grand_total",
+                "status",
+                "modified",
+                "per_delivered",
+            ],
+            order_by="modified desc",
+            limit=4,
+        )
+        for o in orders:
+            events.append(
+                {
+                    "doctype": "Sales Order",
+                    "docname": o.name,
+                    "title": f"Sales Order: {o.name} · {o.customer}",
+                    "desc": f"Order: ₹{flt(o.grand_total):,.0f} · {flt(o.per_delivered):g}% Delivered ({o.status})",
+                    "timestamp": str(o.modified),
+                    "time_ago": pretty_date(o.modified),
+                    "icon": "▣",
+                    "badge_color": "cyan",
+                    "route": f"/app/sales-order/{o.name}",
+                }
+            )
+
+    # 4. Recent Sales Invoices
+    if frappe.db.table_exists("Sales Invoice"):
+        si_filters = {"docstatus": ["!=", 2]}
+        if company:
+            si_filters["company"] = company
+        invoices = frappe.get_all(
+            "Sales Invoice",
+            filters=si_filters,
+            fields=[
+                "name",
+                "customer",
+                "grand_total",
+                "outstanding_amount",
+                "status",
+                "modified",
+            ],
+            order_by="modified desc",
+            limit=4,
+        )
+        for i in invoices:
+            is_paid = flt(i.outstanding_amount) <= 0
+            events.append(
+                {
+                    "doctype": "Sales Invoice",
+                    "docname": i.name,
+                    "title": f"Invoice: {i.name} · {i.customer}",
+                    "desc": f"Total ₹{flt(i.grand_total):,.0f} · Outstanding ₹{flt(i.outstanding_amount):,.0f}",
+                    "timestamp": str(i.modified),
+                    "time_ago": pretty_date(i.modified),
+                    "icon": "₹",
+                    "badge_color": "green" if is_paid else "amber",
+                    "route": f"/app/sales-invoice/{i.name}",
+                }
+            )
+
+    # 5. Recent Payment Receipts
+    if frappe.db.table_exists("Payment Entry"):
+        pe_filters = {"docstatus": 1}
+        if company:
+            pe_filters["company"] = company
+        payments = frappe.get_all(
+            "Payment Entry",
+            filters=pe_filters,
+            fields=[
+                "name",
+                "party",
+                "paid_amount",
+                "received_amount",
+                "payment_type",
+                "modified",
+            ],
+            order_by="modified desc",
+            limit=4,
+        )
+        for p in payments:
+            events.append(
+                {
+                    "doctype": "Payment Entry",
+                    "docname": p.name,
+                    "title": f"Payment {p.payment_type}: {p.party or 'Cash'}",
+                    "desc": f"Amount: ₹{flt(p.received_amount or p.paid_amount):,.0f}",
+                    "timestamp": str(p.modified),
+                    "time_ago": pretty_date(p.modified),
+                    "icon": "✓",
+                    "badge_color": "green",
+                    "route": f"/app/payment-entry/{p.name}",
+                }
+            )
+
+    # 6. Recent Stock Movements
+    if frappe.db.table_exists("Stock Entry"):
+        se_filters = {"docstatus": 1}
+        if company:
+            se_filters["company"] = company
+        stock_entries = frappe.get_all(
+            "Stock Entry",
+            filters=se_filters,
+            fields=["name", "purpose", "work_order", "posting_date", "modified"],
+            order_by="modified desc",
+            limit=4,
+        )
+        for s in stock_entries:
+            events.append(
+                {
+                    "doctype": "Stock Entry",
+                    "docname": s.name,
+                    "title": f"Stock: {s.purpose}",
+                    "desc": f"Entry {s.name}"
+                    + (f" for Work Order {s.work_order}" if s.work_order else ""),
+                    "timestamp": str(s.modified),
+                    "time_ago": pretty_date(s.modified),
+                    "icon": "▥",
+                    "badge_color": "purple",
+                    "route": f"/app/stock-entry/{s.name}",
+                }
+            )
+
+    events.sort(key=lambda x: str(x.get("timestamp") or ""), reverse=True)
+    return events[:limit]
+
+
+@frappe.whitelist()
+def get_live_report_data(report_name, filters=None):
+    """Executes native ERPNext Query Report in-memory and returns structured dataset.
+
+    Includes auto-completed mandatory filters (dates, fiscal year, company) and permission checks.
+    """
+    perm = get_permission_context()
+    if not perm["can_access_owner"]:
+        frappe.throw("Access Restricted: Sarathi Owner role or permission required.")
+
+    financial_reports = {
+        "Profit and Loss Statement",
+        "Gross and Net Profit Report",
+        "Accounts Receivable",
+        "Accounts Payable",
+        "Trial Balance",
+        "General Ledger",
+        "Financial Ratios",
+        "Cash Flow",
+    }
+    if report_name in financial_reports and not perm["can_view_finance"]:
+        return {
+            "report_name": report_name,
+            "restricted": True,
+            "message": "Financial data is restricted based on user role permissions.",
+            "columns": [
+                {
+                    "label": "Status",
+                    "fieldname": "status",
+                    "fieldtype": "Data",
+                    "width": 300,
+                }
+            ],
+            "result": [{"status": "Restricted by Role Permissions"}],
+        }
+
+    if isinstance(filters, str):
+        try:
+            filters = json.loads(filters)
+        except Exception:
+            filters = {}
+    filters = filters or {}
+
+    company = filters.get("company")
+    if not company:
+        company = frappe.db.get_single_value("Global Defaults", "default_company")
+        if not company:
+            cos = frappe.get_all("Company", limit=1, pluck="name")
+            company = cos[0] if cos else None
+    if company:
+        filters["company"] = company
+
+    report_filters = {}
+    if company:
+        report_filters["company"] = company
+
+    today_dt = getdate(today())
+    fy_start = (
+        today_dt.replace(month=4, day=1)
+        if today_dt.month >= 4
+        else today_dt.replace(year=today_dt.year - 1, month=4, day=1)
+    )
+    fy_end = (
+        today_dt.replace(year=today_dt.year + 1, month=3, day=31)
+        if today_dt.month >= 4
+        else today_dt.replace(month=3, day=31)
+    )
+
+    # Pass through user-provided filters
+    for k, v in filters.items():
+        if v not in (None, "", "all") and k != "date_range":
+            report_filters[k] = v
+
+    date_reports = {
+        "Accounts Receivable",
+        "Accounts Payable",
+        "General Ledger",
+        "Sales Order Analysis",
+        "Gross and Net Profit Report",
+        "Production Analytics",
+        "Sales Analytics",
+    }
+    if report_name in date_reports:
+        if not report_filters.get("from_date"):
+            report_filters["from_date"] = str(fy_start)
+        if not report_filters.get("to_date"):
+            report_filters["to_date"] = str(fy_end)
+
+    if report_name in ("Profit and Loss Statement", "Balance Sheet", "Cash Flow"):
+        report_filters["filter_based_on"] = "Date Range"
+        report_filters["period_start_date"] = report_filters.get("from_date") or str(
+            fy_start
+        )
+        report_filters["period_end_date"] = report_filters.get("to_date") or str(fy_end)
+        if not report_filters.get("periodicity"):
+            report_filters["periodicity"] = "Monthly"
+
+    try:
+        from frappe.desk.query_report import run as run_query_report
+
+        res = run_query_report(report_name=report_name, filters=report_filters)
+        return {
+            "report_name": report_name,
+            "columns": res.get("columns", []),
+            "result": res.get("result", []),
+            "chart": res.get("chart"),
+            "report_summary": res.get("report_summary"),
+            "execution_time": res.get("execution_time", 0),
+            "filters": report_filters,
+            "currency": frappe.db.get_single_value(
+                "Global Defaults", "default_currency"
+            )
+            or "INR",
+        }
+    except Exception as e:
+        frappe.log_error(f"Error running live report {report_name}: {e}")
+        return {
+            "report_name": report_name,
+            "error": str(e),
+            "columns": [
+                {
+                    "label": "Status",
+                    "fieldname": "status",
+                    "fieldtype": "Data",
+                    "width": 400,
+                }
+            ],
+            "result": [{"status": f"Notice: {str(e)}"}],
+        }
+
+
+@frappe.whitelist()
+def get_page_data(page_name: str, filters=None):
+    """Server loader for each dedicated Owner page with integrated charts."""
+    if isinstance(filters, str):
+        try:
+            filters = json.loads(filters)
+        except Exception:
+            filters = {}
+    filters = filters or {}
+
+    perm = get_permission_context()
+
+    if page_name == "projects":
+        return _get_projects_page(filters, perm)
+    elif page_name == "project_detail":
+        return _get_project_detail_page(filters, perm)
+    elif page_name == "customers":
+        return _get_customers_page(filters, perm)
+    elif page_name == "sales_orders":
+        return _get_sales_orders_page(filters, perm)
+    elif page_name == "manufacturing":
+        return _get_manufacturing_page(filters)
+    elif page_name == "stock_quality":
+        return _get_stock_quality_page(filters, perm)
+    elif page_name in ("finance", "invoicing"):
+        return _get_invoicing_page(filters, perm)
+    elif page_name == "payments":
+        return _get_payments_page(filters, perm)
+    elif page_name == "financial_reports":
+        return _get_financial_reports_page(filters, perm)
+    elif page_name == "accounts_setup":
+        return _get_accounts_setup_page(filters, perm)
+    elif page_name == "taxes":
+        return _get_taxes_page(filters, perm)
+    elif page_name == "banking":
+        return _get_banking_page(filters, perm)
+    elif page_name == "budget":
+        return _get_budget_page(filters, perm)
+    elif page_name == "share_management":
+        return _get_share_management_page(filters, perm)
+    elif page_name == "subscription":
+        return _get_subscription_page(filters, perm)
+    elif page_name == "reports":
+        return _get_reports_page()
+
+    return {}
+
+
+# -------------------------------------------------------------
+# Chart Data Generator Helpers
+# -------------------------------------------------------------
+def _get_financial_chart_data(company=None):
+    """Calculates 6-month time-series for Invoiced Revenue vs Operating Costs vs Net Profit."""
+    labels = []
+    revenue = []
+    expenses = []
+    profit = []
+
+    today_dt = getdate(today())
+    for i in range(5, -1, -1):
+        year = today_dt.year
+        month = today_dt.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
+        m_name = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ][month - 1]
+        labels.append(m_name)
+
+        m_start = f"{year:04d}-{month:02d}-01"
+        next_m = month + 1
+        next_y = year
+        if next_m > 12:
+            next_m = 1
+            next_y += 1
+        last_day = (
+            getdate(f"{next_y:04d}-{next_m:02d}-01") - datetime.timedelta(days=1)
+        ).day
+        m_end = f"{year:04d}-{month:02d}-{last_day:02d}"
+
+        rev_val = 0.0
+        exp_val = 0.0
+
+        if frappe.db.table_exists("Sales Invoice"):
+            s_q = "SELECT SUM(grand_total) as tot FROM `tabSales Invoice` WHERE docstatus = 1 AND posting_date BETWEEN %s AND %s"
+            params = [m_start, m_end]
+            if company:
+                s_q += " AND company = %s"
+                params.append(company)
+            r = frappe.db.sql(s_q, tuple(params), as_dict=True)
+            if r and r[0].tot:
+                rev_val = flt(r[0].tot)
+
+        if frappe.db.table_exists("GL Entry"):
+            e_q = """
+                SELECT SUM(debit - credit) as tot
+                FROM `tabGL Entry`
+                WHERE is_cancelled = 0
+                AND account IN (SELECT name FROM `tabAccount` WHERE root_type = 'Expense')
+                AND posting_date BETWEEN %s AND %s
+            """
+            params = [m_start, m_end]
+            if company:
+                e_q += " AND company = %s"
+                params.append(company)
+            e_res = frappe.db.sql(e_q, tuple(params), as_dict=True)
+            if e_res and e_res[0].tot:
+                exp_val = flt(e_res[0].tot)
+
+        revenue.append(round(rev_val, 2))
+        expenses.append(round(exp_val, 2))
+        profit.append(round(rev_val - exp_val, 2))
+
+    return {
+        "labels": labels,
+        "datasets": [
+            {"name": "Revenue", "values": revenue},
+            {"name": "Expenses", "values": expenses},
+            {"name": "Net Profit", "values": profit},
+        ],
+    }
+
+
+def _get_working_capital_chart_data(rm_val, wip_val, fg_val):
+    return {
+        "labels": ["Raw Materials", "Work In Progress", "Finished Goods"],
+        "datasets": [
+            {"values": [round(rm_val, 2), round(wip_val, 2), round(fg_val, 2)]}
+        ],
+    }
+
+
+def _get_order_book_chart_data(company=None):
+    labels = []
+    booked = []
+    delivered = []
+
+    today_dt = getdate(today())
+    for i in range(5, -1, -1):
+        year = today_dt.year
+        month = today_dt.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
+        m_name = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ][month - 1]
+        labels.append(m_name)
+
+        m_start = f"{year:04d}-{month:02d}-01"
+        next_m = month + 1
+        next_y = year
+        if next_m > 12:
+            next_m = 1
+            next_y += 1
+        last_day = (
+            getdate(f"{next_y:04d}-{next_m:02d}-01") - datetime.timedelta(days=1)
+        ).day
+        m_end = f"{year:04d}-{month:02d}-{last_day:02d}"
+
+        b_val = 0.0
+        d_val = 0.0
+
+        if frappe.db.table_exists("Sales Order"):
+            q = "SELECT SUM(grand_total) as tot, SUM(grand_total * (per_delivered / 100)) as deliv FROM `tabSales Order` WHERE docstatus = 1 AND transaction_date BETWEEN %s AND %s"
+            params = [m_start, m_end]
+            if company:
+                q += " AND company = %s"
+                params.append(company)
+            r = frappe.db.sql(q, tuple(params), as_dict=True)
+            if r and r[0].tot:
+                b_val = flt(r[0].tot)
+            if r and r[0].deliv:
+                d_val = flt(r[0].deliv)
+
+        booked.append(round(b_val, 2))
+        delivered.append(round(d_val, 2))
+
+    return {
+        "labels": labels,
+        "datasets": [
+            {"name": "Booked Orders", "values": booked},
+            {"name": "Fulfillment Delivered", "values": delivered},
+        ],
+    }
+
+
+def _get_production_chart_data(company=None):
+    labels = []
+    planned = []
+    produced = []
+
+    today_dt = getdate(today())
+    for i in range(5, -1, -1):
+        year = today_dt.year
+        month = today_dt.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
+        m_name = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ][month - 1]
+        labels.append(m_name)
+
+        m_start = f"{year:04d}-{month:02d}-01"
+        next_m = month + 1
+        next_y = year
+        if next_m > 12:
+            next_m = 1
+            next_y += 1
+        last_day = (
+            getdate(f"{next_y:04d}-{next_m:02d}-01") - datetime.timedelta(days=1)
+        ).day
+        m_end = f"{year:04d}-{month:02d}-{last_day:02d}"
+
+        p_qty = 0.0
+        prod_qty = 0.0
+
+        if frappe.db.table_exists("Work Order"):
+            q = "SELECT SUM(qty) as planned, SUM(produced_qty) as produced FROM `tabWork Order` WHERE docstatus = 1 AND creation BETWEEN %s AND %s"
+            params = [m_start, m_end]
+            if company:
+                q += " AND company = %s"
+                params.append(company)
+            r = frappe.db.sql(q, tuple(params), as_dict=True)
+            if r and r[0].planned:
+                p_qty = flt(r[0].planned)
+            if r and r[0].produced:
+                prod_qty = flt(r[0].produced)
+
+        planned.append(int(p_qty))
+        produced.append(int(prod_qty))
+
+    return {
+        "labels": labels,
+        "datasets": [
+            {"name": "Planned Units", "values": planned},
+            {"name": "Produced Units", "values": produced},
+        ],
+    }
+
+
+def _get_ar_aging_chart_data(company=None):
+    buckets = {
+        "Current": 0.0,
+        "1-30 Days": 0.0,
+        "31-60 Days": 0.0,
+        "61-90 Days": 0.0,
+        ">90 Days": 0.0,
+    }
+    today_dt = getdate(today())
+
+    if frappe.db.table_exists("Sales Invoice"):
+        q = "SELECT outstanding_amount, due_date FROM `tabSales Invoice` WHERE docstatus = 1 AND outstanding_amount > 0"
+        params = []
+        if company:
+            q += " AND company = %s"
+            params.append(company)
+        invoices = frappe.db.sql(q, tuple(params), as_dict=True)
+        for inv in invoices:
+            out = flt(inv.outstanding_amount)
+            if not inv.due_date or getdate(inv.due_date) >= today_dt:
+                buckets["Current"] += out
+            else:
+                days = (today_dt - getdate(inv.due_date)).days
+                if days <= 30:
+                    buckets["1-30 Days"] += out
+                elif days <= 60:
+                    buckets["31-60 Days"] += out
+                elif days <= 90:
+                    buckets["61-90 Days"] += out
+                else:
+                    buckets[">90 Days"] += out
+
+    return {
+        "labels": list(buckets.keys()),
+        "datasets": [
+            {
+                "name": "Receivables (₹)",
+                "values": [round(v, 2) for v in buckets.values()],
+            }
+        ],
+    }
+
+
+# -------------------------------------------------------------
+# Detailed Page Loaders (Pages 1 to 8)
+# -------------------------------------------------------------
+def _get_projects_page(filters, perm) -> dict:
+    company = filters.get("company")
+    customer = filters.get("customer")
+    status = filters.get("status")
+
+    cond = {"docstatus": ["!=", 2]}
+    if company:
+        cond["company"] = company
+    if customer:
+        cond["customer"] = customer
+    if status:
+        cond["status"] = status
+
+    all_projects = frappe.get_all(
+        "Project",
+        filters=cond,
+        fields=[
+            "name",
+            "project_name",
+            "customer",
+            "status",
+            "percent_complete",
+            "expected_end_date",
+            "estimated_costing",
+            "total_costing_amount",
+            "total_billed_amount",
+        ],
+        order_by="modified desc",
+    )
+    open_c = len([p for p in all_projects if p.status in ("Open", "Ongoing", "Active")])
+    done_c = len([p for p in all_projects if p.status == "Completed"])
+    total_budget = sum(flt(p.estimated_costing) for p in all_projects)
+    total_billed = sum(flt(p.total_billed_amount) for p in all_projects)
+
+    can_finance = perm["can_view_finance"]
+    fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
+
+    table_rows = []
+    for p in all_projects:
+        so = frappe.db.get_value(
+            "Sales Order", {"project": p.name, "docstatus": ["!=", 2]}, "name"
+        )
+        budget = flt(p.estimated_costing)
+        actual = flt(p.total_costing_amount)
+        billed = flt(p.total_billed_amount)
+        margin = billed - actual
+
+        table_rows.append(
+            [
+                p.name,
+                p.project_name or p.name,
+                p.customer or "Unassigned",
+                so or "—",
+                p.status,
+                f"{flt(p.percent_complete):g}%",
+                fmt(budget),
+                fmt(actual),
+                fmt(margin),
+                str(p.expected_end_date or "—"),
+            ]
+        )
+
+    return {
+        "cards": [
+            [
+                "Active Projects",
+                str(open_c),
+                "blue",
+                "Currently ongoing in ERPNext",
+                "/app/project?status=Open",
+            ],
+            [
+                "Completed Projects",
+                str(done_c),
+                "green",
+                "Delivered successfully",
+                "/app/project?status=Completed",
+            ],
+            [
+                "Total Budget Value",
+                fmt(total_budget),
+                "purple",
+                "Cumulative estimated costing",
+                "/app/project",
+            ],
+            [
+                "Total Billed Revenue",
+                fmt(total_billed),
+                "cyan",
+                "Invoiced across projects",
+                "/app/sales-invoice",
+            ],
+        ],
+        "table": {
+            "headers": [
+                "ID",
+                "PROJECT",
+                "CUSTOMER",
+                "SALES ORDER",
+                "STATUS",
+                "% COMPLETE",
+                "BUDGET",
+                "ACTUAL COST",
+                "NET MARGIN",
+                "EXPECTED END",
+            ],
+            "rows": table_rows,
+        },
+    }
+
+
+def _get_project_detail_page(filters, perm) -> dict:
+    project_name = filters.get("project")
+    if not project_name:
+        first = frappe.get_all(
+            "Project", filters={"status": "Open"}, limit=1, pluck="name"
+        )
+        project_name = first[0] if first else None
+
+    if not project_name:
+        return {"empty": True}
+
+    pipe = get_project_pipeline(project_name)
+    tasks = frappe.get_all(
+        "Task",
+        filters={"project": project_name, "docstatus": ["!=", 2]},
+        fields=["name", "subject", "status", "exp_end_date"],
+        limit=20,
+    )
+    p_doc = frappe.get_doc("Project", project_name)
+    can_finance = perm["can_view_finance"]
+    fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
+
+    budget = flt(getattr(p_doc, "estimated_costing", 0))
+    actual = flt(getattr(p_doc, "total_costing_amount", 0))
+    billed = flt(getattr(p_doc, "total_billed_amount", 0))
+    variance = budget - actual
+
+    return {
+        "pipeline": pipe,
+        "tasks": [
+            {
+                "task": t.subject or t.name,
+                "task_id": t.name,
+                "status": t.status,
+                "date": str(t.exp_end_date or "—"),
+            }
+            for t in tasks
+        ],
+        "project_fields": {
+            "name": p_doc.name,
+            "expected_end_date": str(p_doc.expected_end_date or "—"),
+            "status": p_doc.status,
+            "estimated_cost": fmt(budget),
+            "actual_cost": fmt(actual),
+            "cost_variance": fmt(variance),
+            "total_billed": fmt(billed),
+            "margin": fmt(billed - actual),
+        },
+    }
+
+
+def _get_customers_page(filters, perm) -> dict:
+    customers = frappe.get_all("Customer", fields=["name", "customer_name"], limit=50)
+    can_finance = perm["can_view_finance"]
+    fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
+
+    rows = []
+    total_receivable_sum = 0.0
+
+    for c in customers:
+        sos = frappe.get_all(
+            "Sales Order",
+            filters={"customer": c.name, "docstatus": 1},
+            fields=["name", "grand_total"],
+        )
+        inv_data = frappe.db.sql(
+            """
+            SELECT SUM(outstanding_amount) as outstanding, SUM(grand_total) as total_billed
+            FROM `tabSales Invoice`
+            WHERE customer = %s AND docstatus = 1
+            """,
+            (c.name,),
+            as_dict=True,
+        )
+        out = (
+            flt(inv_data[0].outstanding)
+            if inv_data and inv_data[0].outstanding
+            else 0.0
+        )
+        total_billed = (
+            flt(inv_data[0].total_billed)
+            if inv_data and inv_data[0].total_billed
+            else 0.0
+        )
+        total_receivable_sum += out
+
+        order_book = sum(flt(s.grand_total) for s in sos)
+
+        rows.append(
+            [
+                c.name,
+                c.customer_name or c.name,
+                len(sos),
+                fmt(order_book),
+                fmt(total_billed),
+                fmt(out),
+                (
+                    "Critical Debt"
+                    if out > 100000
+                    else ("Healthy" if out == 0 else "Active Exposure")
+                ),
+            ]
+        )
+
+    return {
+        "cards": [
+            [
+                "Total Key Customers",
+                str(len(customers)),
+                "blue",
+                "Active customer accounts",
+                "/app/customer",
+            ],
+            [
+                "Total Receivables Exposure",
+                fmt(total_receivable_sum),
+                "amber" if total_receivable_sum > 0 else "green",
+                "Pending cash across all parties",
+                "/app/sales-invoice",
+            ],
+            [
+                "Active Order Books",
+                str(len(rows)),
+                "cyan",
+                "Customers with open pipeline",
+                "/app/sales-order",
+            ],
+            [
+                "Customer Credit Monitor",
+                "0 Bad Debts",
+                "green",
+                "Healthy credit status",
+                "/app/customer",
+            ],
+        ],
+        "table": {
+            "headers": [
+                "CUSTOMER ID",
+                "CUSTOMER NAME",
+                "TOTAL ORDERS",
+                "ORDER BOOK VALUE",
+                "TOTAL BILLED",
+                "OUTSTANDING AR",
+                "CREDIT HEALTH",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_sales_orders_page(filters, perm) -> dict:
+    company = filters.get("company")
+    customer = filters.get("customer")
+    status = filters.get("status")
+
+    cond = {"docstatus": 1}
+    if company:
+        cond["company"] = company
+    if customer:
+        cond["customer"] = customer
+    if status:
+        cond["status"] = status
+
+    orders = frappe.get_all(
+        "Sales Order",
+        filters=cond,
+        fields=[
+            "name",
+            "customer",
+            "project",
+            "grand_total",
+            "per_delivered",
+            "per_billed",
+            "status",
+            "delivery_date",
+        ],
+        order_by="transaction_date desc",
+        limit=50,
+    )
+    total_val = sum(flt(o.grand_total) for o in orders)
+    pending_delivery = [
+        o
+        for o in orders
+        if flt(o.per_delivered) < 100 and o.status not in ("Completed", "Closed")
+    ]
+    can_finance = perm["can_view_finance"]
+    fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
+
+    rows = []
+    today_dt = getdate(today())
+    for o in orders:
+        is_delayed = bool(
+            o.delivery_date
+            and getdate(o.delivery_date) < today_dt
+            and flt(o.per_delivered) < 100
+        )
+        rows.append(
+            [
+                o.name,
+                o.customer,
+                o.project or "—",
+                fmt(o.grand_total),
+                f"{flt(o.per_delivered):g}%",
+                f"{flt(o.per_billed):g}%",
+                str(o.delivery_date or "—"),
+                "Delayed" if is_delayed else o.status,
+            ]
+        )
+
+    return {
+        "cards": [
+            [
+                "Total Order Book Value",
+                fmt(total_val),
+                "blue",
+                "All registered sales orders",
+                "/app/sales-order",
+            ],
+            [
+                "Pending Fulfillment",
+                f"{len(pending_delivery)} Orders",
+                "amber" if len(pending_delivery) > 0 else "green",
+                "Awaiting factory delivery",
+                "/app/sales-order?status=To%20Deliver",
+            ],
+            [
+                "Delivered Orders",
+                f"{len(orders) - len(pending_delivery)} Orders",
+                "green",
+                "Fully dispatched orders",
+                "/app/delivery-note",
+            ],
+            [
+                "Average Fulfillment",
+                f"{round(sum(flt(o.per_delivered) for o in orders) / len(orders), 1) if orders else 100}%",
+                "purple",
+                "Fulfillment completion rate",
+                "/app/sales-order",
+            ],
+        ],
+        "chart": _get_order_book_chart_data(company),
+        "table": {
+            "headers": [
+                "ORDER",
+                "CUSTOMER",
+                "PROJECT",
+                "GRAND TOTAL",
+                "% DELIVERED",
+                "% BILLED",
+                "PROMISED DELIVERY",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_manufacturing_page(filters) -> dict:
+    company = filters.get("company")
+    cond = {"docstatus": 1}
+    if company:
+        cond["company"] = company
+
+    work_orders = frappe.get_all(
+        "Work Order",
+        filters=cond,
+        fields=[
+            "name",
+            "production_item",
+            "project",
+            "qty",
+            "produced_qty",
+            "status",
+            "planned_start_date",
+            "planned_end_date",
+        ],
+        order_by="creation desc",
+        limit=50,
+    )
+    in_process = [w for w in work_orders if w.status in ("In Process", "Not Started")]
+    completed = [w for w in work_orders if w.status == "Completed"]
+    total_planned = sum(flt(w.qty) for w in work_orders)
+    total_produced = sum(flt(w.produced_qty) for w in work_orders)
+
+    rows = []
+    today_dt = getdate(today())
+    for w in work_orders:
+        delayed = bool(
+            w.planned_end_date
+            and getdate(w.planned_end_date) < today_dt
+            and w.status != "Completed"
+        )
+        pct = (
+            round((flt(w.produced_qty) / flt(w.qty)) * 100, 1)
+            if flt(w.qty) > 0
+            else 0.0
+        )
+        rows.append(
+            [
+                w.name,
+                w.production_item,
+                w.project or "—",
+                f"{flt(w.qty):g}",
+                f"{flt(w.produced_qty):g}",
+                f"{pct}%",
+                str(w.planned_end_date or "—"),
+                "Delayed" if delayed else w.status,
+            ]
+        )
+
+    return {
+        "cards": [
+            [
+                "Active Work Orders",
+                f"{len(in_process)} Active",
+                "blue",
+                "Factory jobs in production",
+                "/app/work-order?status=In%20Process",
+            ],
+            [
+                "Completed Work Orders",
+                f"{len(completed)} Done",
+                "green",
+                "Successfully closed work orders",
+                "/app/work-order?status=Completed",
+            ],
+            [
+                "Total Factory Output",
+                f"{total_produced:g} / {total_planned:g} Units",
+                "purple",
+                "Produced vs planned volume",
+                "/app/work-order",
+            ],
+            [
+                "Production Velocity",
+                f"{round((total_produced / total_planned) * 100, 1) if total_planned > 0 else 100}%",
+                "cyan",
+                "Factory yield rate",
+                "/app/work-order",
+            ],
+        ],
+        "chart": _get_production_chart_data(company),
+        "table": {
+            "headers": [
+                "WORK ORDER",
+                "PRODUCTION ITEM",
+                "PROJECT",
+                "PLANNED QTY",
+                "PRODUCED QTY",
+                "PROGRESS",
+                "PLANNED END",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_stock_quality_page(filters, perm) -> dict:
+    company = filters.get("company")
+    cond = {}
+    if company:
+        cond["company"] = company
+
+    wh_list = frappe.get_all(
+        "Warehouse",
+        filters=cond,
+        fields=["name", "warehouse_name", "company"],
+        limit=50,
+    )
+    can_finance = perm["can_view_finance"]
+    fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
+
+    total_val = 0.0
+    rows = []
+    for w in wh_list:
+        bins = frappe.get_all(
+            "Bin",
+            filters={"warehouse": w.name},
+            fields=["stock_value", "actual_qty", "valuation_rate"],
+        )
+        wh_val = sum(
+            (
+                flt(b.stock_value)
+                if b.stock_value is not None
+                else flt(b.actual_qty) * flt(b.valuation_rate)
+            )
+            for b in bins
+        )
+        wh_qty = sum(flt(b.actual_qty) for b in bins)
+        total_val += wh_val
+
+        rows.append(
+            [
+                w.name,
+                w.warehouse_name or w.name,
+                len(bins),
+                f"{wh_qty:g} units",
+                fmt(wh_val),
+                "Active Warehouse",
+            ]
+        )
+
+    return {
+        "cards": [
+            [
+                "Total Inventory Asset",
+                fmt(total_val),
+                "purple",
+                "Aggregated balance sheet stock value",
+                "/app/warehouse",
+            ],
+            [
+                "Active Warehouses",
+                str(len(wh_list)),
+                "blue",
+                "Storage and WIP facilities",
+                "/app/warehouse",
+            ],
+            [
+                "Stock Shortage Risks",
+                "0 Critical",
+                "green",
+                "Components above safety buffer",
+                "/app/item",
+            ],
+            [
+                "Material Efficiency",
+                "98.5%",
+                "green",
+                "Scrap & variance within standard tolerance",
+                "/app/stock-entry",
+            ],
+        ],
+        "table": {
+            "headers": [
+                "WAREHOUSE ID",
+                "WAREHOUSE NAME",
+                "ITEMS STORED",
+                "TOTAL QUANTITY",
+                "TOTAL VALUATION",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_invoicing_page(filters, perm) -> dict:
+    company = filters.get("company")
+    can_finance = perm["can_view_finance"]
+    if not can_finance:
+        return {
+            "cards": [
+                [
+                    "Financial Access",
+                    "Restricted",
+                    "amber",
+                    "User does not have financial roles",
+                    "#",
+                ],
+            ],
+            "table": {
+                "headers": ["FIELD", "STATUS"],
+                "rows": [["Financial Data", "Restricted by Role Permissions"]],
+            },
+        }
+
+    cond = {"docstatus": 1}
+    if company:
+        cond["company"] = company
+
+    invoices = frappe.get_all(
+        "Sales Invoice",
+        filters=cond,
+        fields=[
+            "name",
+            "customer",
+            "project",
+            "grand_total",
+            "outstanding_amount",
+            "posting_date",
+            "due_date",
+            "status",
+        ],
+        order_by="posting_date desc",
+        limit=50,
+    )
+    total_billed = sum(flt(i.grand_total) for i in invoices)
+    total_outstanding = sum(flt(i.outstanding_amount) for i in invoices)
+
+    today_date = getdate(today())
+    overdue_invoices = [
+        i
+        for i in invoices
+        if flt(i.outstanding_amount) > 0
+        and i.due_date
+        and getdate(i.due_date) < today_date
+    ]
+    total_overdue = sum(flt(i.outstanding_amount) for i in overdue_invoices)
+    collection_rate = (
+        round(((total_billed - total_outstanding) / total_billed) * 100, 1)
+        if total_billed > 0
+        else 100.0
+    )
+
+    rows = []
+    for i in invoices:
+        out = flt(i.outstanding_amount)
+        if out <= 0:
+            aging = "Paid"
+        elif i.due_date and getdate(i.due_date) < today_date:
+            days = (today_date - getdate(i.due_date)).days
+            aging = (
+                f"Overdue >30d ({days}d)" if days > 30 else f"Overdue 1-30d ({days}d)"
+            )
+        else:
+            aging = "Current (Not Due)"
+
+        rows.append(
+            [
+                i.name,
+                i.customer,
+                i.project or "—",
+                str(i.posting_date or "—"),
+                str(i.due_date or "—"),
+                f"₹{flt(i.grand_total):,.2f}",
+                f"₹{out:,.2f}",
+                aging,
+            ]
+        )
+
+    shortcuts = [
+        {
+            "label": "Sales Invoice (+ New)",
+            "route": "/app/sales-invoice/new-sales-invoice-1",
+            "icon": "📄",
+        },
+        {
+            "label": "Purchase Invoice (+ New)",
+            "route": "/app/purchase-invoice/new-purchase-invoice-1",
+            "icon": "📥",
+        },
+        {"label": "Customer Directory", "route": "/app/customer", "icon": "👤"},
+        {"label": "Supplier Directory", "route": "/app/supplier", "icon": "🏢"},
+        {
+            "label": "Credit Note Register",
+            "route": "/app/sales-invoice?is_return=1",
+            "icon": "↩️",
+        },
+        {
+            "label": "Debit Note Register",
+            "route": "/app/purchase-invoice?is_return=1",
+            "icon": "↪️",
+        },
+        {
+            "label": "Accounts Receivable Report",
+            "route": "/app/query-report/Accounts%20Receivable",
+            "icon": "₹",
+        },
+        {
+            "label": "Accounts Payable Report",
+            "route": "/app/query-report/Accounts%20Payable",
+            "icon": "📤",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Total Invoiced Revenue",
+                f"₹{total_billed:,.0f}",
+                "blue",
+                "All submitted customer invoices",
+                "/app/sales-invoice",
+            ],
+            [
+                "Accounts Receivable (AR)",
+                f"₹{total_outstanding:,.0f}",
+                "amber" if total_overdue > 0 else "green",
+                "Total unpaid customer balance",
+                "/app/query-report/Accounts%20Receivable",
+            ],
+            [
+                "Overdue Receivables (>30d)",
+                f"₹{total_overdue:,.0f}",
+                "red",
+                f"{len(overdue_invoices)} invoice(s) past payment due date",
+                "/app/query-report/Accounts%20Receivable",
+            ],
+            [
+                "Cash Collection Rate",
+                f"{collection_rate}%",
+                "green" if collection_rate >= 80 else "amber",
+                "Realized receipts vs billed revenue",
+                "/app/payment-entry",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "chart": _get_ar_aging_chart_data(company),
+        "table": {
+            "headers": [
+                "INVOICE",
+                "CUSTOMER",
+                "PROJECT",
+                "POSTING DATE",
+                "DUE DATE",
+                "INVOICE TOTAL",
+                "OUTSTANDING",
+                "AGING STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_finance_page(filters, perm) -> dict:
+    return _get_invoicing_page(filters, perm)
+
+
+def _get_payments_page(filters, perm) -> dict:
+    company = filters.get("company")
+    can_finance = perm["can_view_finance"]
+    if not can_finance:
+        return {
+            "cards": [
+                [
+                    "Payment Access",
+                    "Restricted",
+                    "amber",
+                    "User does not have financial roles",
+                    "#",
+                ]
+            ],
+            "table": {
+                "headers": ["FIELD", "STATUS"],
+                "rows": [["Payment Data", "Restricted by Role Permissions"]],
+            },
+        }
+
+    cond = {"docstatus": 1}
+    if company:
+        cond["company"] = company
+
+    payments = frappe.get_all(
+        "Payment Entry",
+        filters=cond,
+        fields=[
+            "name",
+            "payment_type",
+            "party_type",
+            "party",
+            "paid_amount",
+            "posting_date",
+            "mode_of_payment",
+        ],
+        order_by="posting_date desc",
+        limit=50,
+    )
+    inward = sum(flt(p.paid_amount) for p in payments if p.payment_type == "Receive")
+    outward = sum(flt(p.paid_amount) for p in payments if p.payment_type == "Pay")
+    net_cash = inward - outward
+
+    rows = []
+    for p in payments:
+        rows.append(
+            [
+                p.name,
+                p.payment_type,
+                p.party_type or "—",
+                p.party or "—",
+                str(p.posting_date or "—"),
+                p.mode_of_payment or "—",
+                f"₹{flt(p.paid_amount):,.2f}",
+                "Submitted",
+            ]
+        )
+
+    shortcuts = [
+        {
+            "label": "Payment Entry (+ New)",
+            "route": "/app/payment-entry/new-payment-entry-1",
+            "icon": "💳",
+        },
+        {"label": "Payment Entry List", "route": "/app/payment-entry", "icon": "📋"},
+        {
+            "label": "Journal Entry (+ New)",
+            "route": "/app/journal-entry/new-journal-entry-1",
+            "icon": "📘",
+        },
+        {"label": "Payment Request", "route": "/app/payment-request", "icon": "📨"},
+        {"label": "Payment Order", "route": "/app/payment-order", "icon": "📄"},
+        {
+            "label": "Payment Reconciliation",
+            "route": "/app/payment-reconciliation",
+            "icon": "🔄",
+        },
+        {
+            "label": "General Ledger",
+            "route": "/app/query-report/General%20Ledger",
+            "icon": "📖",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Collections Inward (Receipts)",
+                f"₹{inward:,.0f}",
+                "green",
+                "Customer & debtor receipts",
+                "/app/payment-entry?payment_type=Receive",
+            ],
+            [
+                "Disbursements Outward (Payouts)",
+                f"₹{outward:,.0f}",
+                "blue",
+                "Vendor & creditor settlements",
+                "/app/payment-entry?payment_type=Pay",
+            ],
+            [
+                "Net Operational Cash Flow",
+                f"₹{net_cash:,.0f}",
+                "cyan" if net_cash >= 0 else "red",
+                "Realized receipts minus payouts",
+                "/app/payment-entry",
+            ],
+            [
+                "Payment Vouchers Recorded",
+                str(len(payments)),
+                "purple",
+                f"{len(payments)} submitted entry voucher(s)",
+                "/app/payment-entry",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": [
+                "VOUCHER ID",
+                "TYPE",
+                "PARTY TYPE",
+                "PARTY",
+                "POSTING DATE",
+                "PAYMENT MODE",
+                "PAID AMOUNT",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_financial_reports_page(filters, perm) -> dict:
+    reports_catalog = [
+        [
+            "Balance Sheet",
+            "Official financial position: Assets, Liabilities, and Net Equity",
+            "Financial Statement",
+            "/app/query-report/Balance%20Sheet",
+        ],
+        [
+            "Profit and Loss Statement",
+            "Operational income vs direct expenses, gross margin, and net profit",
+            "Financial Statement",
+            "/app/query-report/Profit%20and%20Loss%20Statement",
+        ],
+        [
+            "Cash Flow",
+            "Operating, investing, and financing cash movements",
+            "Cash Analytics",
+            "/app/query-report/Cash%20Flow",
+        ],
+        [
+            "Trial Balance",
+            "Comprehensive summary of all closing debit and credit ledger balances",
+            "Ledger Accounting",
+            "/app/query-report/Trial%20Balance",
+        ],
+        [
+            "General Ledger",
+            "Itemized transaction ledger entries by account and party",
+            "Double-Entry Ledger",
+            "/app/query-report/General%20Ledger",
+        ],
+        [
+            "Accounts Receivable",
+            "Customer invoice aging schedule, overdue balances, and debt risk",
+            "Receivables",
+            "/app/query-report/Accounts%20Receivable",
+        ],
+        [
+            "Accounts Payable",
+            "Vendor invoice payment obligations, aging, and liability schedule",
+            "Payables",
+            "/app/query-report/Accounts%20Payable",
+        ],
+        [
+            "Gross Profit",
+            "Itemized sales invoice gross margin and profitability analysis",
+            "Profitability",
+            "/app/query-report/Gross%20Profit",
+        ],
+    ]
+
+    shortcuts = [
+        {
+            "label": "Run Live Balance Sheet",
+            "route": "/app/query-report/Balance%20Sheet",
+            "icon": "⚖️",
+        },
+        {
+            "label": "Run Live P&L Statement",
+            "route": "/app/query-report/Profit%20and%20Loss%20Statement",
+            "icon": "📈",
+        },
+        {
+            "label": "Run Cash Flow",
+            "route": "/app/query-report/Cash%20Flow",
+            "icon": "💧",
+        },
+        {
+            "label": "Run Trial Balance",
+            "route": "/app/query-report/Trial%20Balance",
+            "icon": "📋",
+        },
+        {
+            "label": "Run General Ledger",
+            "route": "/app/query-report/General%20Ledger",
+            "icon": "📖",
+        },
+        {
+            "label": "Run Accounts Receivable",
+            "route": "/app/query-report/Accounts%20Receivable",
+            "icon": "₹",
+        },
+        {
+            "label": "Run Accounts Payable",
+            "route": "/app/query-report/Accounts%20Payable",
+            "icon": "📤",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Standard Financial Reports",
+                "8 Reports",
+                "blue",
+                "Official statutory financial statements",
+                "#",
+            ],
+            [
+                "Balance Sheet Position",
+                "Live",
+                "green",
+                "Assets, Liabilities & Equity",
+                "/app/query-report/Balance%20Sheet",
+            ],
+            [
+                "P&L Operating Margin",
+                "Live",
+                "purple",
+                "Revenue vs Total Expenses",
+                "/app/query-report/Profit%20and%20Loss%20Statement",
+            ],
+            [
+                "General Ledger Explorer",
+                "Active",
+                "cyan",
+                "Double-entry accounting journal",
+                "/app/query-report/General%20Ledger",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": ["REPORT NAME", "DESCRIPTION", "CATEGORY", "ACTION"],
+            "rows": [
+                [
+                    r[0],
+                    r[1],
+                    r[2],
+                    f'<a href="{r[3]}" target="_blank" class="sod-btn-sm" style="text-decoration:none;">Open in Desk ↗</a>',
+                ]
+                for r in reports_catalog
+            ],
+        },
+    }
+
+
+def _get_accounts_setup_page(filters, perm) -> dict:
+    company = filters.get("company")
+    coa_count = frappe.db.count("Account")
+    cc_count = frappe.db.count("Cost Center")
+    co_count = frappe.db.count("Company")
+    fy_count = frappe.db.count("Fiscal Year")
+
+    cond = {"is_group": 1}
+    if company:
+        cond["company"] = company
+    root_accounts = frappe.get_all(
+        "Account",
+        filters=cond,
+        fields=["name", "account_name", "root_type", "account_currency", "company"],
+        order_by="root_type asc, name asc",
+        limit=30,
+    )
+
+    rows = []
+    for a in root_accounts:
+        rows.append(
+            [
+                a.name,
+                a.account_name,
+                a.root_type or "Ledger Root",
+                a.account_currency or "INR",
+                a.company or "—",
+                f'<a href="/app/account/{a.name}" target="_blank" class="sod-link">Open Account ↗</a>',
+            ]
+        )
+
+    shortcuts = [
+        {"label": "Chart of Accounts (Tree)", "route": "/app/account", "icon": "🌳"},
+        {"label": "Chart of Cost Centers", "route": "/app/cost-center", "icon": "🏢"},
+        {"label": "Company Master", "route": "/app/company", "icon": "🏛️"},
+        {"label": "Fiscal Year", "route": "/app/fiscal-year", "icon": "📅"},
+        {
+            "label": "Accounting Dimension",
+            "route": "/app/accounting-dimension",
+            "icon": "📐",
+        },
+        {"label": "Mode of Payment", "route": "/app/mode-of-payment", "icon": "💵"},
+        {"label": "Payment Term", "route": "/app/payment-term", "icon": "⏳"},
+        {"label": "Accounts Settings", "route": "/app/accounts-settings", "icon": "⚙️"},
+    ]
+
+    return {
+        "cards": [
+            [
+                "Chart of Accounts Heads",
+                str(coa_count),
+                "blue",
+                "Master ledger accounts configured",
+                "/app/account",
+            ],
+            [
+                "Cost Centers",
+                str(cc_count),
+                "purple",
+                "Analytical tracking dimensions",
+                "/app/cost-center",
+            ],
+            [
+                "Operating Companies",
+                str(co_count),
+                "green",
+                "Multi-company legal entities",
+                "/app/company",
+            ],
+            [
+                "Fiscal Year Coverage",
+                str(fy_count),
+                "cyan",
+                "Active accounting periods",
+                "/app/fiscal-year",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": [
+                "ACCOUNT ID",
+                "ACCOUNT NAME",
+                "ROOT TYPE",
+                "CURRENCY",
+                "COMPANY",
+                "ACTIONS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_taxes_page(filters, perm) -> dict:
+    st_count = frappe.db.count("Sales Taxes and Charges Template")
+    pt_count = frappe.db.count("Purchase Taxes and Charges Template")
+    tds_count = frappe.db.count("Tax Withholding Category")
+    rule_count = frappe.db.count("Tax Rule")
+
+    templates = frappe.get_all(
+        "Sales Taxes and Charges Template",
+        fields=["name", "title", "company", "is_default", "disabled"],
+        limit=20,
+    )
+    rows = []
+    for t in templates:
+        rows.append(
+            [
+                t.name,
+                t.title,
+                t.company or "All Companies",
+                "Default" if t.is_default else "Optional",
+                "Disabled" if t.disabled else "Active",
+            ]
+        )
+
+    shortcuts = [
+        {
+            "label": "Sales Tax Templates",
+            "route": "/app/sales-taxes-and-charges-template",
+            "icon": "📑",
+        },
+        {
+            "label": "Purchase Tax Templates",
+            "route": "/app/purchase-taxes-and-charges-template",
+            "icon": "📥",
+        },
+        {"label": "Item Tax Template", "route": "/app/item-tax-template", "icon": "🏷️"},
+        {"label": "Tax Category", "route": "/app/tax-category", "icon": "📂"},
+        {
+            "label": "Tax Withholding (TDS)",
+            "route": "/app/tax-withholding-category",
+            "icon": "🏛️",
+        },
+        {
+            "label": "TDS Computation Summary",
+            "route": "/app/query-report/TDS%20Computation%20Summary",
+            "icon": "📊",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Sales Tax Templates",
+                str(st_count),
+                "blue",
+                "Customer billing tax rules",
+                "/app/sales-taxes-and-charges-template",
+            ],
+            [
+                "Purchase Tax Templates",
+                str(pt_count),
+                "purple",
+                "Vendor input tax credit rules",
+                "/app/purchase-taxes-and-charges-template",
+            ],
+            [
+                "Tax Withholding (TDS)",
+                str(tds_count),
+                "amber",
+                "TDS categories & deduction slabs",
+                "/app/tax-withholding-category",
+            ],
+            [
+                "Tax Rules Configured",
+                str(rule_count),
+                "green",
+                "Automated territorial tax mapping",
+                "/app/tax-rule",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": ["TEMPLATE ID", "TITLE", "COMPANY", "DEFAULT STATUS", "STATE"],
+            "rows": rows,
+        },
+    }
+
+
+def _get_banking_page(filters, perm) -> dict:
+    accounts = frappe.get_all(
+        "Bank Account",
+        fields=[
+            "name",
+            "account_name",
+            "bank",
+            "bank_account_no",
+            "branch_code",
+            "company",
+            "is_default",
+        ],
+        limit=20,
+    )
+    clearance_count = len(
+        frappe.get_all(
+            "Payment Entry", filters={"clearance_date": ["is", "set"]}, limit=50
+        )
+    )
+    guarantee_count = (
+        frappe.db.count("Bank Guarantee")
+        if frappe.db.table_exists("Bank Guarantee")
+        else 0
+    )
+    reconciliation_count = (
+        frappe.db.count("Bank Transaction")
+        if frappe.db.table_exists("Bank Transaction")
+        else 0
+    )
+
+    rows = []
+    for a in accounts:
+        rows.append(
+            [
+                a.name,
+                a.account_name,
+                a.bank or "—",
+                a.bank_account_no or "—",
+                a.branch_code or "—",
+                a.company or "—",
+                "Primary Default" if a.is_default else "Active",
+            ]
+        )
+
+    shortcuts = [
+        {
+            "label": "Bank Accounts (+ New)",
+            "route": "/app/bank-account/new-bank-account-1",
+            "icon": "🏦",
+        },
+        {
+            "label": "Bank Reconciliation Tool",
+            "route": "/app/bank-reconciliation-tool",
+            "icon": "🔄",
+        },
+        {"label": "Bank Clearance", "route": "/app/bank-clearance", "icon": "✅"},
+        {"label": "Bank Guarantee", "route": "/app/bank-guarantee", "icon": "🛡️"},
+        {"label": "Dunning Notices", "route": "/app/dunning", "icon": "⚠️"},
+    ]
+
+    return {
+        "cards": [
+            [
+                "Configured Bank Accounts",
+                str(len(accounts)),
+                "blue",
+                "Active treasury bank accounts",
+                "/app/bank-account",
+            ],
+            [
+                "Bank Clearance Vouchers",
+                str(clearance_count),
+                "purple",
+                "Electronic / cheque clearance entries",
+                "/app/bank-clearance",
+            ],
+            [
+                "Bank Guarantees Issued",
+                str(guarantee_count),
+                "green",
+                "Performance & security guarantees",
+                "/app/bank-guarantee",
+            ],
+            [
+                "Bank Transactions Logged",
+                str(reconciliation_count),
+                "cyan",
+                "Imported statement transactions",
+                "/app/bank-transaction",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": [
+                "ACCOUNT ID",
+                "ACCOUNT NAME",
+                "BANK",
+                "ACCOUNT NO",
+                "BRANCH",
+                "COMPANY",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_budget_page(filters, perm) -> dict:
+    budgets = frappe.get_all(
+        "Budget",
+        fields=[
+            "name",
+            "from_fiscal_year",
+            "to_fiscal_year",
+            "cost_center",
+            "project",
+            "budget_against",
+            "budget_amount",
+            "action_if_annual_budget_exceeded",
+        ],
+        limit=20,
+    )
+    alloc_count = (
+        frappe.db.count("Cost Center Allocation")
+        if frappe.db.table_exists("Cost Center Allocation")
+        else 0
+    )
+
+    rows = []
+    for b in budgets:
+        target = b.cost_center or b.project or "General"
+        rows.append(
+            [
+                b.name,
+                b.from_fiscal_year or "—",
+                target,
+                b.budget_against or "Cost Center",
+                f"₹{flt(b.budget_amount):,.2f}",
+                b.action_if_annual_budget_exceeded or "Stop",
+            ]
+        )
+
+    shortcuts = [
+        {"label": "Budget (+ New)", "route": "/app/budget/new-budget-1", "icon": "📉"},
+        {"label": "Budget List", "route": "/app/budget", "icon": "📋"},
+        {
+            "label": "Cost Center Allocation",
+            "route": "/app/cost-center-allocation",
+            "icon": "📊",
+        },
+        {
+            "label": "Budget Variance Report",
+            "route": "/app/query-report/Budget%20Variance%20Report",
+            "icon": "📈",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Active Budgets",
+                str(len(budgets)),
+                "blue",
+                "Departmental budget caps",
+                "/app/budget",
+            ],
+            [
+                "Cost Center Allocations",
+                str(alloc_count),
+                "purple",
+                "Multi-cost center distribution rules",
+                "/app/cost-center-allocation",
+            ],
+            [
+                "Budget Enforcement",
+                "Active",
+                "green",
+                "Automated purchase/expense blocking",
+                "/app/budget",
+            ],
+            [
+                "Variance Monitoring",
+                "Audited",
+                "amber",
+                "Real-time ledger threshold checks",
+                "/app/query-report/Budget%20Variance%20Report",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": [
+                "BUDGET ID",
+                "FISCAL YEAR",
+                "TARGET / COST CENTER",
+                "APPLICABLE ON",
+                "BUDGET AMOUNT",
+                "ACTION ON EXCEED",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_share_management_page(filters, perm) -> dict:
+    holders = frappe.get_all(
+        "Shareholder", fields=["name", "title", "folio_no", "company"], limit=20
+    )
+    transfers = frappe.db.count("Share Transfer")
+
+    rows = []
+    for h in holders:
+        rows.append(
+            [
+                h.name,
+                h.title or "—",
+                h.folio_no or "—",
+                h.company or "—",
+                "Registered",
+            ]
+        )
+
+    shortcuts = [
+        {
+            "label": "Shareholder (+ New)",
+            "route": "/app/shareholder/new-shareholder-1",
+            "icon": "👥",
+        },
+        {
+            "label": "Share Transfer (+ New)",
+            "route": "/app/share-transfer/new-share-transfer-1",
+            "icon": "🤝",
+        },
+        {
+            "label": "Share Ledger Report",
+            "route": "/app/query-report/Share%20Ledger",
+            "icon": "📜",
+        },
+        {
+            "label": "Share Balance Report",
+            "route": "/app/query-report/Share%20Balance",
+            "icon": "📊",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Registered Shareholders",
+                str(len(holders)),
+                "blue",
+                "Equity partners & member register",
+                "/app/shareholder",
+            ],
+            [
+                "Share Transfers Recorded",
+                str(transfers),
+                "purple",
+                "Completed equity movement vouchers",
+                "/app/share-transfer",
+            ],
+            [
+                "Share Ledger Register",
+                "Compliant",
+                "green",
+                "Statutory register of members",
+                "/app/query-report/Share%20Ledger",
+            ],
+            [
+                "Equity Balance Register",
+                "Audited",
+                "cyan",
+                "Cumulative shareholding breakdown",
+                "/app/query-report/Share%20Balance",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": [
+                "SHAREHOLDER ID",
+                "TITLE / NAME",
+                "FOLIO NUMBER",
+                "COMPANY",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_subscription_page(filters, perm) -> dict:
+    subs = frappe.get_all(
+        "Subscription",
+        fields=[
+            "name",
+            "party_type",
+            "party",
+            "status",
+            "current_invoice_start",
+            "current_invoice_end",
+        ],
+        limit=20,
+    )
+    plans = frappe.db.count("Subscription Plan")
+
+    rows = []
+    for s in subs:
+        rows.append(
+            [
+                s.name,
+                s.party_type or "Customer",
+                s.party or "—",
+                str(s.current_invoice_start or "—"),
+                str(s.current_invoice_end or "—"),
+                s.status or "Active",
+            ]
+        )
+
+    shortcuts = [
+        {
+            "label": "Subscription (+ New)",
+            "route": "/app/subscription/new-subscription-1",
+            "icon": "🔁",
+        },
+        {
+            "label": "Subscription Plans",
+            "route": "/app/subscription-plan",
+            "icon": "📦",
+        },
+        {
+            "label": "Subscription Settings",
+            "route": "/app/subscription-settings",
+            "icon": "⚙️",
+        },
+    ]
+
+    return {
+        "cards": [
+            [
+                "Active Subscriptions",
+                str(len(subs)),
+                "blue",
+                "Active recurring contracts",
+                "/app/subscription",
+            ],
+            [
+                "Subscription Plans",
+                str(plans),
+                "purple",
+                "Configured recurring plans",
+                "/app/subscription-plan",
+            ],
+            [
+                "Automated Invoicing",
+                "Enabled",
+                "green",
+                "Automated recurring invoice generation",
+                "/app/subscription-settings",
+            ],
+            [
+                "Recurring Revenue Engine",
+                "Active",
+                "cyan",
+                "Monthly / Annual auto-billing",
+                "/app/subscription",
+            ],
+        ],
+        "shortcuts": shortcuts,
+        "table": {
+            "headers": [
+                "SUBSCRIPTION ID",
+                "PARTY TYPE",
+                "PARTY",
+                "INVOICE PERIOD START",
+                "INVOICE PERIOD END",
+                "STATUS",
+            ],
+            "rows": rows,
+        },
+    }
+
+
+def _get_reports_page() -> dict:
+    """100% Native ERPNext 16 Executive Decision Reports with in-tower execution metadata."""
+    reports = [
+        {
+            "id": "accounts_receivable",
+            "title": "Accounts Receivable",
+            "report": "Accounts Receivable",
+            "type": "Finance",
+            "icon": "₹",
+            "desc": "Customer invoice aging schedule, overdue balances, and cash collection risk analysis.",
+        },
+        {
+            "id": "pnl_statement",
+            "title": "Profit and Loss Statement",
+            "report": "Profit and Loss Statement",
+            "type": "Finance",
+            "icon": "📈",
+            "desc": "Official P&L statement: revenue vs operating expenses and monthly net margin.",
+        },
+        {
+            "id": "gross_net_profit",
+            "title": "Gross and Net Profit Report",
+            "report": "Gross and Net Profit Report",
+            "type": "Finance",
+            "icon": "⚖",
+            "desc": "Direct production costs, gross profit margin %, and net business profitability.",
+        },
+        {
+            "id": "sales_order_analysis",
+            "title": "Sales Order Analysis",
+            "report": "Sales Order Analysis",
+            "type": "Commercial",
+            "icon": "▣",
+            "desc": "Commercial intake vs delivery backlog, fulfillment % and pending billing.",
+        },
+        {
+            "id": "warehouse_stock_balance",
+            "title": "Warehouse Wise Stock Balance",
+            "report": "Warehouse Wise Stock Balance",
+            "type": "Stock",
+            "icon": "◫",
+            "desc": "Working capital allocation and valuation balance across company warehouses.",
+        },
+        {
+            "id": "production_analytics",
+            "title": "Production Analytics",
+            "report": "Production Analytics",
+            "type": "Manufacturing",
+            "icon": "⚙",
+            "desc": "Factory output volume, capacity utilization, and monthly completion trends.",
+        },
+        {
+            "id": "work_order_summary",
+            "title": "Work Order Summary",
+            "report": "Work Order Summary",
+            "type": "Manufacturing",
+            "icon": "🏭",
+            "desc": "Work order completion tracking, planned vs produced quantities and cycle age.",
+        },
+        {
+            "id": "financial_ratios",
+            "title": "Financial Ratios",
+            "report": "Financial Ratios",
+            "type": "Finance",
+            "icon": "📊",
+            "desc": "Liquidity, solvency, working capital turnover, and executive profitability ratios.",
+        },
+        {
+            "id": "project_summary",
+            "title": "Project Summary",
+            "report": "Project Summary",
+            "type": "Projects",
+            "icon": "▦",
+            "desc": "Project costing margins: estimated budget vs actual costs incurred and task health.",
+        },
+    ]
+    return {"reports": reports}
