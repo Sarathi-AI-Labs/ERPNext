@@ -1,0 +1,118 @@
+<div class="sod-wrapper">
+  <!-- Top View Switcher Bar -->
+  <div class="sod-switcher-bar">
+    <span class="sod-switcher-label">Dashboard View:</span>
+    <button class="sod-switcher-btn active" data-action="switch-owner">
+      <span class="sod-switcher-icon">👑</span> Owner Executive View
+    </button>
+    <button class="sod-switcher-btn" data-action="switch-pm">
+      <span class="sod-switcher-icon">🏭</span> Production Manager View
+    </button>
+  </div>
+
+  <div class="sod-app">
+    <!-- Left Navigation Sidebar -->
+    <aside class="sod-side">
+      <div class="sod-brand">
+        ✦ SARATHI <small>AI LABS · CONTROL TOWER</small>
+      </div>
+      <nav id="sod-nav" class="sod-nav" aria-label="Owner navigation"></nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="sod-main">
+      <div class="sod-top">
+        <span class="sod-breadcrumb" id="sod-breadcrumb">Workspace / <a href="javascript:void(0)" class="sod-link" data-action="go-home">Owner</a> / <b id="sod-crumb-text">Home</b></span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="sod-live-status-pill" id="sod-live-status-pill" title="Connected to ERPNext Realtime Socket.IO Gateway">
+            <span class="sod-pulse-dot"></span>
+            <span id="sod-live-status-text">LIVE SYNCED</span>
+          </div>
+          <div class="sod-user-pill">
+            <span id="sod-live-time"></span> &nbsp;
+            <span class="sod-avatar" id="sod-avatar-initials">OW</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Gradient Banner -->
+      <section class="sod-hero">
+        <div>
+          <div class="sod-eyebrow">SARATHI CONTROL TOWER · OWNER EDITION</div>
+          <h1 id="sod-title">Sarathi Owner Overview</h1>
+          <p id="sod-subtitle">ERPNext projects, financial health, and strategic operations in one live view.</p>
+        </div>
+        <div class="sod-hero-actions">
+          <button class="sod-btn sod-btn-glass" data-action="run-quick-report" title="Open embedded live reports inside the tower">⚡ Live Report Runner</button>
+          <button class="sod-btn sod-btn-glass" data-action="refresh" title="Sync all live values">↻ Refresh</button>
+          <div class="sod-hero-symbol">✧</div>
+        </div>
+      </section>
+
+      <!-- Global Filter Bar -->
+      <section class="sod-filters" id="sod-filters" aria-label="Global Filters">
+        <div class="sod-filter-group">
+          <label>Company</label>
+          <select id="sod-filter-company" class="sod-select" aria-label="Company filter">
+            <option value="">All Companies</option>
+          </select>
+        </div>
+        <div class="sod-filter-group">
+          <label>Date Range</label>
+          <select id="sod-filter-date" class="sod-select" aria-label="Date Range filter">
+            <option value="all">All Dates</option>
+            <option value="this_month">This Month</option>
+            <option value="last_month">Last Month</option>
+            <option value="this_quarter">This Quarter</option>
+            <option value="this_year">This Fiscal Year</option>
+          </select>
+        </div>
+        <div class="sod-filter-group">
+          <label>Customer</label>
+          <select id="sod-filter-customer" class="sod-select" aria-label="Customer filter">
+            <option value="">All Customers</option>
+          </select>
+        </div>
+        <div class="sod-filter-group">
+          <label>Project</label>
+          <select id="sod-filter-project" class="sod-select" aria-label="Project filter">
+            <option value="">All Projects</option>
+          </select>
+        </div>
+        <div class="sod-filter-group">
+          <label>Status</label>
+          <select id="sod-filter-status" class="sod-select" aria-label="Project status filter">
+            <option value="">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="sod-filter-group sod-search-group">
+          <label>Search ERPNext</label>
+          <input type="search" id="sod-search-input" class="sod-input" placeholder="Search ID, customer, item..." aria-label="Search records">
+        </div>
+      </section>
+
+      <!-- Active Content Container -->
+      <div id="sod-content" class="sod-content">
+        <div class="sod-loading">
+          <div class="sod-spinner"></div>
+          <p>Connecting to ERPNext and aggregating metrics…</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Stage Inspection Modal Overlay -->
+  <div id="sod-stage-overlay" class="sod-detail-overlay">
+    <div class="sod-detail-card" role="dialog" aria-modal="true">
+      <div class="sod-modal-head">
+        <h2 id="sod-modal-title">Stage Details</h2>
+        <button class="sod-btn-close" id="sod-modal-close" aria-label="Close dialog">✕</button>
+      </div>
+      <div id="sod-modal-body" class="sod-modal-body"></div>
+      <div class="sod-modal-foot" id="sod-modal-foot"></div>
+    </div>
+  </div>
+</div>
