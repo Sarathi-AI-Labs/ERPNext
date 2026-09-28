@@ -10,11 +10,15 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner/public:/home/frappe/frappe-bench/assets/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
     environment:
       DB_HOST: db
       DB_PORT: "3306"
       MYSQL_ROOT_PASSWORD: admin
       MARIADB_ROOT_PASSWORD: admin
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -44,9 +48,13 @@ services:
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
       SOCKETIO_PORT: "9000"
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
 
   create-site:
     image: sarathi/erpnext-sarathi:v16.33.0
@@ -55,9 +63,14 @@ services:
     deploy:
       restart_policy:
         condition: none
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
     entrypoint:
       - bash
       - -c
@@ -139,6 +152,8 @@ services:
       - logs:/home/frappe/frappe-bench/logs
       - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
       - ./sarathi_visibility/sarathi_visibility/public:/home/frappe/frappe-bench/assets/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner/public:/home/frappe/frappe-bench/assets/sarathi_owner
     ports:
       - "8080:8080"
 
@@ -158,7 +173,10 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
     environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
       FRAPPE_REDIS_CACHE: redis://redis-cache:6379
       FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
     depends_on:
@@ -181,7 +199,10 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
     environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
       FRAPPE_REDIS_CACHE: redis://redis-cache:6379
       FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
     depends_on:
@@ -220,6 +241,10 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -238,10 +263,13 @@ services:
       SARATHI_SOCKET_BACKEND_URL: http://backend:8000
       FRAPPE_REDIS_CACHE: redis://redis-cache:6379
       FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
     depends_on:
       configurator:
         condition: service_completed_successfully

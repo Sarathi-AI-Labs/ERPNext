@@ -1216,7 +1216,7 @@ def get_summary(filters=None):
 
     cards = [
         kpi("Total projects", "projects"),
-        kpi("Active items", "items"),
+        kpi("Total items", "items"),
         kpi("Warehouse stock", "inventory"),
         kpi("Warehouses", "warehouses"),
         kpi("Workstations", "workstations"),
