@@ -161,9 +161,6 @@ frappe.SarathiOwnerDashboard = class {
     this.reportSearchQuery = "";
     this.accountingDropdownOpen = false;
 
-    document.documentElement.classList.add("sod-page-active");
-    document.body.classList.add("sod-page-active");
-    $(".main-section").scrollTop(0);
     window.scrollTo(0, 0);
 
     this.initElements();
@@ -350,29 +347,22 @@ frappe.SarathiOwnerDashboard = class {
       }, 300);
     });
 
-    // Interactive Card Click Handlers
-    this.$content.on("click", ".sod-card[data-action]", function () {
-      const action = $(this).data("action");
-      if (action === "view-projects") {
-        self.goToPageByKey("projects");
-      } else if (action === "view-sales-orders") {
-        self.goToPageByKey("sales_orders");
-      } else if (action === "view-finance") {
-        self.goToPageByKey("invoicing");
-      } else if (action === "view-stock") {
-        self.goToPageByKey("stock_quality");
-      } else if (action === "view-reports") {
-        self.goToPageByKey("reports");
-      } else if (action === "open-live-report") {
-        const rep = $(this).data("report");
-        if (rep) {
-          self.currentReportName = rep;
-          self.goToPageByKey("reports");
-        }
-      } else if (action === "open-desk") {
-        const route = $(this).data("route");
-        if (route) window.open(route, "_blank");
-      }
+    // Interactive Card Click Handlers - Shows Focused Form-Type Details Modal
+    this.$content.on("click", ".sod-card", function (e) {
+      if ($(e.target).closest("a, button").length) return;
+      const $card = $(this);
+      const label =
+        $card.find(".sod-label").text().trim() ||
+        $card.find("strong").text().trim() ||
+        "Metric Details";
+      const value =
+        $card.find(".sod-kpi-val, strong").text().trim() ||
+        $card.find("strong").text().trim() ||
+        "—";
+      const desc = $card.find("small").text().trim() || "";
+      const action = $card.data("action") || "";
+      const route = $card.data("route") || "";
+      self.showCardDetailModal(label, value, desc, action, route);
     });
 
     // Project Drill-Down
@@ -1477,28 +1467,36 @@ frappe.SarathiOwnerDashboard = class {
             <div>
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                 <span style="font-size: 18px; font-weight: 700; color: #17233f;">${frappe.utils.escape_html(pf.project_name || pf.name)}</span>
-                <span class="sod-pill ${pf.status === 'Completed' ? 'green' : 'blue'}">${frappe.utils.escape_html(pf.status)}</span>
+                <span class="sod-pill ${pf.status === "Completed" ? "green" : "blue"}">${frappe.utils.escape_html(pf.status)}</span>
               </div>
               <p style="margin: 0; color: #7583a0; font-size: 12px;">
-                ID: <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(pf.name)}</b></a> · 
-                Customer: <b>${frappe.utils.escape_html(pf.customer || 'Unassigned')}</b> · 
-                Company: <b>${frappe.utils.escape_html(pf.company || '—')}</b> · 
-                Delivery: <b>${frappe.utils.escape_html(pf.expected_end_date || '—')}</b>
+                ID: <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(pf.name)}</b></a> ·
+                Customer: <b>${frappe.utils.escape_html(pf.customer || "Unassigned")}</b> ·
+                Company: <b>${frappe.utils.escape_html(pf.company || "—")}</b> ·
+                Delivery: <b>${frappe.utils.escape_html(pf.expected_end_date || "—")}</b>
               </p>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              ${allProjects.length > 1 ? `
+              ${
+                allProjects.length > 1
+                  ? `
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <label style="font-size: 12px; font-weight: 600; color: #64748b;">Switch Project:</label>
                   <select id="sod-inpage-project-select" class="sod-select" style="padding: 6px 12px; font-size: 12px; font-weight: 500; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
-                    ${allProjects.map(p => `
-                      <option value="${frappe.utils.escape_html(p.name)}" ${p.name === data.selected_project ? 'selected' : ''}>
+                    ${allProjects
+                      .map(
+                        (p) => `
+                      <option value="${frappe.utils.escape_html(p.name)}" ${p.name === data.selected_project ? "selected" : ""}>
                         ${frappe.utils.escape_html(p.project_name || p.name)}
                       </option>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                   </select>
                 </div>
-              ` : ''}
+              `
+                  : ""
+              }
               <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm" style="background:#5369ef; color:#fff; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">Open in Desk ↗</a>
               <a href="/app/task/new-task-1?project=${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm" style="background:#fff; border: 1px solid #cbd5e1; color:#334155; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">+ Add Task ↗</a>
             </div>
@@ -1610,7 +1608,7 @@ frappe.SarathiOwnerDashboard = class {
                 <tbody>
         `;
         data.work_orders.forEach((r) => {
-          html += `<tr><td><a href="/app/work-order/${encodeURIComponent(r[0])}" target="_blank" class="sod-link">${frappe.utils.escape_html(r[0])}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(r[2])}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(r[4])}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill ${r[6] === 'Completed' ? 'green' : 'purple'}">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
+          html += `<tr><td><a href="/app/work-order/${encodeURIComponent(r[0])}" target="_blank" class="sod-link">${frappe.utils.escape_html(r[0])}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(r[2])}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(r[4])}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill ${r[6] === "Completed" ? "green" : "purple"}">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
         });
         html += `</tbody></table></div></div>`;
       }
@@ -1795,6 +1793,236 @@ frappe.SarathiOwnerDashboard = class {
     });
   }
 
+  showCardDetailModal(label, value, desc, action, route) {
+    this.$modalTitle.html(`<span>📊</span> ${frappe.utils.escape_html(label)}`);
+
+    const data = this.activeData || {};
+    let contentHtml = `
+      <div class="sod-modal-kpi-banner">
+        <div>
+          <div class="sod-modal-kpi-label">${frappe.utils.escape_html(label)}</div>
+          <div class="sod-modal-kpi-val">${frappe.utils.escape_html(value)}</div>
+        </div>
+        <div style="font-size: 12px; color: #94a3b8; max-width: 260px; text-align: right;">
+          ${frappe.utils.escape_html(desc || "Live metric calculated dynamically from ERPNext transactional records")}
+        </div>
+      </div>
+    `;
+
+    // Form-Type details block
+    const company =
+      this.$el.find("#sod-filter-company").val() || "All Organizations";
+    const dateRange = this.$el.find("#sod-filter-date").val() || "All Dates";
+    const customer =
+      this.$el.find("#sod-filter-customer").val() || "All Customers";
+    const project =
+      this.$el.find("#sod-filter-project").val() || "All Projects";
+
+    contentHtml += `
+      <div class="sod-form-block">
+        <div class="sod-form-row">
+          <span class="sod-form-label">Metric Name</span>
+          <span class="sod-form-value">${frappe.utils.escape_html(label)}</span>
+        </div>
+        <div class="sod-form-row">
+          <span class="sod-form-label">Current Value</span>
+          <span class="sod-form-value" style="color: #2563eb;">${frappe.utils.escape_html(value)}</span>
+        </div>
+        <div class="sod-form-row">
+          <span class="sod-form-label">Company Filter</span>
+          <span class="sod-form-value">${frappe.utils.escape_html(company)}</span>
+        </div>
+        <div class="sod-form-row">
+          <span class="sod-form-label">Date Filter</span>
+          <span class="sod-form-value">${frappe.utils.escape_html(dateRange)}</span>
+        </div>
+        ${
+          customer !== "All Customers"
+            ? `
+          <div class="sod-form-row">
+            <span class="sod-form-label">Customer Filter</span>
+            <span class="sod-form-value">${frappe.utils.escape_html(customer)}</span>
+          </div>
+        `
+            : ""
+        }
+        ${
+          project !== "All Projects"
+            ? `
+          <div class="sod-form-row">
+            <span class="sod-form-label">Project Filter</span>
+            <span class="sod-form-value">${frappe.utils.escape_html(project)}</span>
+          </div>
+        `
+            : ""
+        }
+      </div>
+    `;
+
+    // Dynamic Related Records Table based on the Card
+    if (action === "view-projects" || label.toLowerCase().includes("project")) {
+      const projs = data.active_projects || [];
+      if (projs.length) {
+        contentHtml += `
+          <h3 style="font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #1e293b;">Matching Projects (${projs.length})</h3>
+          <div class="sod-modal-table-wrap">
+            <table class="sod-table">
+              <thead><tr><th>PROJECT</th><th>CUSTOMER</th><th>STATUS</th><th>PROGRESS</th><th>BUDGET</th></tr></thead>
+              <tbody>
+                ${projs
+                  .map(
+                    (p) => `
+                  <tr>
+                    <td><a href="/app/project/${encodeURIComponent(p.project)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(p.project_name || p.project)}</b></a></td>
+                    <td>${frappe.utils.escape_html(p.customer || "—")}</td>
+                    <td><span class="sod-pill ${p.status === "Completed" ? "green" : "blue"}">${frappe.utils.escape_html(p.status)}</span></td>
+                    <td><b>${flt(p.percent_complete || 0)}%</b></td>
+                    <td>${frappe.utils.escape_html(p.budget || "—")}</td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else if (
+      action === "view-sales-orders" ||
+      label.toLowerCase().includes("order")
+    ) {
+      const sos = data.sales_orders || [];
+      if (sos.length) {
+        contentHtml += `
+          <h3 style="font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #1e293b;">Matching Sales Orders (${sos.length})</h3>
+          <div class="sod-modal-table-wrap">
+            <table class="sod-table">
+              <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>% DELIVERED</th><th>STATUS</th></tr></thead>
+              <tbody>
+                ${sos
+                  .map(
+                    (s) => `
+                  <tr>
+                    <td><a href="/app/sales-order/${encodeURIComponent(s[0])}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(s[0])}</b></a></td>
+                    <td>${frappe.utils.escape_html(s[1])}</td>
+                    <td>${frappe.utils.escape_html(s[2])}</td>
+                    <td>${frappe.utils.escape_html(s[3])}</td>
+                    <td><span class="sod-pill blue">${frappe.utils.escape_html(s[6] || s[5] || "Active")}</span></td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else if (
+      action === "view-stock" ||
+      label.toLowerCase().includes("stock") ||
+      label.toLowerCase().includes("capital")
+    ) {
+      const cap = data.capital_allocation || {};
+      const lowStock = data.low_stock_items || [];
+      contentHtml += `
+        <div class="sod-form-block" style="margin-top: 10px;">
+          <div class="sod-form-row"><span class="sod-form-label">Raw Materials (RM)</span><span class="sod-form-value">${cap.rm_val || "₹0"} (${cap.rm_pct || 0}%)</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Work In Progress (WIP)</span><span class="sod-form-value">${cap.wip_val || "₹0"} (${cap.wip_pct || 0}%)</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Finished Goods (FG)</span><span class="sod-form-value">${cap.fg_val || "₹0"} (${cap.fg_pct || 0}%)</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Total Inventory Valuation</span><span class="sod-form-value" style="color:#8a54ef;">${cap.total_val || "₹0"}</span></div>
+        </div>
+      `;
+      if (lowStock.length) {
+        contentHtml += `
+          <h3 style="font-size: 13px; font-weight: 700; margin: 12px 0 6px; color: #e11d48;">Reorder Level Alerts (${lowStock.length})</h3>
+          <div class="sod-modal-table-wrap">
+            <table class="sod-table">
+              <thead><tr><th>ITEM</th><th>WAREHOUSE</th><th>AVAILABLE</th><th>REORDER QTY</th></tr></thead>
+              <tbody>
+                ${lowStock
+                  .map(
+                    (l) => `
+                  <tr>
+                    <td><a href="/app/item/${encodeURIComponent(l.item_code)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(l.item_name)}</b></a></td>
+                    <td>${frappe.utils.escape_html(l.warehouse)}</td>
+                    <td><span style="color:#e11d48; font-weight:700;">${frappe.utils.escape_html(l.available)}</span></td>
+                    <td>${frappe.utils.escape_html(l.reorder)}</td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else if (
+      action === "view-finance" ||
+      action === "view-pnl" ||
+      action === "view-reports" ||
+      label.toLowerCase().includes("profit") ||
+      label.toLowerCase().includes("receivable") ||
+      label.toLowerCase().includes("cost")
+    ) {
+      const snap = data.financial_snapshot || {};
+      contentHtml += `
+        <div class="sod-form-block" style="margin-top: 10px;">
+          <div class="sod-form-row"><span class="sod-form-label">Total Revenue / Income</span><span class="sod-form-value" style="color:#12b886;">${snap.income || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Operating Expenses</span><span class="sod-form-value" style="color:#e11d48;">${snap.expenses || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Net Profit Realized</span><span class="sod-form-value" style="color:#2563eb; font-size:14px;">${snap.net_profit || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Accounts Receivable</span><span class="sod-form-value">${snap.receivables || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Overdue Receivables</span><span class="sod-form-value" style="color:#e11d48;">${snap.overdue || "₹0"}</span></div>
+        </div>
+      `;
+    }
+
+    this.$modalBody.html(contentHtml);
+
+    // Footer buttons
+    const deskRoute =
+      route ||
+      (action === "view-projects"
+        ? "/app/project"
+        : action === "view-sales-orders"
+          ? "/app/sales-order"
+          : action === "view-finance"
+            ? "/app/sales-invoice"
+            : action === "view-stock"
+              ? "/app/item"
+              : "/app/query-report/Profit and Loss Statement");
+    let navActionBtn = "";
+    const self = this;
+    if (action === "view-projects") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#5369ef;" id="sod-modal-nav-action">Open Projects View ▦</button>`;
+    } else if (action === "view-sales-orders") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#0284c7;" id="sod-modal-nav-action">Open Orders View ▣</button>`;
+    } else if (action === "view-finance") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#16a34a;" id="sod-modal-nav-action">Open Invoicing View ₹</button>`;
+    } else if (action === "view-stock") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#9333ea;" id="sod-modal-nav-action">Open Inventory View ◫</button>`;
+    }
+
+    this.$modalFoot.html(`
+      <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 14px; border-radius:7px; font-weight:600; cursor:pointer;" id="sod-modal-foot-close">Close</button>
+      ${navActionBtn}
+      <a href="${frappe.utils.escape_html(deskRoute)}" target="_blank" class="sod-btn-primary" style="text-decoration:none;">Open in Desk ↗</a>
+    `);
+
+    this.$modalFoot
+      .find("#sod-modal-foot-close")
+      .on("click", () => this.$modal.removeClass("show"));
+    this.$modalFoot.find("#sod-modal-nav-action").on("click", () => {
+      this.$modal.removeClass("show");
+      if (action === "view-projects") self.goToPageByKey("projects");
+      else if (action === "view-sales-orders")
+        self.goToPageByKey("sales_orders");
+      else if (action === "view-finance") self.goToPageByKey("invoicing");
+      else if (action === "view-stock") self.goToPageByKey("stock_quality");
+    });
+
+    this.$modal.addClass("show");
+  }
+
   showStageModal(projectName, stageId) {
     const pipelineData =
       (this.activeData?.pipelines || []).find(
@@ -1841,9 +2069,6 @@ frappe.SarathiOwnerDashboard = class {
   }
 
   show() {
-    document.documentElement.classList.add("sod-page-active");
-    document.body.classList.add("sod-page-active");
-    $(".main-section").scrollTop(0);
     window.scrollTo(0, 0);
 
     // Purge any rogue duplicate wrappers or footers
@@ -1854,6 +2079,7 @@ frappe.SarathiOwnerDashboard = class {
     }
 
     this.refreshCurrentPage();
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
     if (!this.refreshTimer) {
       // 15-second background sync interval
       this.refreshTimer = setInterval(() => {
@@ -1863,8 +2089,6 @@ frappe.SarathiOwnerDashboard = class {
   }
 
   hide() {
-    document.documentElement.classList.remove("sod-page-active");
-    document.body.classList.remove("sod-page-active");
     if (this.refreshTimer) {
       clearInterval(this.refreshTimer);
       this.refreshTimer = null;

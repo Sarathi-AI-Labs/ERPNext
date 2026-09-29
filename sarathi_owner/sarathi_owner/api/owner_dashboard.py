@@ -181,12 +181,6 @@ def get_owner_summary(filters=None):
         project_conditions["status"] = status
     if project_filter:
         project_conditions["name"] = project_filter
-    if from_date and to_date:
-        project_conditions["creation"] = [
-            "between",
-            [f"{from_date} 00:00:00", f"{to_date} 23:59:59"],
-        ]
-
     projects = frappe.get_all(
         "Project",
         filters=project_conditions,
@@ -202,9 +196,25 @@ def get_owner_summary(filters=None):
             "total_costing_amount",
             "total_billed_amount",
             "total_sales_amount",
+            "creation",
+            "modified",
         ],
         order_by="modified desc",
     )
+    if from_date and to_date:
+        projects = [
+            p
+            for p in projects
+            if p.get("status") in ("Open", "Ongoing", "Active", "On hold")
+            or (
+                str(p.get("creation") or "")[:10] >= from_date
+                and str(p.get("creation") or "")[:10] <= to_date
+            )
+            or (
+                str(p.get("modified") or "")[:10] >= from_date
+                and str(p.get("modified") or "")[:10] <= to_date
+            )
+        ]
 
     if search:
         projects = [
@@ -225,6 +235,10 @@ def get_owner_summary(filters=None):
         so_filters["company"] = company
     if customer:
         so_filters["customer"] = customer
+    if project_filter:
+        so_filters["project"] = project_filter
+    if status:
+        so_filters["status"] = status
     if from_date and to_date:
         so_filters["transaction_date"] = ["between", [from_date, to_date]]
 
@@ -239,8 +253,17 @@ def get_owner_summary(filters=None):
             "grand_total",
             "per_delivered",
             "per_billed",
+            "project",
         ],
     )
+    if search:
+        sales_orders = [
+            o
+            for o in sales_orders
+            if search in (o.name or "").lower()
+            or search in (o.customer or "").lower()
+            or search in (o.project or "").lower()
+        ]
 
     open_sales_orders = [
         o for o in sales_orders if o.status not in ("Completed", "Closed", "Cancelled")
@@ -256,6 +279,10 @@ def get_owner_summary(filters=None):
         si_filters["company"] = company
     if customer:
         si_filters["customer"] = customer
+    if project_filter:
+        si_filters["project"] = project_filter
+    if status:
+        si_filters["status"] = status
     if from_date and to_date:
         si_filters["posting_date"] = ["between", [from_date, to_date]]
 
@@ -273,6 +300,14 @@ def get_owner_summary(filters=None):
             "status",
         ],
     )
+    if search:
+        sales_invoices = [
+            i
+            for i in sales_invoices
+            if search in (i.name or "").lower()
+            or search in (i.customer or "").lower()
+            or search in (i.project or "").lower()
+        ]
 
     unpaid_invoices = [i for i in sales_invoices if flt(i.outstanding_amount) > 0]
     total_receivables = sum(flt(i.outstanding_amount) for i in unpaid_invoices)
@@ -439,17 +474,21 @@ def get_owner_summary(filters=None):
             }
         )
 
-    delayed_wos = frappe.db.sql(
-        """
+    delayed_wos_query = """
         SELECT name, production_item, planned_end_date, qty, produced_qty
         FROM `tabWork Order`
         WHERE docstatus = 1 AND status not in ('Completed', 'Closed', 'Cancelled')
         AND planned_end_date IS NOT NULL AND planned_end_date < %s
-        ORDER BY planned_end_date ASC LIMIT 5
-        """,
-        (today(),),
-        as_dict=True,
-    )
+    """
+    params = [today()]
+    if company:
+        delayed_wos_query += " AND company = %s"
+        params.append(company)
+    if project_filter:
+        delayed_wos_query += " AND project = %s"
+        params.append(project_filter)
+    delayed_wos_query += " ORDER BY planned_end_date ASC LIMIT 5"
+    delayed_wos = frappe.db.sql(delayed_wos_query, tuple(params), as_dict=True)
     if delayed_wos:
         action_alerts.append(
             {
@@ -473,7 +512,13 @@ def get_owner_summary(filters=None):
         )
 
     # 9. Real-Time Curated Business Activity (Logins OMITTED, only real transactions)
-    live_activity = _get_live_activity(company=company, limit=10)
+    live_activity = _get_live_activity(
+        company=company,
+        customer=customer,
+        project=project_filter,
+        search=search,
+        limit=10,
+    )
 
     # 10. Active Projects Portfolio Table Rows
     active_projects_rows = []
@@ -620,7 +665,9 @@ def get_owner_summary(filters=None):
     }
 
 
-def _get_live_activity(company=None, limit=12) -> list:
+def _get_live_activity(
+    company=None, customer=None, project=None, search=None, limit=12
+) -> list:
     """Aggregates real-time business events across Work Orders, Stock Entries, Sales Orders,
     Sales Invoices, Payment Entries, and Projects (Routine logins strictly excluded).
     """
@@ -630,6 +677,10 @@ def _get_live_activity(company=None, limit=12) -> list:
     proj_filters = {"docstatus": ["!=", 2]}
     if company:
         proj_filters["company"] = company
+    if customer:
+        proj_filters["customer"] = customer
+    if project:
+        proj_filters["name"] = project
     projects = frappe.get_all(
         "Project",
         filters=proj_filters,
@@ -834,77 +885,331 @@ def _get_live_activity(company=None, limit=12) -> list:
 
 REPORT_COLUMNS_FALLBACK = {
     "Sales Order Analysis": [
-        {"label": "Sales Order", "fieldname": "sales_order", "fieldtype": "Link", "options": "Sales Order", "width": 140},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 160},
-        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 140},
+        {
+            "label": "Sales Order",
+            "fieldname": "sales_order",
+            "fieldtype": "Link",
+            "options": "Sales Order",
+            "width": 140,
+        },
+        {
+            "label": "Customer",
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "options": "Customer",
+            "width": 160,
+        },
+        {
+            "label": "Item Code",
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "options": "Item",
+            "width": 140,
+        },
         {"label": "Order Qty", "fieldname": "qty", "fieldtype": "Float", "width": 90},
-        {"label": "Delivered Qty", "fieldname": "delivered_qty", "fieldtype": "Float", "width": 100},
-        {"label": "Billed Amount", "fieldname": "billed_amount", "fieldtype": "Currency", "width": 120},
-        {"label": "Pending Amount", "fieldname": "pending_amount", "fieldtype": "Currency", "width": 120},
+        {
+            "label": "Delivered Qty",
+            "fieldname": "delivered_qty",
+            "fieldtype": "Float",
+            "width": 100,
+        },
+        {
+            "label": "Billed Amount",
+            "fieldname": "billed_amount",
+            "fieldtype": "Currency",
+            "width": 120,
+        },
+        {
+            "label": "Pending Amount",
+            "fieldname": "pending_amount",
+            "fieldtype": "Currency",
+            "width": 120,
+        },
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
     ],
     "Work Order Summary": [
-        {"label": "Work Order", "fieldname": "name", "fieldtype": "Link", "options": "Work Order", "width": 140},
-        {"label": "Production Item", "fieldname": "production_item", "fieldtype": "Link", "options": "Item", "width": 160},
+        {
+            "label": "Work Order",
+            "fieldname": "name",
+            "fieldtype": "Link",
+            "options": "Work Order",
+            "width": 140,
+        },
+        {
+            "label": "Production Item",
+            "fieldname": "production_item",
+            "fieldtype": "Link",
+            "options": "Item",
+            "width": 160,
+        },
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
-        {"label": "Planned Qty", "fieldname": "qty", "fieldtype": "Float", "width": 100},
-        {"label": "Produced Qty", "fieldname": "produced_qty", "fieldtype": "Float", "width": 100},
-        {"label": "Planned Start", "fieldname": "planned_start_date", "fieldtype": "Date", "width": 110},
-        {"label": "Planned End", "fieldname": "planned_end_date", "fieldtype": "Date", "width": 110},
+        {
+            "label": "Planned Qty",
+            "fieldname": "qty",
+            "fieldtype": "Float",
+            "width": 100,
+        },
+        {
+            "label": "Produced Qty",
+            "fieldname": "produced_qty",
+            "fieldtype": "Float",
+            "width": 100,
+        },
+        {
+            "label": "Planned Start",
+            "fieldname": "planned_start_date",
+            "fieldtype": "Date",
+            "width": 110,
+        },
+        {
+            "label": "Planned End",
+            "fieldname": "planned_end_date",
+            "fieldtype": "Date",
+            "width": 110,
+        },
     ],
     "Accounts Receivable": [
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
-        {"label": "Voucher No", "fieldname": "voucher_no", "fieldtype": "Link", "options": "Sales Invoice", "width": 140},
-        {"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 110},
-        {"label": "Due Date", "fieldname": "due_date", "fieldtype": "Date", "width": 110},
-        {"label": "Invoiced Amount", "fieldname": "invoiced_amount", "fieldtype": "Currency", "width": 130},
-        {"label": "Paid Amount", "fieldname": "paid_amount", "fieldtype": "Currency", "width": 130},
-        {"label": "Outstanding Amount", "fieldname": "outstanding_amount", "fieldtype": "Currency", "width": 140},
+        {
+            "label": "Customer",
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "options": "Customer",
+            "width": 180,
+        },
+        {
+            "label": "Voucher No",
+            "fieldname": "voucher_no",
+            "fieldtype": "Link",
+            "options": "Sales Invoice",
+            "width": 140,
+        },
+        {
+            "label": "Posting Date",
+            "fieldname": "posting_date",
+            "fieldtype": "Date",
+            "width": 110,
+        },
+        {
+            "label": "Due Date",
+            "fieldname": "due_date",
+            "fieldtype": "Date",
+            "width": 110,
+        },
+        {
+            "label": "Invoiced Amount",
+            "fieldname": "invoiced_amount",
+            "fieldtype": "Currency",
+            "width": 130,
+        },
+        {
+            "label": "Paid Amount",
+            "fieldname": "paid_amount",
+            "fieldtype": "Currency",
+            "width": 130,
+        },
+        {
+            "label": "Outstanding Amount",
+            "fieldname": "outstanding_amount",
+            "fieldtype": "Currency",
+            "width": 140,
+        },
         {"label": "Age (Days)", "fieldname": "age", "fieldtype": "Int", "width": 90},
     ],
     "Warehouse Wise Stock Balance": [
-        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 150},
-        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 180},
-        {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 160},
-        {"label": "Balance Qty", "fieldname": "bal_qty", "fieldtype": "Float", "width": 100},
-        {"label": "Valuation Rate", "fieldname": "val_rate", "fieldtype": "Currency", "width": 120},
-        {"label": "Stock Value", "fieldname": "bal_val", "fieldtype": "Currency", "width": 130},
+        {
+            "label": "Item Code",
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "options": "Item",
+            "width": 150,
+        },
+        {
+            "label": "Item Name",
+            "fieldname": "item_name",
+            "fieldtype": "Data",
+            "width": 180,
+        },
+        {
+            "label": "Warehouse",
+            "fieldname": "warehouse",
+            "fieldtype": "Link",
+            "options": "Warehouse",
+            "width": 160,
+        },
+        {
+            "label": "Balance Qty",
+            "fieldname": "bal_qty",
+            "fieldtype": "Float",
+            "width": 100,
+        },
+        {
+            "label": "Valuation Rate",
+            "fieldname": "val_rate",
+            "fieldtype": "Currency",
+            "width": 120,
+        },
+        {
+            "label": "Stock Value",
+            "fieldname": "bal_val",
+            "fieldtype": "Currency",
+            "width": 130,
+        },
     ],
     "Production Analytics": [
-        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 160},
-        {"label": "Production Item", "fieldname": "item_name", "fieldtype": "Data", "width": 180},
-        {"label": "Work Order", "fieldname": "work_order", "fieldtype": "Link", "options": "Work Order", "width": 140},
-        {"label": "Produced Qty", "fieldname": "produced_qty", "fieldtype": "Float", "width": 110},
-        {"label": "Cycle Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
+        {
+            "label": "Item Code",
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "options": "Item",
+            "width": 160,
+        },
+        {
+            "label": "Production Item",
+            "fieldname": "item_name",
+            "fieldtype": "Data",
+            "width": 180,
+        },
+        {
+            "label": "Work Order",
+            "fieldname": "work_order",
+            "fieldtype": "Link",
+            "options": "Work Order",
+            "width": 140,
+        },
+        {
+            "label": "Produced Qty",
+            "fieldname": "produced_qty",
+            "fieldtype": "Float",
+            "width": 110,
+        },
+        {
+            "label": "Cycle Status",
+            "fieldname": "status",
+            "fieldtype": "Data",
+            "width": 110,
+        },
     ],
     "Project Summary": [
-        {"label": "Project", "fieldname": "name", "fieldtype": "Link", "options": "Project", "width": 150},
-        {"label": "Project Name", "fieldname": "project_name", "fieldtype": "Data", "width": 180},
+        {
+            "label": "Project",
+            "fieldname": "name",
+            "fieldtype": "Link",
+            "options": "Project",
+            "width": 150,
+        },
+        {
+            "label": "Project Name",
+            "fieldname": "project_name",
+            "fieldtype": "Data",
+            "width": 180,
+        },
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 160},
-        {"label": "Estimated Cost", "fieldname": "estimated_costing", "fieldtype": "Currency", "width": 120},
-        {"label": "Actual Cost", "fieldname": "total_costing_amount", "fieldtype": "Currency", "width": 120},
-        {"label": "Total Billed", "fieldname": "total_billed_amount", "fieldtype": "Currency", "width": 120},
-        {"label": "% Complete", "fieldname": "percent_complete", "fieldtype": "Percent", "width": 90},
+        {
+            "label": "Customer",
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "options": "Customer",
+            "width": 160,
+        },
+        {
+            "label": "Estimated Cost",
+            "fieldname": "estimated_costing",
+            "fieldtype": "Currency",
+            "width": 120,
+        },
+        {
+            "label": "Actual Cost",
+            "fieldname": "total_costing_amount",
+            "fieldtype": "Currency",
+            "width": 120,
+        },
+        {
+            "label": "Total Billed",
+            "fieldname": "total_billed_amount",
+            "fieldtype": "Currency",
+            "width": 120,
+        },
+        {
+            "label": "% Complete",
+            "fieldname": "percent_complete",
+            "fieldtype": "Percent",
+            "width": 90,
+        },
     ],
     "Profit and Loss Statement": [
-        {"label": "Account", "fieldname": "account", "fieldtype": "Link", "options": "Account", "width": 240},
-        {"label": "Category", "fieldname": "root_type", "fieldtype": "Data", "width": 140},
-        {"label": "Net Amount", "fieldname": "amount", "fieldtype": "Currency", "width": 160},
+        {
+            "label": "Account",
+            "fieldname": "account",
+            "fieldtype": "Link",
+            "options": "Account",
+            "width": 240,
+        },
+        {
+            "label": "Category",
+            "fieldname": "root_type",
+            "fieldtype": "Data",
+            "width": 140,
+        },
+        {
+            "label": "Net Amount",
+            "fieldname": "amount",
+            "fieldtype": "Currency",
+            "width": 160,
+        },
     ],
     "Gross and Net Profit Report": [
-        {"label": "Business Line", "fieldname": "line", "fieldtype": "Data", "width": 200},
-        {"label": "Revenue", "fieldname": "revenue", "fieldtype": "Currency", "width": 140},
+        {
+            "label": "Business Line",
+            "fieldname": "line",
+            "fieldtype": "Data",
+            "width": 200,
+        },
+        {
+            "label": "Revenue",
+            "fieldname": "revenue",
+            "fieldtype": "Currency",
+            "width": 140,
+        },
         {"label": "COGS", "fieldname": "cogs", "fieldtype": "Currency", "width": 140},
-        {"label": "Gross Profit", "fieldname": "gross_profit", "fieldtype": "Currency", "width": 140},
-        {"label": "Operating Expenses", "fieldname": "expenses", "fieldtype": "Currency", "width": 140},
-        {"label": "Net Profit", "fieldname": "net_profit", "fieldtype": "Currency", "width": 140},
+        {
+            "label": "Gross Profit",
+            "fieldname": "gross_profit",
+            "fieldtype": "Currency",
+            "width": 140,
+        },
+        {
+            "label": "Operating Expenses",
+            "fieldname": "expenses",
+            "fieldtype": "Currency",
+            "width": 140,
+        },
+        {
+            "label": "Net Profit",
+            "fieldname": "net_profit",
+            "fieldtype": "Currency",
+            "width": 140,
+        },
     ],
     "Financial Ratios": [
         {"label": "Ratio", "fieldname": "ratio", "fieldtype": "Data", "width": 240},
-        {"label": "Current Value", "fieldname": "value", "fieldtype": "Data", "width": 140},
-        {"label": "Industry Benchmark", "fieldname": "benchmark", "fieldtype": "Data", "width": 160},
-        {"label": "Health Assessment", "fieldname": "status", "fieldtype": "Data", "width": 140},
+        {
+            "label": "Current Value",
+            "fieldname": "value",
+            "fieldtype": "Data",
+            "width": 140,
+        },
+        {
+            "label": "Industry Benchmark",
+            "fieldname": "benchmark",
+            "fieldtype": "Data",
+            "width": 160,
+        },
+        {
+            "label": "Health Assessment",
+            "fieldname": "status",
+            "fieldtype": "Data",
+            "width": 140,
+        },
     ],
 }
 
@@ -1067,7 +1372,12 @@ def get_page_data(page_name: str, filters=None):
         return _get_sales_orders_page(filters, perm)
     elif page_name == "manufacturing":
         return _get_manufacturing_page(filters)
-    elif page_name in ("stock_quality", "working_capital", "working_capital_stock", "stock"):
+    elif page_name in (
+        "stock_quality",
+        "working_capital",
+        "working_capital_stock",
+        "stock",
+    ):
         return _get_stock_quality_page(filters, perm)
     elif page_name in ("finance", "invoicing"):
         return _get_invoicing_page(filters, perm)
@@ -1371,6 +1681,11 @@ def _get_projects_page(filters, perm) -> dict:
     company = filters.get("company")
     customer = filters.get("customer")
     status = filters.get("status")
+    project = filters.get("project")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
 
     cond = {"docstatus": ["!=", 2]}
     if company:
@@ -1379,7 +1694,8 @@ def _get_projects_page(filters, perm) -> dict:
         cond["customer"] = customer
     if status:
         cond["status"] = status
-
+    if project:
+        cond["name"] = project
     all_projects = frappe.get_all(
         "Project",
         filters=cond,
@@ -1393,9 +1709,33 @@ def _get_projects_page(filters, perm) -> dict:
             "estimated_costing",
             "total_costing_amount",
             "total_billed_amount",
+            "creation",
+            "modified",
         ],
         order_by="modified desc",
     )
+    if from_date and to_date:
+        all_projects = [
+            p
+            for p in all_projects
+            if p.get("status") in ("Open", "Ongoing", "Active", "On hold")
+            or (
+                str(p.get("creation") or "")[:10] >= from_date
+                and str(p.get("creation") or "")[:10] <= to_date
+            )
+            or (
+                str(p.get("modified") or "")[:10] >= from_date
+                and str(p.get("modified") or "")[:10] <= to_date
+            )
+        ]
+    if search:
+        all_projects = [
+            p
+            for p in all_projects
+            if search in (p.name or "").lower()
+            or search in (p.project_name or "").lower()
+            or search in (p.customer or "").lower()
+        ]
     open_c = len([p for p in all_projects if p.status in ("Open", "Ongoing", "Active")])
     done_c = len([p for p in all_projects if p.status == "Completed"])
     total_budget = sum(flt(p.estimated_costing) for p in all_projects)
@@ -1481,11 +1821,18 @@ def _get_projects_page(filters, perm) -> dict:
 def _get_project_detail_page(filters, perm) -> dict:
     project_name = filters.get("project")
     company = filters.get("company")
+    customer = filters.get("customer")
+    status = filters.get("status")
+    search = (filters.get("search") or "").strip().lower()
 
     # 1. Fetch all available projects so user can switch between them
     proj_filters = {"docstatus": ["!=", 2]}
     if company:
         proj_filters["company"] = company
+    if customer:
+        proj_filters["customer"] = customer
+    if status:
+        proj_filters["status"] = status
     all_projects = frappe.get_all(
         "Project",
         filters=proj_filters,
@@ -1501,6 +1848,13 @@ def _get_project_detail_page(filters, perm) -> dict:
             order_by="modified desc",
             limit=100,
         )
+    if search:
+        all_projects = [
+            p
+            for p in all_projects
+            if search in (p.name or "").lower()
+            or search in (p.project_name or "").lower()
+        ]
 
     # 2. Resolve project_name
     if not project_name or not frappe.db.exists("Project", project_name):
@@ -1538,20 +1892,30 @@ def _get_project_detail_page(filters, perm) -> dict:
         sos = frappe.get_all(
             "Sales Order",
             filters={"project": project_name, "docstatus": ["!=", 2]},
-            fields=["name", "customer", "grand_total", "per_delivered", "per_billed", "delivery_date", "status"],
+            fields=[
+                "name",
+                "customer",
+                "grand_total",
+                "per_delivered",
+                "per_billed",
+                "delivery_date",
+                "status",
+            ],
             order_by="modified desc",
             limit=10,
         )
         for s in sos:
-            so_rows.append([
-                s.name,
-                s.customer,
-                fmt(s.grand_total),
-                f"{flt(s.per_delivered):g}%",
-                f"{flt(s.per_billed):g}%",
-                str(s.delivery_date or "—"),
-                s.status,
-            ])
+            so_rows.append(
+                [
+                    s.name,
+                    s.customer,
+                    fmt(s.grand_total),
+                    f"{flt(s.per_delivered):g}%",
+                    f"{flt(s.per_billed):g}%",
+                    str(s.delivery_date or "—"),
+                    s.status,
+                ]
+            )
 
     # Linked Work Orders
     wo_rows = []
@@ -1559,45 +1923,110 @@ def _get_project_detail_page(filters, perm) -> dict:
         wos = frappe.get_all(
             "Work Order",
             filters={"project": project_name, "docstatus": ["!=", 2]},
-            fields=["name", "production_item", "qty", "produced_qty", "status", "planned_end_date"],
+            fields=[
+                "name",
+                "production_item",
+                "qty",
+                "produced_qty",
+                "status",
+                "planned_end_date",
+            ],
             order_by="modified desc",
             limit=10,
         )
         for w in wos:
-            pct = round((flt(w.produced_qty) / flt(w.qty) * 100), 1) if flt(w.qty) > 0 else 0
-            wo_rows.append([
-                w.name,
-                w.production_item,
-                f"{flt(w.qty):g}",
-                f"{flt(w.produced_qty):g}",
-                f"{pct}%",
-                str(w.planned_end_date or "—"),
-                w.status,
-            ])
+            pct = (
+                round((flt(w.produced_qty) / flt(w.qty) * 100), 1)
+                if flt(w.qty) > 0
+                else 0
+            )
+            wo_rows.append(
+                [
+                    w.name,
+                    w.production_item,
+                    f"{flt(w.qty):g}",
+                    f"{flt(w.produced_qty):g}",
+                    f"{pct}%",
+                    str(w.planned_end_date or "—"),
+                    w.status,
+                ]
+            )
 
     cards = [
-        ["Estimated Cost (Budget)", fmt(budget), "blue", "Project approved budget", f"/app/project/{project_name}"],
-        ["Actual Cost Incurred", fmt(actual), "amber", "Cost booked to project", f"/app/project/{project_name}"],
-        ["Cost Variance", fmt(variance), "green" if variance >= 0 else "red", "Budget minus actual cost", f"/app/project/{project_name}"],
-        ["Total Billed Revenue", fmt(billed), "purple", "Total customer billing", "/app/sales-invoice"],
-        ["Net Margin Realized", fmt(margin), "green" if margin >= 0 else "red", "Billed revenue minus cost", "/app/project"],
-        ["Milestone Progress", f"{flt(p_doc.percent_complete):g}%", "cyan", f"Status: {p_doc.status}", f"/app/project/{project_name}"],
+        [
+            "Estimated Cost (Budget)",
+            fmt(budget),
+            "blue",
+            "Project approved budget",
+            f"/app/project/{project_name}",
+        ],
+        [
+            "Actual Cost Incurred",
+            fmt(actual),
+            "amber",
+            "Cost booked to project",
+            f"/app/project/{project_name}",
+        ],
+        [
+            "Cost Variance",
+            fmt(variance),
+            "green" if variance >= 0 else "red",
+            "Budget minus actual cost",
+            f"/app/project/{project_name}",
+        ],
+        [
+            "Total Billed Revenue",
+            fmt(billed),
+            "purple",
+            "Total customer billing",
+            "/app/sales-invoice",
+        ],
+        [
+            "Net Margin Realized",
+            fmt(margin),
+            "green" if margin >= 0 else "red",
+            "Billed revenue minus cost",
+            "/app/project",
+        ],
+        [
+            "Milestone Progress",
+            f"{flt(p_doc.percent_complete):g}%",
+            "cyan",
+            f"Status: {p_doc.status}",
+            f"/app/project/{project_name}",
+        ],
     ]
 
     return {
         "empty": False,
         "selected_project": project_name,
         "all_projects": [
-            {"name": p.name, "project_name": p.project_name or p.name, "company": p.company}
+            {
+                "name": p.name,
+                "project_name": p.project_name or p.name,
+                "company": p.company,
+            }
             for p in all_projects
         ],
         "cards": cards,
         "shortcuts": [
             {"label": "Project List", "icon": "▦", "route": "/app/project"},
-            {"label": "New Project", "icon": "＋", "route": "/app/project/new-project-1"},
-            {"label": "Work Orders", "icon": "⚙", "route": f"/app/work-order?project={project_name}"},
+            {
+                "label": "New Project",
+                "icon": "＋",
+                "route": "/app/project/new-project-1",
+            },
+            {
+                "label": "Work Orders",
+                "icon": "⚙",
+                "route": f"/app/work-order?project={project_name}",
+            },
             {"label": "BOMs", "icon": "📑", "route": "/app/bom"},
-            {"label": "Tasks", "icon": "✓", "route": f"/app/task?project={project_name}"},
+            {
+                "label": "Tasks",
+                "icon": "✓",
+                "route": f"/app/task?project={project_name}",
+            },
         ],
         "pipeline": pipe,
         "tasks": [
@@ -1612,7 +2041,8 @@ def _get_project_detail_page(filters, perm) -> dict:
         "project_fields": {
             "name": p_doc.name,
             "project_name": p_doc.project_name or p_doc.name,
-            "customer": p_doc.customer or (pipe.get("customer") if pipe else "Unassigned"),
+            "customer": p_doc.customer
+            or (pipe.get("customer") if pipe else "Unassigned"),
             "company": p_doc.company,
             "expected_end_date": str(p_doc.expected_end_date or "—"),
             "status": p_doc.status,
@@ -1630,13 +2060,21 @@ def _get_project_detail_page(filters, perm) -> dict:
 def _get_customers_page(filters, perm) -> dict:
     company = filters.get("company")
     customer_filter = filters.get("customer")
+    search = (filters.get("search") or "").strip().lower()
     cust_cond = {}
     if customer_filter:
         cust_cond["name"] = customer_filter
 
     customers = frappe.get_all(
-        "Customer", filters=cust_cond, fields=["name", "customer_name"], limit=50
+        "Customer", filters=cust_cond, fields=["name", "customer_name"], limit=100
     )
+    if search:
+        customers = [
+            c
+            for c in customers
+            if search in (c.name or "").lower()
+            or search in (c.customer_name or "").lower()
+        ]
     can_finance = perm["can_view_finance"]
     fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
 
@@ -1744,6 +2182,11 @@ def _get_sales_orders_page(filters, perm) -> dict:
     company = filters.get("company")
     customer = filters.get("customer")
     status = filters.get("status")
+    project = filters.get("project")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
 
     cond = {"docstatus": ["!=", 2]}
     if company:
@@ -1752,6 +2195,10 @@ def _get_sales_orders_page(filters, perm) -> dict:
         cond["customer"] = customer
     if status:
         cond["status"] = status
+    if project:
+        cond["project"] = project
+    if from_date and to_date:
+        cond["transaction_date"] = ["between", [from_date, to_date]]
 
     orders = frappe.get_all(
         "Sales Order",
@@ -1769,6 +2216,14 @@ def _get_sales_orders_page(filters, perm) -> dict:
         order_by="transaction_date desc",
         limit=50,
     )
+    if search:
+        orders = [
+            o
+            for o in orders
+            if search in (o.name or "").lower()
+            or search in (o.customer or "").lower()
+            or search in (o.project or "").lower()
+        ]
     total_val = sum(flt(o.grand_total) for o in orders)
     pending_delivery = [
         o
@@ -1849,9 +2304,23 @@ def _get_sales_orders_page(filters, perm) -> dict:
 
 def _get_manufacturing_page(filters) -> dict:
     company = filters.get("company")
+    customer = filters.get("customer")
+    project = filters.get("project")
+    status = filters.get("status")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
     cond = {"docstatus": ["!=", 2]}
     if company:
         cond["company"] = company
+    if project:
+        cond["project"] = project
+    if status:
+        cond["status"] = status
+    if from_date and to_date:
+        cond["planned_start_date"] = ["between", [from_date, to_date]]
 
     work_orders = frappe.get_all(
         "Work Order",
@@ -1865,10 +2334,33 @@ def _get_manufacturing_page(filters) -> dict:
             "status",
             "planned_start_date",
             "planned_end_date",
+            "sales_order",
         ],
         order_by="creation desc",
         limit=50,
     )
+    if customer:
+        cust_projects = set(
+            frappe.get_all("Project", filters={"customer": customer}, pluck="name")
+        )
+        cust_sos = set(
+            frappe.get_all("Sales Order", filters={"customer": customer}, pluck="name")
+        )
+        work_orders = [
+            w
+            for w in work_orders
+            if (w.project and w.project in cust_projects)
+            or (w.sales_order and w.sales_order in cust_sos)
+        ]
+
+    if search:
+        work_orders = [
+            w
+            for w in work_orders
+            if search in (w.name or "").lower()
+            or search in (w.production_item or "").lower()
+            or search in (w.project or "").lower()
+        ]
     in_process = [w for w in work_orders if w.status in ("In Process", "Not Started")]
     completed = [w for w in work_orders if w.status == "Completed"]
     total_planned = sum(flt(w.qty) for w in work_orders)
@@ -1950,6 +2442,7 @@ def _get_manufacturing_page(filters) -> dict:
 
 def _get_stock_quality_page(filters, perm) -> dict:
     company = filters.get("company")
+    search = (filters.get("search") or "").strip().lower()
     cond = {}
     if company:
         cond["company"] = company
@@ -1960,6 +2453,13 @@ def _get_stock_quality_page(filters, perm) -> dict:
         fields=["name", "warehouse_name", "company"],
         limit=50,
     )
+    if search:
+        wh_list = [
+            w
+            for w in wh_list
+            if search in (w.name or "").lower()
+            or search in (w.warehouse_name or "").lower()
+        ]
     can_finance = perm["can_view_finance"]
     fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
 
@@ -2040,6 +2540,14 @@ def _get_stock_quality_page(filters, perm) -> dict:
 
 def _get_invoicing_page(filters, perm) -> dict:
     company = filters.get("company")
+    customer = filters.get("customer")
+    project = filters.get("project")
+    status = filters.get("status")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
     can_finance = perm["can_view_finance"]
     if not can_finance:
         return {
@@ -2061,6 +2569,14 @@ def _get_invoicing_page(filters, perm) -> dict:
     cond = {"docstatus": 1}
     if company:
         cond["company"] = company
+    if customer:
+        cond["customer"] = customer
+    if project:
+        cond["project"] = project
+    if status:
+        cond["status"] = status
+    if from_date and to_date:
+        cond["posting_date"] = ["between", [from_date, to_date]]
 
     invoices = frappe.get_all(
         "Sales Invoice",
@@ -2078,6 +2594,14 @@ def _get_invoicing_page(filters, perm) -> dict:
         order_by="posting_date desc",
         limit=50,
     )
+    if search:
+        invoices = [
+            i
+            for i in invoices
+            if search in (i.name or "").lower()
+            or search in (i.customer or "").lower()
+            or search in (i.project or "").lower()
+        ]
     total_billed = sum(flt(i.grand_total) for i in invoices)
     total_outstanding = sum(flt(i.outstanding_amount) for i in invoices)
 
@@ -2212,6 +2736,12 @@ def _get_finance_page(filters, perm) -> dict:
 
 def _get_payments_page(filters, perm) -> dict:
     company = filters.get("company")
+    customer = filters.get("customer")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
     can_finance = perm["can_view_finance"]
     if not can_finance:
         return {
@@ -2233,6 +2763,10 @@ def _get_payments_page(filters, perm) -> dict:
     cond = {"docstatus": 1}
     if company:
         cond["company"] = company
+    if customer:
+        cond["party"] = customer
+    if from_date and to_date:
+        cond["posting_date"] = ["between", [from_date, to_date]]
 
     payments = frappe.get_all(
         "Payment Entry",
@@ -2249,6 +2783,14 @@ def _get_payments_page(filters, perm) -> dict:
         order_by="posting_date desc",
         limit=50,
     )
+    if search:
+        payments = [
+            p
+            for p in payments
+            if search in (p.name or "").lower()
+            or search in (p.party or "").lower()
+            or search in (p.mode_of_payment or "").lower()
+        ]
     inward = sum(flt(p.paid_amount) for p in payments if p.payment_type == "Receive")
     outward = sum(flt(p.paid_amount) for p in payments if p.payment_type == "Pay")
     net_cash = inward - outward

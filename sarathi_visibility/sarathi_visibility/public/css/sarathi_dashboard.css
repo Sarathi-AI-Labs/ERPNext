@@ -95,6 +95,18 @@
 .sd-controls label.sd-search {
   flex: 1 1 190px;
 }
+.sd-date-btn-group {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+.sd-date-btn-group .sd-button {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+}
 .sd-controls input,
 .sd-controls select,
 .sd-report-toolbar input,
@@ -609,33 +621,123 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 650px) {
+@media (max-width: 768px) {
+  .sod-switcher-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .sod-switcher-btn {
+    flex: 1 1 140px;
+    padding: 7px 12px;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 8px;
+    justify-content: center;
+  }
   .sd-dashboard {
-    padding: 10px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
   .sd-hero {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
+    padding: 16px 14px;
+    gap: 12px;
+    border-radius: 10px;
+  }
+  .sd-hero h1 {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+  .sd-hero p {
+    font-size: 12px;
   }
   .sd-hero-actions {
-    align-items: flex-start;
+    width: 100%;
+    display: flex;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
+    gap: 8px;
   }
-  .sd-controls label {
-    flex: 1 1 130px;
+  .sd-hero-actions .sd-button {
+    flex-shrink: 0;
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .sd-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 0;
+  }
+  .sd-controls label,
+  .sd-controls label:first-child,
+  .sd-controls label.sd-search {
+    width: 100%;
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .sd-controls input,
+  .sd-controls select {
+    width: 100%;
+    height: 42px;
+    font-size: 13.5px;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  .sd-controls .sd-button {
+    width: 100%;
+    min-height: 40px;
+    font-size: 13px;
   }
   .sd-kpis {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+    width: 100%;
+  }
+  .sd-kpi {
+    padding: 10px 12px;
+    min-height: 72px;
+    text-align: left;
+  }
+  .sd-kpi span {
+    font-size: 10.5px;
+  }
+  .sd-kpi strong {
+    font-size: 18px;
   }
   .sd-cards,
   .sd-chart-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+  .sd-card {
+    padding: 14px;
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .sd-panel {
-    padding: 15px;
+    padding: 14px 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+  .sd-panel-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
   .sd-project-summary {
     flex-direction: column;
@@ -644,11 +746,50 @@
   .sd-donut-wrap {
     gap: 18px;
   }
+  .sd-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0 8px;
+    gap: 6px;
+    scrollbar-width: none;
+  }
+  .sd-tabs::-webkit-scrollbar {
+    display: none;
+  }
   .sd-tabs button {
-    padding: 10px 12px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .sd-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+  .sd-table {
+    min-width: 550px;
+    font-size: 12px;
+  }
+  .sd-table th,
+  .sd-table td {
+    padding: 8px 10px;
+    white-space: nowrap;
   }
   .sd-breadcrumb {
     font-size: 11px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sd-kpis {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -12,21 +12,10 @@
   --sod-red: #f06478;
 }
 
-/* 1. Global Viewport Lock when Sarathi Owner Dashboard is active:
-   Ensures the entire Frappe Desk navbar and sidebar remain completely stationary,
-   and ONLY the dashboard content area (.sod-main) scrolls.
+/* 1. Seamless Desktop & Mobile Page Layout:
+   Frappe Desk navbar and page scroll smoothly without locked overflow hacks.
+   The sidebar (.sod-side) stays stationary using position: sticky on desktop.
 */
-html.sod-page-active,
-body.sod-page-active {
-  overflow: hidden !important;
-  height: 100vh !important;
-}
-
-body.sod-page-active .main-section {
-  overflow: hidden !important;
-  height: 100vh !important;
-}
-
 .page-container[data-page-route="sarathiownertower"],
 .page-container[data-page-route="sarathiownertower"] .page-body,
 .page-container[data-page-route="sarathiownertower"] .page-wrapper,
@@ -57,15 +46,12 @@ body.sod-page-active .main-section {
     sans-serif;
   color: var(--sod-ink);
   background: #f5f6fc;
-  height: calc(100vh - 48px);
-  max-height: calc(100vh - 48px);
-  min-height: calc(100vh - 48px);
+  min-height: 100vh;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   position: relative;
 }
 
@@ -134,27 +120,27 @@ body.sod-page-active .main-section {
   font-size: 13px;
 }
 
-/* 2. Main App Grid: Fixed Stationary Sidebar + Scrollable Content */
+/* 2. Main App Grid: Sticky Stationary Sidebar + Naturally Scrollable Content */
 .sod-app {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  height: calc(100% - 42px);
-  min-height: 0;
-  flex: 1 1 auto;
+  min-height: calc(100vh - 42px);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
   position: relative;
+  align-items: start;
 }
 
-/* Left Sidebar: Fixed stationary navigation with comfortable vertical height */
+/* Left Sidebar: Fixed stationary sticky navigation */
 .sod-side {
   background: #101e43;
   color: #dbe3ff;
   padding: 14px 10px 24px;
-  height: 100%;
-  max-height: 100%;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -163,6 +149,7 @@ body.sod-page-active .main-section {
   flex-direction: column;
   flex-shrink: 0;
   overscroll-behavior: contain;
+  z-index: 10;
 }
 
 .sod-side::-webkit-scrollbar {
@@ -467,19 +454,14 @@ body.sod-page-active .main-section {
   transform: translate(1px, -1px);
 }
 
-/* Main Content Area: Independent smooth scrolling */
+/* Main Content Area: Smooth naturally scrolling content */
 .sod-main {
-  height: 100%;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 18px 24px 45px;
+  min-height: calc(100vh - 42px);
+  padding: 18px 24px 60px;
   max-width: 100%;
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  scrollbar-width: thin;
-  overscroll-behavior: contain;
   scroll-behavior: smooth;
 }
 
@@ -1277,6 +1259,75 @@ body.sod-page-active .main-section {
   line-height: 1.8;
 }
 
+/* Form-Type Detail View Inside Modal */
+.sod-form-block {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.sod-form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 12.5px;
+}
+
+.sod-form-row:last-child {
+  border-bottom: none;
+}
+
+.sod-form-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.sod-form-value {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.sod-modal-kpi-banner {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sod-modal-kpi-val {
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -0.5px;
+  color: #38bdf8;
+}
+
+.sod-modal-kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.sod-modal-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  margin-top: 12px;
+}
+
 .sod-modal-foot {
   display: flex;
   justify-content: flex-end;
@@ -1518,28 +1569,139 @@ body.sod-page-active .main-section {
 }
 
 @media (max-width: 820px) {
+  .sod-wrapper {
+    min-height: 100vh;
+    height: auto;
+  }
+  .sod-switcher-bar {
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .sod-app {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
   }
   .sod-side {
     position: relative;
+    top: auto;
     height: auto;
+    max-height: none;
+    width: 100%;
+    padding: 10px 14px;
+    z-index: 5;
+  }
+  .sod-brand {
+    margin: 0 4px 8px;
+    font-size: 14px;
   }
   .sod-nav {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     overflow-x: auto;
+    gap: 6px;
+    padding: 2px 0 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sod-nav::-webkit-scrollbar {
+    display: none;
   }
   .sod-nav button {
-    min-width: 140px;
+    flex-shrink: 0;
+    min-width: auto;
+    white-space: nowrap;
+    padding: 7px 12px;
+    font-size: 12px;
   }
+  .sod-nav-section-title,
   .sod-side-note,
   .sod-navtitle {
     display: none;
   }
-  .sod-cards,
+  .sod-main {
+    padding: 14px 12px 50px;
+    width: 100%;
+    min-width: 0;
+  }
+  .sod-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .sod-hero {
+    padding: 18px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .sod-hero h1 {
+    font-size: 20px;
+  }
+  .sod-hero-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sod-hero-actions button {
+    flex: 1 1 auto;
+  }
+  .sod-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+  }
+  .sod-filter-group {
+    width: 100%;
+    min-width: 100%;
+    flex: 1 1 100%;
+  }
+  .sod-select,
+  .sod-input {
+    height: 40px;
+    font-size: 13px;
+  }
+  .sod-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
   .sod-three,
   .sod-two {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .sod-tablewrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .sod-pipeline {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    width: 100%;
+  }
+  .sod-shortcuts-bar {
+    padding: 10px 14px;
+  }
+  .sod-shortcuts-pills {
+    gap: 6px;
+  }
+  .sod-shortcut-pill {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 820px) {
+  .sod-cards {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

@@ -36,4 +36,3 @@ doc_events = {
     }
     for dt in DOC_WATCH_LIST
 }
-
