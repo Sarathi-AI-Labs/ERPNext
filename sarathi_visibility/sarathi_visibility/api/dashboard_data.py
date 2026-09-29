@@ -172,14 +172,15 @@ def status_matches(project, status):
     return not status or project.get("status") == status
 
 
-def in_period(value, filters):
-    if not filters["from_date"] and not filters["to_date"]:
+def in_period(value, filters, fallback=None):
+    if not filters.get("from_date") and not filters.get("to_date"):
         return True
-    if not value:
-        return False
-    date = str(value)[:10]
-    return (not filters["from_date"] or date >= filters["from_date"]) and (
-        not filters["to_date"] or date <= filters["to_date"]
+    val = value or fallback
+    if not val:
+        return True
+    date = str(val)[:10]
+    return (not filters.get("from_date") or date >= filters["from_date"]) and (
+        not filters.get("to_date") or date <= filters["to_date"]
     )
 
 
@@ -205,6 +206,13 @@ def load(filters=None):
     if f["project"]:
         projects = [p for p in projects if p.name == f["project"]]
     projects = [p for p in projects if status_matches(p, f["status"])]
+    if f["from_date"] or f["to_date"]:
+        projects = [
+            p
+            for p in projects
+            if in_period(p.get("expected_start_date"), f, fallback=p.get("creation"))
+            or in_period(p.get("expected_end_date"), f, fallback=p.get("creation"))
+        ]
     project_map = {p.name: p for p in projects}
     project_names = list(project_map)
     project_filter = {"project": ["in", project_names or ["__none__"]]}
@@ -237,7 +245,9 @@ def load(filters=None):
     membership_orders = orders
     if f["customer"] and f["customer"] != UNASSIGNED:
         orders = [o for o in orders if o.customer == f["customer"]]
-    orders = [o for o in orders if in_period(o.transaction_date, f)]
+    orders = [
+        o for o in orders if in_period(o.transaction_date, f, fallback=o.get("creation"))
+    ]
     all_order_items = children(
         "Sales Order Item",
         [o.name for o in orders],
@@ -321,6 +331,17 @@ def load(filters=None):
             for w in work_orders
             if w.project in project_map and w.company == project_map[w.project].company
         ]
+    elif f["customer"]:
+        customer_projects = {p.name for p in projects}
+        customer_orders = {o.name for o in orders}
+        work_orders = rows("Work Order", WO_FIELDS, company_filter)
+        work_orders = [
+            w
+            for w in work_orders
+            if (w.project in customer_projects) or (w.sales_order in customer_orders)
+        ]
+        for w in work_orders:
+            w["project"] = w.get("project") or "—"
     else:
         work_orders = rows("Work Order", WO_FIELDS, company_filter)
         for w in work_orders:
@@ -401,7 +422,13 @@ def load(filters=None):
             )
         )
     work_orders_period = [
-        w for w in work_orders if in_period(w.get("planned_start_date"), f)
+        w
+        for w in work_orders
+        if in_period(
+            w.get("planned_start_date"),
+            f,
+            fallback=w.get("actual_start_date") or w.get("creation"),
+        )
     ]
 
     time_logs = children(
@@ -410,7 +437,13 @@ def load(filters=None):
         ["parent", "from_time", "to_time"],
     )
     lifetime_jobs = job_cards
-    job_cards = [j for j in lifetime_jobs if in_period(j.posting_date, f)]
+    job_cards = [
+        j
+        for j in lifetime_jobs
+        if in_period(
+            j.posting_date, f, fallback=j.get("expected_end_date") or j.get("creation")
+        )
+    ]
     wo_operations = children(
         "Work Order Operation",
         [w.name for w in work_orders if w.docstatus == 1],
@@ -660,7 +693,8 @@ def load(filters=None):
     finished = [
         r
         for r in stock_items
-        if r.get("is_finished_item") and in_period(r.posting_date, f)
+        if r.get("is_finished_item")
+        and in_period(r.posting_date, f, fallback=r.get("creation"))
     ]
 
     required = children(

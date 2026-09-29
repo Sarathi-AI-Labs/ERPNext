@@ -225,6 +225,10 @@ def get_owner_summary(filters=None):
         so_filters["company"] = company
     if customer:
         so_filters["customer"] = customer
+    if project_filter:
+        so_filters["project"] = project_filter
+    if status:
+        so_filters["status"] = status
     if from_date and to_date:
         so_filters["transaction_date"] = ["between", [from_date, to_date]]
 
@@ -239,8 +243,17 @@ def get_owner_summary(filters=None):
             "grand_total",
             "per_delivered",
             "per_billed",
+            "project",
         ],
     )
+    if search:
+        sales_orders = [
+            o
+            for o in sales_orders
+            if search in (o.name or "").lower()
+            or search in (o.customer or "").lower()
+            or search in (o.project or "").lower()
+        ]
 
     open_sales_orders = [
         o for o in sales_orders if o.status not in ("Completed", "Closed", "Cancelled")
@@ -256,6 +269,10 @@ def get_owner_summary(filters=None):
         si_filters["company"] = company
     if customer:
         si_filters["customer"] = customer
+    if project_filter:
+        si_filters["project"] = project_filter
+    if status:
+        si_filters["status"] = status
     if from_date and to_date:
         si_filters["posting_date"] = ["between", [from_date, to_date]]
 
@@ -273,6 +290,14 @@ def get_owner_summary(filters=None):
             "status",
         ],
     )
+    if search:
+        sales_invoices = [
+            i
+            for i in sales_invoices
+            if search in (i.name or "").lower()
+            or search in (i.customer or "").lower()
+            or search in (i.project or "").lower()
+        ]
 
     unpaid_invoices = [i for i in sales_invoices if flt(i.outstanding_amount) > 0]
     total_receivables = sum(flt(i.outstanding_amount) for i in unpaid_invoices)
@@ -439,17 +464,21 @@ def get_owner_summary(filters=None):
             }
         )
 
-    delayed_wos = frappe.db.sql(
-        """
+    delayed_wos_query = """
         SELECT name, production_item, planned_end_date, qty, produced_qty
         FROM `tabWork Order`
         WHERE docstatus = 1 AND status not in ('Completed', 'Closed', 'Cancelled')
         AND planned_end_date IS NOT NULL AND planned_end_date < %s
-        ORDER BY planned_end_date ASC LIMIT 5
-        """,
-        (today(),),
-        as_dict=True,
-    )
+    """
+    params = [today()]
+    if company:
+        delayed_wos_query += " AND company = %s"
+        params.append(company)
+    if project_filter:
+        delayed_wos_query += " AND project = %s"
+        params.append(project_filter)
+    delayed_wos_query += " ORDER BY planned_end_date ASC LIMIT 5"
+    delayed_wos = frappe.db.sql(delayed_wos_query, tuple(params), as_dict=True)
     if delayed_wos:
         action_alerts.append(
             {
@@ -473,7 +502,13 @@ def get_owner_summary(filters=None):
         )
 
     # 9. Real-Time Curated Business Activity (Logins OMITTED, only real transactions)
-    live_activity = _get_live_activity(company=company, limit=10)
+    live_activity = _get_live_activity(
+        company=company,
+        customer=customer,
+        project=project_filter,
+        search=search,
+        limit=10,
+    )
 
     # 10. Active Projects Portfolio Table Rows
     active_projects_rows = []
@@ -620,7 +655,9 @@ def get_owner_summary(filters=None):
     }
 
 
-def _get_live_activity(company=None, limit=12) -> list:
+def _get_live_activity(
+    company=None, customer=None, project=None, search=None, limit=12
+) -> list:
     """Aggregates real-time business events across Work Orders, Stock Entries, Sales Orders,
     Sales Invoices, Payment Entries, and Projects (Routine logins strictly excluded).
     """
@@ -630,6 +667,10 @@ def _get_live_activity(company=None, limit=12) -> list:
     proj_filters = {"docstatus": ["!=", 2]}
     if company:
         proj_filters["company"] = company
+    if customer:
+        proj_filters["customer"] = customer
+    if project:
+        proj_filters["name"] = project
     projects = frappe.get_all(
         "Project",
         filters=proj_filters,
@@ -1371,6 +1412,11 @@ def _get_projects_page(filters, perm) -> dict:
     company = filters.get("company")
     customer = filters.get("customer")
     status = filters.get("status")
+    project = filters.get("project")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
 
     cond = {"docstatus": ["!=", 2]}
     if company:
@@ -1379,6 +1425,10 @@ def _get_projects_page(filters, perm) -> dict:
         cond["customer"] = customer
     if status:
         cond["status"] = status
+    if project:
+        cond["name"] = project
+    if from_date and to_date:
+        cond["creation"] = ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]]
 
     all_projects = frappe.get_all(
         "Project",
@@ -1396,6 +1446,14 @@ def _get_projects_page(filters, perm) -> dict:
         ],
         order_by="modified desc",
     )
+    if search:
+        all_projects = [
+            p
+            for p in all_projects
+            if search in (p.name or "").lower()
+            or search in (p.project_name or "").lower()
+            or search in (p.customer or "").lower()
+        ]
     open_c = len([p for p in all_projects if p.status in ("Open", "Ongoing", "Active")])
     done_c = len([p for p in all_projects if p.status == "Completed"])
     total_budget = sum(flt(p.estimated_costing) for p in all_projects)
@@ -1481,11 +1539,18 @@ def _get_projects_page(filters, perm) -> dict:
 def _get_project_detail_page(filters, perm) -> dict:
     project_name = filters.get("project")
     company = filters.get("company")
+    customer = filters.get("customer")
+    status = filters.get("status")
+    search = (filters.get("search") or "").strip().lower()
 
     # 1. Fetch all available projects so user can switch between them
     proj_filters = {"docstatus": ["!=", 2]}
     if company:
         proj_filters["company"] = company
+    if customer:
+        proj_filters["customer"] = customer
+    if status:
+        proj_filters["status"] = status
     all_projects = frappe.get_all(
         "Project",
         filters=proj_filters,
@@ -1501,6 +1566,13 @@ def _get_project_detail_page(filters, perm) -> dict:
             order_by="modified desc",
             limit=100,
         )
+    if search:
+        all_projects = [
+            p
+            for p in all_projects
+            if search in (p.name or "").lower()
+            or search in (p.project_name or "").lower()
+        ]
 
     # 2. Resolve project_name
     if not project_name or not frappe.db.exists("Project", project_name):
@@ -1630,13 +1702,21 @@ def _get_project_detail_page(filters, perm) -> dict:
 def _get_customers_page(filters, perm) -> dict:
     company = filters.get("company")
     customer_filter = filters.get("customer")
+    search = (filters.get("search") or "").strip().lower()
     cust_cond = {}
     if customer_filter:
         cust_cond["name"] = customer_filter
 
     customers = frappe.get_all(
-        "Customer", filters=cust_cond, fields=["name", "customer_name"], limit=50
+        "Customer", filters=cust_cond, fields=["name", "customer_name"], limit=100
     )
+    if search:
+        customers = [
+            c
+            for c in customers
+            if search in (c.name or "").lower()
+            or search in (c.customer_name or "").lower()
+        ]
     can_finance = perm["can_view_finance"]
     fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
 
@@ -1744,6 +1824,11 @@ def _get_sales_orders_page(filters, perm) -> dict:
     company = filters.get("company")
     customer = filters.get("customer")
     status = filters.get("status")
+    project = filters.get("project")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
 
     cond = {"docstatus": ["!=", 2]}
     if company:
@@ -1752,6 +1837,10 @@ def _get_sales_orders_page(filters, perm) -> dict:
         cond["customer"] = customer
     if status:
         cond["status"] = status
+    if project:
+        cond["project"] = project
+    if from_date and to_date:
+        cond["transaction_date"] = ["between", [from_date, to_date]]
 
     orders = frappe.get_all(
         "Sales Order",
@@ -1769,6 +1858,14 @@ def _get_sales_orders_page(filters, perm) -> dict:
         order_by="transaction_date desc",
         limit=50,
     )
+    if search:
+        orders = [
+            o
+            for o in orders
+            if search in (o.name or "").lower()
+            or search in (o.customer or "").lower()
+            or search in (o.project or "").lower()
+        ]
     total_val = sum(flt(o.grand_total) for o in orders)
     pending_delivery = [
         o
@@ -1849,9 +1946,23 @@ def _get_sales_orders_page(filters, perm) -> dict:
 
 def _get_manufacturing_page(filters) -> dict:
     company = filters.get("company")
+    customer = filters.get("customer")
+    project = filters.get("project")
+    status = filters.get("status")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
     cond = {"docstatus": ["!=", 2]}
     if company:
         cond["company"] = company
+    if project:
+        cond["project"] = project
+    if status:
+        cond["status"] = status
+    if from_date and to_date:
+        cond["planned_start_date"] = ["between", [from_date, to_date]]
 
     work_orders = frappe.get_all(
         "Work Order",
@@ -1865,10 +1976,33 @@ def _get_manufacturing_page(filters) -> dict:
             "status",
             "planned_start_date",
             "planned_end_date",
+            "sales_order",
         ],
         order_by="creation desc",
         limit=50,
     )
+    if customer:
+        cust_projects = set(
+            frappe.get_all("Project", filters={"customer": customer}, pluck="name")
+        )
+        cust_sos = set(
+            frappe.get_all("Sales Order", filters={"customer": customer}, pluck="name")
+        )
+        work_orders = [
+            w
+            for w in work_orders
+            if (w.project and w.project in cust_projects)
+            or (w.sales_order and w.sales_order in cust_sos)
+        ]
+
+    if search:
+        work_orders = [
+            w
+            for w in work_orders
+            if search in (w.name or "").lower()
+            or search in (w.production_item or "").lower()
+            or search in (w.project or "").lower()
+        ]
     in_process = [w for w in work_orders if w.status in ("In Process", "Not Started")]
     completed = [w for w in work_orders if w.status == "Completed"]
     total_planned = sum(flt(w.qty) for w in work_orders)
@@ -1950,6 +2084,7 @@ def _get_manufacturing_page(filters) -> dict:
 
 def _get_stock_quality_page(filters, perm) -> dict:
     company = filters.get("company")
+    search = (filters.get("search") or "").strip().lower()
     cond = {}
     if company:
         cond["company"] = company
@@ -1960,6 +2095,13 @@ def _get_stock_quality_page(filters, perm) -> dict:
         fields=["name", "warehouse_name", "company"],
         limit=50,
     )
+    if search:
+        wh_list = [
+            w
+            for w in wh_list
+            if search in (w.name or "").lower()
+            or search in (w.warehouse_name or "").lower()
+        ]
     can_finance = perm["can_view_finance"]
     fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
 
@@ -2037,9 +2179,16 @@ def _get_stock_quality_page(filters, perm) -> dict:
         },
     }
 
-
 def _get_invoicing_page(filters, perm) -> dict:
     company = filters.get("company")
+    customer = filters.get("customer")
+    project = filters.get("project")
+    status = filters.get("status")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
     can_finance = perm["can_view_finance"]
     if not can_finance:
         return {
@@ -2061,6 +2210,14 @@ def _get_invoicing_page(filters, perm) -> dict:
     cond = {"docstatus": 1}
     if company:
         cond["company"] = company
+    if customer:
+        cond["customer"] = customer
+    if project:
+        cond["project"] = project
+    if status:
+        cond["status"] = status
+    if from_date and to_date:
+        cond["posting_date"] = ["between", [from_date, to_date]]
 
     invoices = frappe.get_all(
         "Sales Invoice",
@@ -2078,6 +2235,14 @@ def _get_invoicing_page(filters, perm) -> dict:
         order_by="posting_date desc",
         limit=50,
     )
+    if search:
+        invoices = [
+            i
+            for i in invoices
+            if search in (i.name or "").lower()
+            or search in (i.customer or "").lower()
+            or search in (i.project or "").lower()
+        ]
     total_billed = sum(flt(i.grand_total) for i in invoices)
     total_outstanding = sum(flt(i.outstanding_amount) for i in invoices)
 
@@ -2212,6 +2377,12 @@ def _get_finance_page(filters, perm) -> dict:
 
 def _get_payments_page(filters, perm) -> dict:
     company = filters.get("company")
+    customer = filters.get("customer")
+    date_range = filters.get("date_range", "all")
+    search = (filters.get("search") or "").strip().lower()
+
+    from_date, to_date = _get_date_bounds(date_range)
+
     can_finance = perm["can_view_finance"]
     if not can_finance:
         return {
@@ -2233,6 +2404,10 @@ def _get_payments_page(filters, perm) -> dict:
     cond = {"docstatus": 1}
     if company:
         cond["company"] = company
+    if customer:
+        cond["party"] = customer
+    if from_date and to_date:
+        cond["posting_date"] = ["between", [from_date, to_date]]
 
     payments = frappe.get_all(
         "Payment Entry",
@@ -2249,6 +2424,14 @@ def _get_payments_page(filters, perm) -> dict:
         order_by="posting_date desc",
         limit=50,
     )
+    if search:
+        payments = [
+            p
+            for p in payments
+            if search in (p.name or "").lower()
+            or search in (p.party or "").lower()
+            or search in (p.mode_of_payment or "").lower()
+        ]
     inward = sum(flt(p.paid_amount) for p in payments if p.payment_type == "Receive")
     outward = sum(flt(p.paid_amount) for p in payments if p.payment_type == "Pay")
     net_cash = inward - outward
