@@ -378,7 +378,8 @@ frappe.SarathiIndustrialDashboard = class {
     for (const n of this.root.querySelectorAll("[data-date-filter]")) {
       const field = n.dataset.dateFilter;
       const targetVal =
-        this.dateFilters?.[field] !== undefined && this.dateFilters[field] !== ""
+        this.dateFilters?.[field] !== undefined &&
+        this.dateFilters[field] !== ""
           ? this.dateFilters[field]
           : this.filters[field] || "";
       if (document.activeElement !== n && n.value !== targetVal) {

@@ -209,6 +209,7 @@ def load(filters=None):
     projects = [p for p in projects if status_matches(p, f["status"])]
     portfolio_projects = list(projects)
     if f["from_date"] or f["to_date"]:
+
         def _in_project_date_range(p):
             c_val = p.get("creation")
             if not c_val:
@@ -260,7 +261,9 @@ def load(filters=None):
     if f["customer"] and f["customer"] != UNASSIGNED:
         orders = [o for o in orders if o.customer == f["customer"]]
     orders = [
-        o for o in orders if in_period(o.transaction_date, f, fallback=o.get("creation"))
+        o
+        for o in orders
+        if in_period(o.transaction_date, f, fallback=o.get("creation"))
     ]
     all_order_items = children(
         "Sales Order Item",

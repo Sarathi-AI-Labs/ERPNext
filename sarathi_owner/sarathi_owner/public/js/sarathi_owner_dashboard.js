@@ -351,8 +351,14 @@ frappe.SarathiOwnerDashboard = class {
     this.$content.on("click", ".sod-card", function (e) {
       if ($(e.target).closest("a, button").length) return;
       const $card = $(this);
-      const label = $card.find(".sod-label").text().trim() || $card.find("strong").text().trim() || "Metric Details";
-      const value = $card.find(".sod-kpi-val, strong").text().trim() || $card.find("strong").text().trim() || "—";
+      const label =
+        $card.find(".sod-label").text().trim() ||
+        $card.find("strong").text().trim() ||
+        "Metric Details";
+      const value =
+        $card.find(".sod-kpi-val, strong").text().trim() ||
+        $card.find("strong").text().trim() ||
+        "—";
       const desc = $card.find("small").text().trim() || "";
       const action = $card.data("action") || "";
       const route = $card.data("route") || "";
@@ -1461,28 +1467,36 @@ frappe.SarathiOwnerDashboard = class {
             <div>
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                 <span style="font-size: 18px; font-weight: 700; color: #17233f;">${frappe.utils.escape_html(pf.project_name || pf.name)}</span>
-                <span class="sod-pill ${pf.status === 'Completed' ? 'green' : 'blue'}">${frappe.utils.escape_html(pf.status)}</span>
+                <span class="sod-pill ${pf.status === "Completed" ? "green" : "blue"}">${frappe.utils.escape_html(pf.status)}</span>
               </div>
               <p style="margin: 0; color: #7583a0; font-size: 12px;">
-                ID: <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(pf.name)}</b></a> · 
-                Customer: <b>${frappe.utils.escape_html(pf.customer || 'Unassigned')}</b> · 
-                Company: <b>${frappe.utils.escape_html(pf.company || '—')}</b> · 
-                Delivery: <b>${frappe.utils.escape_html(pf.expected_end_date || '—')}</b>
+                ID: <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(pf.name)}</b></a> ·
+                Customer: <b>${frappe.utils.escape_html(pf.customer || "Unassigned")}</b> ·
+                Company: <b>${frappe.utils.escape_html(pf.company || "—")}</b> ·
+                Delivery: <b>${frappe.utils.escape_html(pf.expected_end_date || "—")}</b>
               </p>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              ${allProjects.length > 1 ? `
+              ${
+                allProjects.length > 1
+                  ? `
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <label style="font-size: 12px; font-weight: 600; color: #64748b;">Switch Project:</label>
                   <select id="sod-inpage-project-select" class="sod-select" style="padding: 6px 12px; font-size: 12px; font-weight: 500; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
-                    ${allProjects.map(p => `
-                      <option value="${frappe.utils.escape_html(p.name)}" ${p.name === data.selected_project ? 'selected' : ''}>
+                    ${allProjects
+                      .map(
+                        (p) => `
+                      <option value="${frappe.utils.escape_html(p.name)}" ${p.name === data.selected_project ? "selected" : ""}>
                         ${frappe.utils.escape_html(p.project_name || p.name)}
                       </option>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                   </select>
                 </div>
-              ` : ''}
+              `
+                  : ""
+              }
               <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm" style="background:#5369ef; color:#fff; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">Open in Desk ↗</a>
               <a href="/app/task/new-task-1?project=${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm" style="background:#fff; border: 1px solid #cbd5e1; color:#334155; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">+ Add Task ↗</a>
             </div>
@@ -1594,7 +1608,7 @@ frappe.SarathiOwnerDashboard = class {
                 <tbody>
         `;
         data.work_orders.forEach((r) => {
-          html += `<tr><td><a href="/app/work-order/${encodeURIComponent(r[0])}" target="_blank" class="sod-link">${frappe.utils.escape_html(r[0])}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(r[2])}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(r[4])}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill ${r[6] === 'Completed' ? 'green' : 'purple'}">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
+          html += `<tr><td><a href="/app/work-order/${encodeURIComponent(r[0])}" target="_blank" class="sod-link">${frappe.utils.escape_html(r[0])}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(r[2])}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(r[4])}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill ${r[6] === "Completed" ? "green" : "purple"}">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
         });
         html += `</tbody></table></div></div>`;
       }
@@ -1796,10 +1810,13 @@ frappe.SarathiOwnerDashboard = class {
     `;
 
     // Form-Type details block
-    const company = this.$el.find("#sod-filter-company").val() || "All Organizations";
+    const company =
+      this.$el.find("#sod-filter-company").val() || "All Organizations";
     const dateRange = this.$el.find("#sod-filter-date").val() || "All Dates";
-    const customer = this.$el.find("#sod-filter-customer").val() || "All Customers";
-    const project = this.$el.find("#sod-filter-project").val() || "All Projects";
+    const customer =
+      this.$el.find("#sod-filter-customer").val() || "All Customers";
+    const project =
+      this.$el.find("#sod-filter-project").val() || "All Projects";
 
     contentHtml += `
       <div class="sod-form-block">
@@ -1819,18 +1836,26 @@ frappe.SarathiOwnerDashboard = class {
           <span class="sod-form-label">Date Filter</span>
           <span class="sod-form-value">${frappe.utils.escape_html(dateRange)}</span>
         </div>
-        ${customer !== "All Customers" ? `
+        ${
+          customer !== "All Customers"
+            ? `
           <div class="sod-form-row">
             <span class="sod-form-label">Customer Filter</span>
             <span class="sod-form-value">${frappe.utils.escape_html(customer)}</span>
           </div>
-        ` : ""}
-        ${project !== "All Projects" ? `
+        `
+            : ""
+        }
+        ${
+          project !== "All Projects"
+            ? `
           <div class="sod-form-row">
             <span class="sod-form-label">Project Filter</span>
             <span class="sod-form-value">${frappe.utils.escape_html(project)}</span>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
     `;
 
@@ -1844,21 +1869,28 @@ frappe.SarathiOwnerDashboard = class {
             <table class="sod-table">
               <thead><tr><th>PROJECT</th><th>CUSTOMER</th><th>STATUS</th><th>PROGRESS</th><th>BUDGET</th></tr></thead>
               <tbody>
-                ${projs.map(p => `
+                ${projs
+                  .map(
+                    (p) => `
                   <tr>
                     <td><a href="/app/project/${encodeURIComponent(p.project)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(p.project_name || p.project)}</b></a></td>
                     <td>${frappe.utils.escape_html(p.customer || "—")}</td>
-                    <td><span class="sod-pill ${p.status === 'Completed' ? 'green' : 'blue'}">${frappe.utils.escape_html(p.status)}</span></td>
+                    <td><span class="sod-pill ${p.status === "Completed" ? "green" : "blue"}">${frappe.utils.escape_html(p.status)}</span></td>
                     <td><b>${flt(p.percent_complete || 0)}%</b></td>
                     <td>${frappe.utils.escape_html(p.budget || "—")}</td>
                   </tr>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
               </tbody>
             </table>
           </div>
         `;
       }
-    } else if (action === "view-sales-orders" || label.toLowerCase().includes("order")) {
+    } else if (
+      action === "view-sales-orders" ||
+      label.toLowerCase().includes("order")
+    ) {
       const sos = data.sales_orders || [];
       if (sos.length) {
         contentHtml += `
@@ -1867,21 +1899,29 @@ frappe.SarathiOwnerDashboard = class {
             <table class="sod-table">
               <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>% DELIVERED</th><th>STATUS</th></tr></thead>
               <tbody>
-                ${sos.map(s => `
+                ${sos
+                  .map(
+                    (s) => `
                   <tr>
                     <td><a href="/app/sales-order/${encodeURIComponent(s[0])}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(s[0])}</b></a></td>
                     <td>${frappe.utils.escape_html(s[1])}</td>
                     <td>${frappe.utils.escape_html(s[2])}</td>
                     <td>${frappe.utils.escape_html(s[3])}</td>
-                    <td><span class="sod-pill blue">${frappe.utils.escape_html(s[6] || s[5] || 'Active')}</span></td>
+                    <td><span class="sod-pill blue">${frappe.utils.escape_html(s[6] || s[5] || "Active")}</span></td>
                   </tr>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
               </tbody>
             </table>
           </div>
         `;
       }
-    } else if (action === "view-stock" || label.toLowerCase().includes("stock") || label.toLowerCase().includes("capital")) {
+    } else if (
+      action === "view-stock" ||
+      label.toLowerCase().includes("stock") ||
+      label.toLowerCase().includes("capital")
+    ) {
       const cap = data.capital_allocation || {};
       const lowStock = data.low_stock_items || [];
       contentHtml += `
@@ -1899,20 +1939,31 @@ frappe.SarathiOwnerDashboard = class {
             <table class="sod-table">
               <thead><tr><th>ITEM</th><th>WAREHOUSE</th><th>AVAILABLE</th><th>REORDER QTY</th></tr></thead>
               <tbody>
-                ${lowStock.map(l => `
+                ${lowStock
+                  .map(
+                    (l) => `
                   <tr>
                     <td><a href="/app/item/${encodeURIComponent(l.item_code)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(l.item_name)}</b></a></td>
                     <td>${frappe.utils.escape_html(l.warehouse)}</td>
                     <td><span style="color:#e11d48; font-weight:700;">${frappe.utils.escape_html(l.available)}</span></td>
                     <td>${frappe.utils.escape_html(l.reorder)}</td>
                   </tr>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
               </tbody>
             </table>
           </div>
         `;
       }
-    } else if (action === "view-finance" || action === "view-pnl" || action === "view-reports" || label.toLowerCase().includes("profit") || label.toLowerCase().includes("receivable") || label.toLowerCase().includes("cost")) {
+    } else if (
+      action === "view-finance" ||
+      action === "view-pnl" ||
+      action === "view-reports" ||
+      label.toLowerCase().includes("profit") ||
+      label.toLowerCase().includes("receivable") ||
+      label.toLowerCase().includes("cost")
+    ) {
       const snap = data.financial_snapshot || {};
       contentHtml += `
         <div class="sod-form-block" style="margin-top: 10px;">
@@ -1928,7 +1979,17 @@ frappe.SarathiOwnerDashboard = class {
     this.$modalBody.html(contentHtml);
 
     // Footer buttons
-    const deskRoute = route || (action === "view-projects" ? "/app/project" : action === "view-sales-orders" ? "/app/sales-order" : action === "view-finance" ? "/app/sales-invoice" : action === "view-stock" ? "/app/item" : "/app/query-report/Profit and Loss Statement");
+    const deskRoute =
+      route ||
+      (action === "view-projects"
+        ? "/app/project"
+        : action === "view-sales-orders"
+          ? "/app/sales-order"
+          : action === "view-finance"
+            ? "/app/sales-invoice"
+            : action === "view-stock"
+              ? "/app/item"
+              : "/app/query-report/Profit and Loss Statement");
     let navActionBtn = "";
     const self = this;
     if (action === "view-projects") {
@@ -1947,11 +2008,14 @@ frappe.SarathiOwnerDashboard = class {
       <a href="${frappe.utils.escape_html(deskRoute)}" target="_blank" class="sod-btn-primary" style="text-decoration:none;">Open in Desk ↗</a>
     `);
 
-    this.$modalFoot.find("#sod-modal-foot-close").on("click", () => this.$modal.removeClass("show"));
+    this.$modalFoot
+      .find("#sod-modal-foot-close")
+      .on("click", () => this.$modal.removeClass("show"));
     this.$modalFoot.find("#sod-modal-nav-action").on("click", () => {
       this.$modal.removeClass("show");
       if (action === "view-projects") self.goToPageByKey("projects");
-      else if (action === "view-sales-orders") self.goToPageByKey("sales_orders");
+      else if (action === "view-sales-orders")
+        self.goToPageByKey("sales_orders");
       else if (action === "view-finance") self.goToPageByKey("invoicing");
       else if (action === "view-stock") self.goToPageByKey("stock_quality");
     });
