@@ -338,6 +338,31 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(baseline["production_summary"], dated["production_summary"])
         self.assertEqual(baseline["wip_stock"], dated["wip_stock"])
 
+    def test_project_date_filter_by_creation_date(self):
+        t = str(frappe.utils.today())
+        f_matching = {
+            "company": self.company,
+            "from_date": t,
+            "to_date": t,
+        }
+        summary_matching = get_summary(f_matching)
+        matching_names = [p["name"] for p in summary_matching["projects"]]
+        self.assertIn(self.projects[0], matching_names)
+        cards_matching = {c["label"]: c["value"] for c in summary_matching["kpis"]}
+        self.assertGreaterEqual(cards_matching["Total projects"], 1)
+
+        f_outside = {
+            "company": self.company,
+            "from_date": "2020-01-01",
+            "to_date": "2020-01-31",
+        }
+        summary_outside = get_summary(f_outside)
+        outside_names = [p["name"] for p in summary_outside["projects"]]
+        self.assertNotIn(self.projects[0], outside_names)
+        cards_outside = {c["label"]: c["value"] for c in summary_outside["kpis"]}
+        self.assertEqual(cards_outside["Total projects"], 0)
+        self.assertEqual(cards_outside["Not started"], 0)
+
     def setUp(self):
         frappe.set_user("Administrator")
         frappe.db.savepoint("sarathi_dashboard_test")

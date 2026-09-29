@@ -111,6 +111,12 @@ frappe.SarathiIndustrialDashboard = class {
       if (e.target.dataset.subFilter) this.subFilterChanged(e.target);
       if (e.target.dataset.accFilter) this.accFilterChanged(e.target);
     });
+    this.root.addEventListener("keydown", (e) => {
+      if (e.target.dataset.dateFilter && e.key === "Enter") {
+        e.preventDefault();
+        this.applyDateFilter();
+      }
+    });
     this.el("[data-search]").addEventListener("input", (e) => {
       this.search = e.target.value.toLowerCase();
       this.customerPage = this.projectPage = 0;
@@ -260,6 +266,26 @@ frappe.SarathiIndustrialDashboard = class {
       Object.assign(change, { customer: "", project: "" });
     this.navigate(change);
   }
+  applyDateFilter() {
+    const from = this.el('[data-date-filter="from_date"]')?.value || "";
+    const to = this.el('[data-date-filter="to_date"]')?.value || "";
+    if (!from || !to) {
+      frappe.msgprint(__("Please select both From date and To date."));
+      return;
+    }
+    if (from > to) {
+      frappe.msgprint(__("From date must be on or before To date."));
+      return;
+    }
+    this.navigate({ from_date: from, to_date: to });
+  }
+  clearDateFilter() {
+    const fromEl = this.el('[data-date-filter="from_date"]');
+    const toEl = this.el('[data-date-filter="to_date"]');
+    if (fromEl) fromEl.value = "";
+    if (toEl) toEl.value = "";
+    this.navigate({ from_date: "", to_date: "" });
+  }
   async load(silent = false) {
     const request = ++this.sequence;
     this.root.setAttribute("aria-busy", "true");
@@ -314,7 +340,9 @@ frappe.SarathiIndustrialDashboard = class {
         )
         .join("");
     for (const n of this.root.querySelectorAll("[data-filter]"))
-      n.value = this.filters[n.dataset.filter];
+      n.value = this.filters[n.dataset.filter] || "";
+    for (const n of this.root.querySelectorAll("[data-date-filter]"))
+      n.value = this.filters[n.dataset.dateFilter] || "";
     const customer = d.customers.find((c) => c.name === this.filters.customer);
     const name =
       customer?.customer_name ||
@@ -842,6 +870,8 @@ frappe.SarathiIndustrialDashboard = class {
     const d = b.dataset;
     if (d.inspect) this.inspect(d.doctype, d.inspect);
     else if (d.action === "switch-owner") frappe.set_route("sarathiownertower");
+    else if (d.action === "apply-dates") this.applyDateFilter();
+    else if (d.action === "clear-dates") this.clearDateFilter();
     else if (d.action === "open-subcontracting") this.openSubcontractingView();
     else if (d.action === "close-subcontracting")
       this.closeSubcontractingView();

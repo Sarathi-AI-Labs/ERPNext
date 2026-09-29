@@ -95,6 +95,18 @@
 .sd-controls label.sd-search {
   flex: 1 1 190px;
 }
+.sd-date-btn-group {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+.sd-date-btn-group .sd-button {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+}
 .sd-controls input,
 .sd-controls select,
 .sd-report-toolbar input,

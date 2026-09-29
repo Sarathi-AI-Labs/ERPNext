@@ -1026,6 +1026,13 @@ def report_data(data, report, subset="", search=""):
 
         result = list(data.get(report, []))
 
+    if (
+        data.get("filters", {}).get("from_date")
+        or data.get("filters", {}).get("to_date")
+    ) and report in ("production_summary", "operation_balance", "live_activity"):
+        scoped = {p.name for p in data.get("projects", [])}
+        result = [r for r in result if r.get("project") in scoped]
+
     if subset == "active" and report == "projects":
 
         result = [r for r in result if r.status not in ("Completed", "Cancelled")]
@@ -1132,6 +1139,22 @@ def get_summary(filters=None):
     data = load(filters)
 
     projects = data["projects"]
+
+    f = data.get("filters", {})
+    if f.get("from_date") or f.get("to_date"):
+        scoped_projects = {p.name for p in projects}
+        data["production_summary"] = [
+            r for r in data["production_summary"] if r.get("project") in scoped_projects
+        ]
+        data["operation_balance"] = [
+            r for r in data["operation_balance"] if r.get("project") in scoped_projects
+        ]
+        data["pipeline_summary"] = [
+            r for r in data["pipeline_summary"] if r.get("project") in scoped_projects
+        ]
+        data["live_activity"] = [
+            r for r in data["live_activity"] if r.get("project") in scoped_projects
+        ]
 
     # Keep this overview in project units: documents and inspections are counts,
     # while operation/stock quantities may have different units and cannot be added.

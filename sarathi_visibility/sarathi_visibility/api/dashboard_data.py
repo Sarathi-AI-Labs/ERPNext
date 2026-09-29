@@ -19,6 +19,7 @@ PROJECT_FIELDS = [
     "sales_order",
     "custom_sarathi_bom",
     "custom_sarathi_manufacturing",
+    "creation",
 ]
 WO_FIELDS = [
     "name",
@@ -206,6 +207,26 @@ def load(filters=None):
     if f["project"]:
         projects = [p for p in projects if p.name == f["project"]]
     projects = [p for p in projects if status_matches(p, f["status"])]
+    portfolio_projects = list(projects)
+    if f["from_date"] or f["to_date"]:
+        def _in_project_date_range(p):
+            c_val = p.get("creation")
+            if not c_val:
+                return False
+            try:
+                c_date = str(getdate(c_val))
+            except Exception:
+                c_date = str(c_val)[:10]
+            if not c_date:
+                return False
+            if f["from_date"] and c_date < f["from_date"]:
+                return False
+            if f["to_date"] and c_date > f["to_date"]:
+                return False
+            return True
+
+        projects = [p for p in projects if _in_project_date_range(p)]
+
     project_map = {p.name: p for p in projects}
     project_names = list(project_map)
     project_filter = {"project": ["in", project_names or ["__none__"]]}
@@ -789,7 +810,7 @@ def load(filters=None):
         )
     }
     operation_balance, production_summary, wip_stock = analyze(
-        projects,
+        portfolio_projects,
         work_orders,
         wo_operations,
         lifetime_jobs,
@@ -800,7 +821,7 @@ def load(filters=None):
     from sarathi_visibility.api.production import live_activity
 
     live_activity_rows = live_activity(
-        projects,
+        portfolio_projects,
         work_orders,
         lifetime_jobs,
         time_logs,
@@ -990,7 +1011,10 @@ def load(filters=None):
 
     pipeline = load_pipeline(
         dict(
-            projects=projects, filters=f, order_items=order_items, wip_stock=wip_stock
+            projects=portfolio_projects,
+            filters=f,
+            order_items=order_items,
+            wip_stock=wip_stock,
         ),
         company_filter,
         work_orders,
