@@ -206,13 +206,6 @@ def load(filters=None):
     if f["project"]:
         projects = [p for p in projects if p.name == f["project"]]
     projects = [p for p in projects if status_matches(p, f["status"])]
-    if f["from_date"] or f["to_date"]:
-        projects = [
-            p
-            for p in projects
-            if in_period(p.get("expected_start_date"), f, fallback=p.get("creation"))
-            or in_period(p.get("expected_end_date"), f, fallback=p.get("creation"))
-        ]
     project_map = {p.name: p for p in projects}
     project_names = list(project_map)
     project_filter = {"project": ["in", project_names or ["__none__"]]}

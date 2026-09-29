@@ -181,12 +181,6 @@ def get_owner_summary(filters=None):
         project_conditions["status"] = status
     if project_filter:
         project_conditions["name"] = project_filter
-    if from_date and to_date:
-        project_conditions["creation"] = [
-            "between",
-            [f"{from_date} 00:00:00", f"{to_date} 23:59:59"],
-        ]
-
     projects = frappe.get_all(
         "Project",
         filters=project_conditions,
@@ -202,9 +196,19 @@ def get_owner_summary(filters=None):
             "total_costing_amount",
             "total_billed_amount",
             "total_sales_amount",
+            "creation",
+            "modified",
         ],
         order_by="modified desc",
     )
+    if from_date and to_date:
+        projects = [
+            p
+            for p in projects
+            if p.get("status") in ("Open", "Ongoing", "Active", "On hold")
+            or (str(p.get("creation") or "")[:10] >= from_date and str(p.get("creation") or "")[:10] <= to_date)
+            or (str(p.get("modified") or "")[:10] >= from_date and str(p.get("modified") or "")[:10] <= to_date)
+        ]
 
     if search:
         projects = [
@@ -1427,9 +1431,6 @@ def _get_projects_page(filters, perm) -> dict:
         cond["status"] = status
     if project:
         cond["name"] = project
-    if from_date and to_date:
-        cond["creation"] = ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]]
-
     all_projects = frappe.get_all(
         "Project",
         filters=cond,
@@ -1443,9 +1444,19 @@ def _get_projects_page(filters, perm) -> dict:
             "estimated_costing",
             "total_costing_amount",
             "total_billed_amount",
+            "creation",
+            "modified",
         ],
         order_by="modified desc",
     )
+    if from_date and to_date:
+        all_projects = [
+            p
+            for p in all_projects
+            if p.get("status") in ("Open", "Ongoing", "Active", "On hold")
+            or (str(p.get("creation") or "")[:10] >= from_date and str(p.get("creation") or "")[:10] <= to_date)
+            or (str(p.get("modified") or "")[:10] >= from_date and str(p.get("modified") or "")[:10] <= to_date)
+        ]
     if search:
         all_projects = [
             p
