@@ -841,6 +841,7 @@ frappe.SarathiIndustrialDashboard = class {
     if (!b || b.disabled) return;
     const d = b.dataset;
     if (d.inspect) this.inspect(d.doctype, d.inspect);
+    else if (d.action === "switch-owner") frappe.set_route("sarathiownertower");
     else if (d.action === "open-subcontracting") this.openSubcontractingView();
     else if (d.action === "close-subcontracting")
       this.closeSubcontractingView();
