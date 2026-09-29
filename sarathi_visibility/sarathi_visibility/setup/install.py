@@ -15,6 +15,7 @@ def after_install():
     ensure_module_profile_page()
     ensure_workspace_shortcuts()
     ensure_no_desk_icon()
+    ensure_frappe_framework_icon()
     ensure_manufacturing_sidebar_link()
 
 
@@ -25,7 +26,46 @@ def after_migrate():
     ensure_module_profile_page()
     ensure_workspace_shortcuts()
     ensure_no_desk_icon()
+    ensure_frappe_framework_icon()
     ensure_manufacturing_sidebar_link()
+
+
+def ensure_frappe_framework_icon():
+    if not frappe.db.table_exists("Desktop Icon"):
+        return
+
+    if not frappe.db.exists("Desktop Icon", "Frappe Framework"):
+        doc = frappe.new_doc("Desktop Icon")
+        doc.name = "Frappe Framework"
+        doc.label = "Frappe Framework"
+        doc.link = "/desk/build"
+        doc.link_type = "External"
+        doc.icon_type = "App"
+        doc.app = ""
+        doc.logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
+        doc.hidden = 0
+        doc.standard = 1
+        doc.save(ignore_permissions=True)
+    else:
+        frappe.db.set_value(
+            "Desktop Icon",
+            "Frappe Framework",
+            {
+                "hidden": 0,
+                "standard": 1,
+                "link": "/desk/build",
+                "app": "",
+            },
+        )
+
+    try:
+        from frappe.desk.doctype.desktop_icon.desktop_icon import (
+            clear_desktop_icons_cache,
+        )
+
+        clear_desktop_icons_cache()
+    except Exception:
+        pass
 
 
 def ensure_no_desk_icon():
