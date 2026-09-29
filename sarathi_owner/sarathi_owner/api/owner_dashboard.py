@@ -1481,24 +1481,46 @@ def _get_projects_page(filters, perm) -> dict:
 def _get_project_detail_page(filters, perm) -> dict:
     project_name = filters.get("project")
     company = filters.get("company")
-    if not project_name:
-        cond = {"docstatus": ["!=", 2]}
-        if company:
-            cond["company"] = company
-        first = frappe.get_all(
-            "Project", filters=cond, limit=1, pluck="name"
-        )
-        project_name = first[0] if first else None
 
-    if not project_name:
-        return {"empty": True}
+    # 1. Fetch all available projects so user can switch between them
+    proj_filters = {"docstatus": ["!=", 2]}
+    if company:
+        proj_filters["company"] = company
+    all_projects = frappe.get_all(
+        "Project",
+        filters=proj_filters,
+        fields=["name", "project_name", "company", "status"],
+        order_by="modified desc",
+        limit=100,
+    )
+    if not all_projects and company:
+        all_projects = frappe.get_all(
+            "Project",
+            filters={"docstatus": ["!=", 2]},
+            fields=["name", "project_name", "company", "status"],
+            order_by="modified desc",
+            limit=100,
+        )
+
+    # 2. Resolve project_name
+    if not project_name or not frappe.db.exists("Project", project_name):
+        project_name = all_projects[0].name if all_projects else None
+
+    if not project_name or not frappe.db.exists("Project", project_name):
+        return {
+            "empty": True,
+            "message": "No Projects Found",
+            "description": "Create a new Project in ERPNext Desk to view its real-time manufacturing pipeline, financial margins, and milestone tasks.",
+            "all_projects": [],
+        }
 
     pipe = get_project_pipeline(project_name)
     tasks = frappe.get_all(
         "Task",
         filters={"project": project_name, "docstatus": ["!=", 2]},
         fields=["name", "subject", "status", "exp_end_date"],
-        limit=20,
+        order_by="creation asc",
+        limit=50,
     )
     p_doc = frappe.get_doc("Project", project_name)
     can_finance = perm["can_view_finance"]
@@ -1508,8 +1530,68 @@ def _get_project_detail_page(filters, perm) -> dict:
     actual = flt(getattr(p_doc, "total_costing_amount", 0))
     billed = flt(getattr(p_doc, "total_billed_amount", 0))
     variance = budget - actual
+    margin = billed - actual
+
+    # Linked Sales Orders
+    so_rows = []
+    if frappe.db.table_exists("Sales Order"):
+        sos = frappe.get_all(
+            "Sales Order",
+            filters={"project": project_name, "docstatus": ["!=", 2]},
+            fields=["name", "customer", "grand_total", "per_delivered", "per_billed", "delivery_date", "status"],
+            order_by="modified desc",
+            limit=10,
+        )
+        for s in sos:
+            so_rows.append([
+                s.name,
+                s.customer,
+                fmt(s.grand_total),
+                f"{flt(s.per_delivered):g}%",
+                f"{flt(s.per_billed):g}%",
+                str(s.delivery_date or "—"),
+                s.status,
+            ])
+
+    # Linked Work Orders
+    wo_rows = []
+    if frappe.db.table_exists("Work Order"):
+        wos = frappe.get_all(
+            "Work Order",
+            filters={"project": project_name, "docstatus": ["!=", 2]},
+            fields=["name", "production_item", "qty", "produced_qty", "status", "planned_end_date"],
+            order_by="modified desc",
+            limit=10,
+        )
+        for w in wos:
+            pct = round((flt(w.produced_qty) / flt(w.qty) * 100), 1) if flt(w.qty) > 0 else 0
+            wo_rows.append([
+                w.name,
+                w.production_item,
+                f"{flt(w.qty):g}",
+                f"{flt(w.produced_qty):g}",
+                f"{pct}%",
+                str(w.planned_end_date or "—"),
+                w.status,
+            ])
+
+    cards = [
+        ["Estimated Cost (Budget)", fmt(budget), "blue", "Project approved budget", f"/app/project/{project_name}"],
+        ["Actual Cost Incurred", fmt(actual), "amber", "Cost booked to project", f"/app/project/{project_name}"],
+        ["Cost Variance", fmt(variance), "green" if variance >= 0 else "red", "Budget minus actual cost", f"/app/project/{project_name}"],
+        ["Total Billed Revenue", fmt(billed), "purple", "Total customer billing", "/app/sales-invoice"],
+        ["Net Margin Realized", fmt(margin), "green" if margin >= 0 else "red", "Billed revenue minus cost", "/app/project"],
+        ["Milestone Progress", f"{flt(p_doc.percent_complete):g}%", "cyan", f"Status: {p_doc.status}", f"/app/project/{project_name}"],
+    ]
 
     return {
+        "empty": False,
+        "selected_project": project_name,
+        "all_projects": [
+            {"name": p.name, "project_name": p.project_name or p.name, "company": p.company}
+            for p in all_projects
+        ],
+        "cards": cards,
         "pipeline": pipe,
         "tasks": [
             {
@@ -1522,14 +1604,19 @@ def _get_project_detail_page(filters, perm) -> dict:
         ],
         "project_fields": {
             "name": p_doc.name,
+            "project_name": p_doc.project_name or p_doc.name,
+            "customer": p_doc.customer or (pipe.get("customer") if pipe else "Unassigned"),
+            "company": p_doc.company,
             "expected_end_date": str(p_doc.expected_end_date or "—"),
             "status": p_doc.status,
             "estimated_cost": fmt(budget),
             "actual_cost": fmt(actual),
             "cost_variance": fmt(variance),
             "total_billed": fmt(billed),
-            "margin": fmt(billed - actual),
+            "margin": fmt(margin),
         },
+        "sales_orders": so_rows,
+        "work_orders": wo_rows,
     }
 
 
