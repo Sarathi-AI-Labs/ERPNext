@@ -1,4 +1,57 @@
 services:
+  configurator:
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+
+  backend:
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner/public:/home/frappe/frappe-bench/assets/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+
+  frontend:
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_visibility/sarathi_visibility/public:/home/frappe/frappe-bench/assets/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner/public:/home/frappe/frappe-bench/assets/sarathi_owner
+
+  queue-long:
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+
+  queue-short:
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+
+  scheduler:
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+
   websocket:
     environment:
       SARATHI_SOCKET_BACKEND_URL: http://backend:8000
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth

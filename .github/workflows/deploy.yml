@@ -28,7 +28,7 @@ jobs:
               -f overrides/compose.redis.yaml \
               -f overrides/compose.sarathi.yaml \
               -f overrides/compose.existing-traefik.yaml \
-              build backend frontend queue-long queue-short scheduler websocket
+              up -d
 
             docker compose \
               -f compose.yaml \
@@ -36,7 +36,7 @@ jobs:
               -f overrides/compose.redis.yaml \
               -f overrides/compose.sarathi.yaml \
               -f overrides/compose.existing-traefik.yaml \
-              up -d
+              exec -T backend bench --site erp.sarathiailabs.com install-app sarathi_owner || true
 
             docker compose \
               -f compose.yaml \
@@ -53,3 +53,11 @@ jobs:
               -f overrides/compose.sarathi.yaml \
               -f overrides/compose.existing-traefik.yaml \
               exec -T backend bench --site erp.sarathiailabs.com clear-cache
+
+            docker compose \
+              -f compose.yaml \
+              -f overrides/compose.mariadb.yaml \
+              -f overrides/compose.redis.yaml \
+              -f overrides/compose.sarathi.yaml \
+              -f overrides/compose.existing-traefik.yaml \
+              restart frontend
