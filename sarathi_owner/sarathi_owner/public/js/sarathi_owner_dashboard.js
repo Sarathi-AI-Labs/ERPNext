@@ -161,9 +161,6 @@ frappe.SarathiOwnerDashboard = class {
     this.reportSearchQuery = "";
     this.accountingDropdownOpen = false;
 
-    document.documentElement.classList.add("sod-page-active");
-    document.body.classList.add("sod-page-active");
-    $(".main-section").scrollTop(0);
     window.scrollTo(0, 0);
 
     this.initElements();
@@ -215,18 +212,30 @@ frappe.SarathiOwnerDashboard = class {
         self.handleLiveSocketChange(data);
       });
 
-      // Listen for standard Frappe document events
+      // Listen for visibility control tower changes
+      frappe.realtime.on("sarathi_dashboard_changed", (data) => {
+        self.handleLiveSocketChange(data);
+      });
+
+      // Listen for standard Frappe document events across all operational doctypes
       frappe.realtime.on("doc_update", (data) => {
         if (
           data &&
           data.doctype &&
           [
+            "Project",
+            "Company",
+            "Customer",
             "Sales Order",
             "Sales Invoice",
             "Payment Entry",
             "Work Order",
             "Stock Entry",
-            "Project",
+            "Delivery Note",
+            "BOM",
+            "Task",
+            "Warehouse",
+            "Item",
           ].includes(data.doctype)
         ) {
           self.handleLiveSocketChange(data);
@@ -240,8 +249,27 @@ frappe.SarathiOwnerDashboard = class {
     const name = data.name || "";
     this.showLiveToast(`⚡ Live Update: ${dt} ${name} updated`);
 
+    // Dynamically refresh the dropdown options if a Company, Customer, or Project was modified
+    if (["Company", "Customer", "Project"].includes(dt)) {
+      this.refreshFilterDropdownsOnly();
+    }
+
     // Smoothly re-fetch without wiping the page with full-screen loading spinner
     this.smoothRefresh();
+  }
+
+  refreshFilterDropdownsOnly() {
+    const selectedCompany = this.$el.find("#sod-filter-company").val() || "";
+    frappe.call({
+      method: "sarathi_owner.api.owner_dashboard.get_owner_context",
+      args: { company: selectedCompany },
+      callback: (r) => {
+        if (r.message) {
+          this.context = r.message;
+          this.populateFilterDropdowns();
+        }
+      },
+    });
   }
 
   showLiveToast(msg) {
@@ -298,9 +326,14 @@ frappe.SarathiOwnerDashboard = class {
     });
 
     // Global Reactive Filters
+    this.$el.find("#sod-filter-company").on("change", function () {
+      self.populateFilterDropdowns();
+      self.refreshCurrentPage();
+    });
+
     this.$el
       .find(
-        "#sod-filter-company, #sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status",
+        "#sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status",
       )
       .on("change", function () {
         self.refreshCurrentPage();
@@ -314,29 +347,22 @@ frappe.SarathiOwnerDashboard = class {
       }, 300);
     });
 
-    // Interactive Card Click Handlers
-    this.$content.on("click", ".sod-card[data-action]", function () {
-      const action = $(this).data("action");
-      if (action === "view-projects") {
-        self.goToPageByKey("projects");
-      } else if (action === "view-sales-orders") {
-        self.goToPageByKey("sales_orders");
-      } else if (action === "view-finance") {
-        self.goToPageByKey("invoicing");
-      } else if (action === "view-stock") {
-        self.goToPageByKey("stock_quality");
-      } else if (action === "view-reports") {
-        self.goToPageByKey("reports");
-      } else if (action === "open-live-report") {
-        const rep = $(this).data("report");
-        if (rep) {
-          self.currentReportName = rep;
-          self.goToPageByKey("reports");
-        }
-      } else if (action === "open-desk") {
-        const route = $(this).data("route");
-        if (route) window.open(route, "_blank");
-      }
+    // Interactive Card Click Handlers - Shows Focused Form-Type Details Modal
+    this.$content.on("click", ".sod-card", function (e) {
+      if ($(e.target).closest("a, button").length) return;
+      const $card = $(this);
+      const label =
+        $card.find(".sod-label").text().trim() ||
+        $card.find("strong").text().trim() ||
+        "Metric Details";
+      const value =
+        $card.find(".sod-kpi-val, strong").text().trim() ||
+        $card.find("strong").text().trim() ||
+        "—";
+      const desc = $card.find("small").text().trim() || "";
+      const action = $card.data("action") || "";
+      const route = $card.data("route") || "";
+      self.showCardDetailModal(label, value, desc, action, route);
     });
 
     // Project Drill-Down
@@ -347,6 +373,16 @@ frappe.SarathiOwnerDashboard = class {
         self.selectedProject = projectName;
         self.$el.find("#sod-filter-project").val(projectName);
         self.goToPageByKey("project_detail");
+      }
+    });
+
+    // In-Page Project Switcher Change
+    this.$content.on("change", "#sod-inpage-project-select", function () {
+      const pName = $(this).val();
+      if (pName) {
+        self.selectedProject = pName;
+        self.$el.find("#sod-filter-project").val(pName);
+        self.refreshCurrentPage();
       }
     });
 
@@ -451,33 +487,44 @@ frappe.SarathiOwnerDashboard = class {
 
   populateFilterDropdowns() {
     if (!this.context) return;
+    const selectedCompany = this.$el.find("#sod-filter-company").val() || "";
 
     // Companies
     const $co = this.$el.find("#sod-filter-company");
+    const currentCo = $co.val();
     $co.find("option:not(:first)").remove();
     (this.context.companies || []).forEach((c) => {
       $co.append(
         `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.company_name || c.name)}</option>`,
       );
     });
+    if (currentCo) $co.val(currentCo);
 
     // Customers
     const $cust = this.$el.find("#sod-filter-customer");
+    const currentCust = $cust.val();
     $cust.find("option:not(:first)").remove();
     (this.context.customers || []).forEach((c) => {
       $cust.append(
         `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.customer_name || c.name)}</option>`,
       );
     });
+    if (currentCust) $cust.val(currentCust);
 
-    // Projects
+    // Projects (Dynamically filtered by selected company)
     const $proj = this.$el.find("#sod-filter-project");
+    const currentProj = $proj.val();
     $proj.find("option:not(:first)").remove();
-    (this.context.projects || []).forEach((p) => {
-      $proj.append(
-        `<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(p.project_name || p.name)}</option>`,
-      );
-    });
+    (this.context.projects || [])
+      .filter((p) => !selectedCompany || p.company === selectedCompany)
+      .forEach((p) => {
+        $proj.append(
+          `<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(p.project_name || p.name)}</option>`,
+        );
+      });
+    if (currentProj && $proj.find(`option[value="${currentProj}"]`).length) {
+      $proj.val(currentProj);
+    }
   }
 
   getFilters() {
@@ -1381,54 +1428,189 @@ frappe.SarathiOwnerDashboard = class {
       `;
     }
 
-    // 4. Project Detail Pipeline (Page 2)
-    if (pageKey === "project_detail" && data.pipeline) {
-      html += `
-        <section class="sod-panel">
-          <h2>${frappe.utils.escape_html(data.pipeline.project_name)} · <a href="/app/project/${encodeURIComponent(data.pipeline.project)}" target="_blank" class="sod-link">${frappe.utils.escape_html(data.pipeline.project)}</a></h2>
-          <p>Customer: <b>${frappe.utils.escape_html(data.pipeline.customer)}</b> · Milestone: <b>${data.pipeline.percent_complete}%</b> · Output: <b>${data.pipeline.manufacturing_progress}%</b></p>
-          ${this.renderPipelineMarkup(data.pipeline)}
-        </section>
-      `;
-
-      if (data.project_fields) {
-        const pf = data.project_fields;
+    // 4. Project Detail View (Page 2)
+    if (pageKey === "project_detail") {
+      if (data.empty || !data.project_fields) {
         html += `
-          <div class="sod-grid sod-two" style="margin-top: 17px;">
-            <div class="sod-panel">
-              <div class="sod-panel-head">
-                <div>
-                  <h2>Project Financial Margins</h2>
-                  <p>Budget vs actual costs and billing realization</p>
-                </div>
-                <div>
-                  <a href="/app/project/${encodeURIComponent(pf.name || "")}" target="_blank" class="sod-btn-sm">Open Project ↗</a>
-                </div>
-              </div>
-              <div class="sod-feed"><b>Estimated Budget:</b> <span>${pf.estimated_cost}</span></div>
-              <div class="sod-feed"><b>Actual Cost Incurred:</b> <span>${pf.actual_cost}</span></div>
-              <div class="sod-feed"><b>Cost Variance:</b> <span>${pf.cost_variance}</span></div>
-              <div class="sod-feed"><b>Total Billed:</b> <span>${pf.total_billed}</span></div>
-              <div class="sod-feed"><b>Net Margin:</b> <span style="color:#12b886; font-weight:700;">${pf.margin}</span></div>
-            </div>
-            <div class="sod-panel">
-              <h2>Milestone Tasks & Deadlines</h2>
-              <p>Critical path deliverables</p>
-              <div class="sod-tablewrap">
-                <table class="sod-table">
-                  <thead><tr><th>TASK</th><th>STATUS</th><th>DUE DATE</th></tr></thead>
-                  <tbody>
-        `;
-        (data.tasks || []).forEach((t) => {
-          html += `<tr><td><a href="/app/task/${encodeURIComponent(t.task_id || t.task)}" target="_blank" class="sod-link">${frappe.utils.escape_html(t.task)}</a></td><td><span class="sod-pill ${t.status === "Completed" ? "green" : "blue"}">${t.status}</span></td><td>${frappe.utils.escape_html(t.date || "—")}</td></tr>`;
-        });
-        html += `
-                  </tbody>
-                </table>
-              </div>
+          <div class="sod-panel" style="text-align: center; padding: 50px 24px; margin-top: 17px;">
+            <div style="font-size: 52px; margin-bottom: 14px; color: #5369ef;">▦</div>
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #17233f;">No Project Found in ERPNext</h2>
+            <p style="color: #7583a0; max-width: 540px; margin: 0 auto 24px; font-size: 13px; line-height: 1.6;">
+              ${frappe.utils.escape_html(data.description || "There are no projects matching your filter in ERPNext. Create a new Project in ERPNext Desk to view its real-time 5-stage manufacturing pipeline, budget vs actual financials, and milestone deliverables.")}
+            </p>
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+              <a href="/app/project/new-project-1" target="_blank" class="sod-btn-sm" style="background:#5369ef; color:#fff; padding: 9px 20px; font-size: 13px; font-weight: 600; text-decoration:none; border-radius: 6px; box-shadow: 0 2px 6px rgba(83,105,239,0.25);">+ Create Project in Desk ↗</a>
+              <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding: 9px 20px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor:pointer;" onclick="frappe.set_route('sarathiownertower')">Go to Owner Overview</button>
             </div>
           </div>
         `;
+        this.$content.html(html);
+        return;
+      }
+
+      // Sync top filter dropdown with selected project
+      if (data.selected_project) {
+        this.selectedProject = data.selected_project;
+        const $topProj = this.$el.find("#sod-filter-project");
+        if ($topProj.find(`option[value="${data.selected_project}"]`).length) {
+          $topProj.val(data.selected_project);
+        }
+      }
+
+      const allProjects = data.all_projects || [];
+      const pf = data.project_fields;
+
+      // In-Page Project Switcher & Header Bar
+      html += `
+        <div class="sod-panel" style="margin-top: 14px; padding: 16px 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <span style="font-size: 18px; font-weight: 700; color: #17233f;">${frappe.utils.escape_html(pf.project_name || pf.name)}</span>
+                <span class="sod-pill ${pf.status === "Completed" ? "green" : "blue"}">${frappe.utils.escape_html(pf.status)}</span>
+              </div>
+              <p style="margin: 0; color: #7583a0; font-size: 12px;">
+                ID: <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(pf.name)}</b></a> ·
+                Customer: <b>${frappe.utils.escape_html(pf.customer || "Unassigned")}</b> ·
+                Company: <b>${frappe.utils.escape_html(pf.company || "—")}</b> ·
+                Delivery: <b>${frappe.utils.escape_html(pf.expected_end_date || "—")}</b>
+              </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              ${
+                allProjects.length > 1
+                  ? `
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label style="font-size: 12px; font-weight: 600; color: #64748b;">Switch Project:</label>
+                  <select id="sod-inpage-project-select" class="sod-select" style="padding: 6px 12px; font-size: 12px; font-weight: 500; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
+                    ${allProjects
+                      .map(
+                        (p) => `
+                      <option value="${frappe.utils.escape_html(p.name)}" ${p.name === data.selected_project ? "selected" : ""}>
+                        ${frappe.utils.escape_html(p.project_name || p.name)}
+                      </option>
+                    `,
+                      )
+                      .join("")}
+                  </select>
+                </div>
+              `
+                  : ""
+              }
+              <a href="/app/project/${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm" style="background:#5369ef; color:#fff; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">Open in Desk ↗</a>
+              <a href="/app/task/new-task-1?project=${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm" style="background:#fff; border: 1px solid #cbd5e1; color:#334155; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">+ Add Task ↗</a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 5-Stage Visual Manufacturing Pipeline
+      if (data.pipeline) {
+        html += `
+          <section class="sod-panel" style="margin-top: 17px;">
+            <div class="sod-panel-head">
+              <div>
+                <h2>Manufacturing & Delivery Pipeline</h2>
+                <p>Real-time lifecycle tracking across BOM, Production, Work Orders, and Manufactured Stock</p>
+              </div>
+              <div style="font-size: 12px; color: #7583a0;">
+                Milestone: <b>${data.pipeline.percent_complete}%</b> · Factory Yield: <b>${data.pipeline.manufacturing_progress}%</b>
+              </div>
+            </div>
+            ${this.renderPipelineMarkup(data.pipeline)}
+          </section>
+        `;
+      }
+
+      // Financial Margins & Milestone Tasks Grid
+      html += `
+        <div class="sod-grid sod-two" style="margin-top: 17px;">
+          <div class="sod-panel">
+            <div class="sod-panel-head">
+              <div>
+                <h2>Project Financial Margins</h2>
+                <p>Budget vs actual costs and billing realization</p>
+              </div>
+              <div>
+                <a href="/app/project/${encodeURIComponent(pf.name || "")}" target="_blank" class="sod-btn-sm">Open Project ↗</a>
+              </div>
+            </div>
+            <div class="sod-feed"><b>Estimated Budget:</b> <span>${pf.estimated_cost}</span></div>
+            <div class="sod-feed"><b>Actual Cost Incurred:</b> <span>${pf.actual_cost}</span></div>
+            <div class="sod-feed"><b>Cost Variance:</b> <span>${pf.cost_variance}</span></div>
+            <div class="sod-feed"><b>Total Billed:</b> <span>${pf.total_billed}</span></div>
+            <div class="sod-feed"><b>Net Margin Realized:</b> <span style="color:#12b886; font-weight:700;">${pf.margin}</span></div>
+          </div>
+          <div class="sod-panel">
+            <div class="sod-panel-head">
+              <div>
+                <h2>Milestone Tasks & Deadlines</h2>
+                <p>Critical path deliverables</p>
+              </div>
+              <a href="/app/task/new-task-1?project=${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm">+ New Task ↗</a>
+            </div>
+            <div class="sod-tablewrap">
+              <table class="sod-table">
+                <thead><tr><th>TASK</th><th>STATUS</th><th>DUE DATE</th></tr></thead>
+                <tbody>
+      `;
+      if (!data.tasks || !data.tasks.length) {
+        html += `<tr><td colspan="3" style="text-align:center; color:#888;">No tasks created for this project yet.</td></tr>`;
+      } else {
+        (data.tasks || []).forEach((t) => {
+          html += `<tr><td><a href="/app/task/${encodeURIComponent(t.task_id || t.task)}" target="_blank" class="sod-link">${frappe.utils.escape_html(t.task)}</a></td><td><span class="sod-pill ${t.status === "Completed" ? "green" : "blue"}">${t.status}</span></td><td>${frappe.utils.escape_html(t.date || "—")}</td></tr>`;
+        });
+      }
+      html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Linked Sales Orders Table
+      if (data.sales_orders && data.sales_orders.length) {
+        html += `
+          <div class="sod-panel" style="margin-top: 17px;">
+            <div class="sod-panel-head">
+              <div>
+                <h2>Linked Commercial Sales Orders</h2>
+                <p>Customer orders linked to this project</p>
+              </div>
+              <a href="/app/sales-order/new-sales-order-1?project=${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm">+ New Order ↗</a>
+            </div>
+            <div class="sod-tablewrap">
+              <table class="sod-table">
+                <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>% DELIVERED</th><th>% BILLED</th><th>PROMISED DELIVERY</th><th>STATUS</th></tr></thead>
+                <tbody>
+        `;
+        data.sales_orders.forEach((r) => {
+          html += `<tr><td><a href="/app/sales-order/${encodeURIComponent(r[0])}" target="_blank" class="sod-link">${frappe.utils.escape_html(r[0])}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(r[2])}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(r[4])}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill blue">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
+        });
+        html += `</tbody></table></div></div>`;
+      }
+
+      // Linked Work Orders Table
+      if (data.work_orders && data.work_orders.length) {
+        html += `
+          <div class="sod-panel" style="margin-top: 17px;">
+            <div class="sod-panel-head">
+              <div>
+                <h2>Linked Factory Work Orders</h2>
+                <p>Shop-floor production jobs for this project</p>
+              </div>
+              <a href="/app/work-order/new-work-order-1?project=${encodeURIComponent(pf.name)}" target="_blank" class="sod-btn-sm">+ New Work Order ↗</a>
+            </div>
+            <div class="sod-tablewrap">
+              <table class="sod-table">
+                <thead><tr><th>WORK ORDER</th><th>PRODUCTION ITEM</th><th>PLANNED QTY</th><th>PRODUCED QTY</th><th>YIELD PROGRESS</th><th>PLANNED END</th><th>STATUS</th></tr></thead>
+                <tbody>
+        `;
+        data.work_orders.forEach((r) => {
+          html += `<tr><td><a href="/app/work-order/${encodeURIComponent(r[0])}" target="_blank" class="sod-link">${frappe.utils.escape_html(r[0])}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(r[2])}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(r[4])}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill ${r[6] === "Completed" ? "green" : "purple"}">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
+        });
+        html += `</tbody></table></div></div>`;
       }
     }
 
@@ -1611,6 +1793,236 @@ frappe.SarathiOwnerDashboard = class {
     });
   }
 
+  showCardDetailModal(label, value, desc, action, route) {
+    this.$modalTitle.html(`<span>📊</span> ${frappe.utils.escape_html(label)}`);
+
+    const data = this.activeData || {};
+    let contentHtml = `
+      <div class="sod-modal-kpi-banner">
+        <div>
+          <div class="sod-modal-kpi-label">${frappe.utils.escape_html(label)}</div>
+          <div class="sod-modal-kpi-val">${frappe.utils.escape_html(value)}</div>
+        </div>
+        <div style="font-size: 12px; color: #94a3b8; max-width: 260px; text-align: right;">
+          ${frappe.utils.escape_html(desc || "Live metric calculated dynamically from ERPNext transactional records")}
+        </div>
+      </div>
+    `;
+
+    // Form-Type details block
+    const company =
+      this.$el.find("#sod-filter-company").val() || "All Organizations";
+    const dateRange = this.$el.find("#sod-filter-date").val() || "All Dates";
+    const customer =
+      this.$el.find("#sod-filter-customer").val() || "All Customers";
+    const project =
+      this.$el.find("#sod-filter-project").val() || "All Projects";
+
+    contentHtml += `
+      <div class="sod-form-block">
+        <div class="sod-form-row">
+          <span class="sod-form-label">Metric Name</span>
+          <span class="sod-form-value">${frappe.utils.escape_html(label)}</span>
+        </div>
+        <div class="sod-form-row">
+          <span class="sod-form-label">Current Value</span>
+          <span class="sod-form-value" style="color: #2563eb;">${frappe.utils.escape_html(value)}</span>
+        </div>
+        <div class="sod-form-row">
+          <span class="sod-form-label">Company Filter</span>
+          <span class="sod-form-value">${frappe.utils.escape_html(company)}</span>
+        </div>
+        <div class="sod-form-row">
+          <span class="sod-form-label">Date Filter</span>
+          <span class="sod-form-value">${frappe.utils.escape_html(dateRange)}</span>
+        </div>
+        ${
+          customer !== "All Customers"
+            ? `
+          <div class="sod-form-row">
+            <span class="sod-form-label">Customer Filter</span>
+            <span class="sod-form-value">${frappe.utils.escape_html(customer)}</span>
+          </div>
+        `
+            : ""
+        }
+        ${
+          project !== "All Projects"
+            ? `
+          <div class="sod-form-row">
+            <span class="sod-form-label">Project Filter</span>
+            <span class="sod-form-value">${frappe.utils.escape_html(project)}</span>
+          </div>
+        `
+            : ""
+        }
+      </div>
+    `;
+
+    // Dynamic Related Records Table based on the Card
+    if (action === "view-projects" || label.toLowerCase().includes("project")) {
+      const projs = data.active_projects || [];
+      if (projs.length) {
+        contentHtml += `
+          <h3 style="font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #1e293b;">Matching Projects (${projs.length})</h3>
+          <div class="sod-modal-table-wrap">
+            <table class="sod-table">
+              <thead><tr><th>PROJECT</th><th>CUSTOMER</th><th>STATUS</th><th>PROGRESS</th><th>BUDGET</th></tr></thead>
+              <tbody>
+                ${projs
+                  .map(
+                    (p) => `
+                  <tr>
+                    <td><a href="/app/project/${encodeURIComponent(p.project)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(p.project_name || p.project)}</b></a></td>
+                    <td>${frappe.utils.escape_html(p.customer || "—")}</td>
+                    <td><span class="sod-pill ${p.status === "Completed" ? "green" : "blue"}">${frappe.utils.escape_html(p.status)}</span></td>
+                    <td><b>${flt(p.percent_complete || 0)}%</b></td>
+                    <td>${frappe.utils.escape_html(p.budget || "—")}</td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else if (
+      action === "view-sales-orders" ||
+      label.toLowerCase().includes("order")
+    ) {
+      const sos = data.sales_orders || [];
+      if (sos.length) {
+        contentHtml += `
+          <h3 style="font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #1e293b;">Matching Sales Orders (${sos.length})</h3>
+          <div class="sod-modal-table-wrap">
+            <table class="sod-table">
+              <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>% DELIVERED</th><th>STATUS</th></tr></thead>
+              <tbody>
+                ${sos
+                  .map(
+                    (s) => `
+                  <tr>
+                    <td><a href="/app/sales-order/${encodeURIComponent(s[0])}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(s[0])}</b></a></td>
+                    <td>${frappe.utils.escape_html(s[1])}</td>
+                    <td>${frappe.utils.escape_html(s[2])}</td>
+                    <td>${frappe.utils.escape_html(s[3])}</td>
+                    <td><span class="sod-pill blue">${frappe.utils.escape_html(s[6] || s[5] || "Active")}</span></td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else if (
+      action === "view-stock" ||
+      label.toLowerCase().includes("stock") ||
+      label.toLowerCase().includes("capital")
+    ) {
+      const cap = data.capital_allocation || {};
+      const lowStock = data.low_stock_items || [];
+      contentHtml += `
+        <div class="sod-form-block" style="margin-top: 10px;">
+          <div class="sod-form-row"><span class="sod-form-label">Raw Materials (RM)</span><span class="sod-form-value">${cap.rm_val || "₹0"} (${cap.rm_pct || 0}%)</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Work In Progress (WIP)</span><span class="sod-form-value">${cap.wip_val || "₹0"} (${cap.wip_pct || 0}%)</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Finished Goods (FG)</span><span class="sod-form-value">${cap.fg_val || "₹0"} (${cap.fg_pct || 0}%)</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Total Inventory Valuation</span><span class="sod-form-value" style="color:#8a54ef;">${cap.total_val || "₹0"}</span></div>
+        </div>
+      `;
+      if (lowStock.length) {
+        contentHtml += `
+          <h3 style="font-size: 13px; font-weight: 700; margin: 12px 0 6px; color: #e11d48;">Reorder Level Alerts (${lowStock.length})</h3>
+          <div class="sod-modal-table-wrap">
+            <table class="sod-table">
+              <thead><tr><th>ITEM</th><th>WAREHOUSE</th><th>AVAILABLE</th><th>REORDER QTY</th></tr></thead>
+              <tbody>
+                ${lowStock
+                  .map(
+                    (l) => `
+                  <tr>
+                    <td><a href="/app/item/${encodeURIComponent(l.item_code)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(l.item_name)}</b></a></td>
+                    <td>${frappe.utils.escape_html(l.warehouse)}</td>
+                    <td><span style="color:#e11d48; font-weight:700;">${frappe.utils.escape_html(l.available)}</span></td>
+                    <td>${frappe.utils.escape_html(l.reorder)}</td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else if (
+      action === "view-finance" ||
+      action === "view-pnl" ||
+      action === "view-reports" ||
+      label.toLowerCase().includes("profit") ||
+      label.toLowerCase().includes("receivable") ||
+      label.toLowerCase().includes("cost")
+    ) {
+      const snap = data.financial_snapshot || {};
+      contentHtml += `
+        <div class="sod-form-block" style="margin-top: 10px;">
+          <div class="sod-form-row"><span class="sod-form-label">Total Revenue / Income</span><span class="sod-form-value" style="color:#12b886;">${snap.income || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Operating Expenses</span><span class="sod-form-value" style="color:#e11d48;">${snap.expenses || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Net Profit Realized</span><span class="sod-form-value" style="color:#2563eb; font-size:14px;">${snap.net_profit || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Accounts Receivable</span><span class="sod-form-value">${snap.receivables || "₹0"}</span></div>
+          <div class="sod-form-row"><span class="sod-form-label">Overdue Receivables</span><span class="sod-form-value" style="color:#e11d48;">${snap.overdue || "₹0"}</span></div>
+        </div>
+      `;
+    }
+
+    this.$modalBody.html(contentHtml);
+
+    // Footer buttons
+    const deskRoute =
+      route ||
+      (action === "view-projects"
+        ? "/app/project"
+        : action === "view-sales-orders"
+          ? "/app/sales-order"
+          : action === "view-finance"
+            ? "/app/sales-invoice"
+            : action === "view-stock"
+              ? "/app/item"
+              : "/app/query-report/Profit and Loss Statement");
+    let navActionBtn = "";
+    const self = this;
+    if (action === "view-projects") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#5369ef;" id="sod-modal-nav-action">Open Projects View ▦</button>`;
+    } else if (action === "view-sales-orders") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#0284c7;" id="sod-modal-nav-action">Open Orders View ▣</button>`;
+    } else if (action === "view-finance") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#16a34a;" id="sod-modal-nav-action">Open Invoicing View ₹</button>`;
+    } else if (action === "view-stock") {
+      navActionBtn = `<button class="sod-btn-primary" style="background:#9333ea;" id="sod-modal-nav-action">Open Inventory View ◫</button>`;
+    }
+
+    this.$modalFoot.html(`
+      <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 14px; border-radius:7px; font-weight:600; cursor:pointer;" id="sod-modal-foot-close">Close</button>
+      ${navActionBtn}
+      <a href="${frappe.utils.escape_html(deskRoute)}" target="_blank" class="sod-btn-primary" style="text-decoration:none;">Open in Desk ↗</a>
+    `);
+
+    this.$modalFoot
+      .find("#sod-modal-foot-close")
+      .on("click", () => this.$modal.removeClass("show"));
+    this.$modalFoot.find("#sod-modal-nav-action").on("click", () => {
+      this.$modal.removeClass("show");
+      if (action === "view-projects") self.goToPageByKey("projects");
+      else if (action === "view-sales-orders")
+        self.goToPageByKey("sales_orders");
+      else if (action === "view-finance") self.goToPageByKey("invoicing");
+      else if (action === "view-stock") self.goToPageByKey("stock_quality");
+    });
+
+    this.$modal.addClass("show");
+  }
+
   showStageModal(projectName, stageId) {
     const pipelineData =
       (this.activeData?.pipelines || []).find(
@@ -1657,9 +2069,6 @@ frappe.SarathiOwnerDashboard = class {
   }
 
   show() {
-    document.documentElement.classList.add("sod-page-active");
-    document.body.classList.add("sod-page-active");
-    $(".main-section").scrollTop(0);
     window.scrollTo(0, 0);
 
     // Purge any rogue duplicate wrappers or footers
@@ -1670,6 +2079,7 @@ frappe.SarathiOwnerDashboard = class {
     }
 
     this.refreshCurrentPage();
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
     if (!this.refreshTimer) {
       // 15-second background sync interval
       this.refreshTimer = setInterval(() => {
@@ -1679,8 +2089,6 @@ frappe.SarathiOwnerDashboard = class {
   }
 
   hide() {
-    document.documentElement.classList.remove("sod-page-active");
-    document.body.classList.remove("sod-page-active");
     if (this.refreshTimer) {
       clearInterval(this.refreshTimer);
       this.refreshTimer = null;

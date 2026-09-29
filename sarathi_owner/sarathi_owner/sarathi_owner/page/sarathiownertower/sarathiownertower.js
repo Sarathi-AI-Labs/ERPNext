@@ -18,9 +18,6 @@ frappe.pages["sarathiownertower"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["sarathiownertower"].on_page_show = function (wrapper) {
-  document.documentElement.classList.add("sod-page-active");
-  document.body.classList.add("sod-page-active");
-  $(".main-section").scrollTop(0);
   window.scrollTo(0, 0);
 
   if (wrapper.sarathi_owner_dashboard) {
@@ -39,13 +36,12 @@ frappe.pages["sarathiownertower"].on_page_show = function (wrapper) {
           );
         }
         wrapper.sod_initializing = false;
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
       },
     );
   }
 };
 
 frappe.pages["sarathiownertower"].on_page_hide = function (wrapper) {
-  document.documentElement.classList.remove("sod-page-active");
-  document.body.classList.remove("sod-page-active");
   wrapper.sarathi_owner_dashboard?.hide();
 };

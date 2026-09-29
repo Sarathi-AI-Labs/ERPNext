@@ -97,8 +97,8 @@ def get_project_pipeline(project_name: str) -> dict:
             ],
         )
 
-    wo_planned_qty = sum(flt(w.qty) for w in work_orders if w.docstatus == 1)
-    wo_produced_qty = sum(flt(w.produced_qty) for w in work_orders if w.docstatus == 1)
+    wo_planned_qty = sum(flt(w.qty) for w in work_orders if w.docstatus != 2)
+    wo_produced_qty = sum(flt(w.produced_qty) for w in work_orders if w.docstatus != 2)
     mfg_progress = (
         round((wo_produced_qty / wo_planned_qty) * 100, 1)
         if wo_planned_qty > 0
@@ -114,7 +114,7 @@ def get_project_pipeline(project_name: str) -> dict:
         wo_status = "done"
         wo_badge = f"{len(work_orders)} Completed"
     elif any(
-        w.status in ("In Process", "Not Started") and w.docstatus == 1
+        w.status in ("In Process", "Not Started") and w.docstatus != 2
         for w in work_orders
     ):
         wo_status = "current"
@@ -133,7 +133,7 @@ def get_project_pipeline(project_name: str) -> dict:
     in_process_wos = [
         w
         for w in work_orders
-        if w.status in ("In Process", "Not Started") and w.docstatus == 1
+        if w.status in ("In Process", "Not Started") and w.docstatus != 2
     ]
 
     if not work_orders:

@@ -19,11 +19,26 @@
     <label
       >From date<input
         type="date"
-        data-filter="from_date"
+        data-date-filter="from_date"
         aria-label="From date" /></label
     ><label
-      >To date<input type="date" data-filter="to_date" aria-label="To date"
+      >To date<input
+        type="date"
+        data-date-filter="to_date"
+        aria-label="To date"
     /></label>
+    <div class="sd-date-btn-group">
+      <button
+        type="button"
+        class="sd-button sd-primary"
+        data-action="apply-dates"
+      >
+        Submit
+      </button>
+      <button type="button" class="sd-button" data-action="clear-dates">
+        Reset
+      </button>
+    </div>
     <label
       >Project status<select data-filter="status" aria-label="Project status">
         <option value="">All statuses</option>
@@ -42,8 +57,6 @@
         placeholder="Search by name or ID"
         aria-label="Find customers or projects"
     /></label>
-    <button class="sd-button sd-primary" data-action="create">+ Create</button
-    ><button class="sd-button" data-action="setup">Setup</button>
   </section>
   <nav
     class="sd-breadcrumb"
@@ -51,10 +64,9 @@
     aria-label="Dashboard breadcrumb"
   ></nav>
   <p class="sd-scope-note">
-    Project status filters the portfolio. Dates filter orders by order date,
-    Work Orders by planned start, Job Cards and stock by posting date. Project
-    progress, BOMs, operation balances and semi-finished warehouse stock remain
-    current; operation balances cover lifetime submitted production.
+    Choose From date and To date and click Submit to filter projects by creation
+    date, orders by order date, Work Orders by planned start, Job Cards and
+    stock by posting date.
   </p>
   <div class="sd-error" data-error role="alert" hidden></div>
   <div class="sd-notice" data-permissions hidden></div>
