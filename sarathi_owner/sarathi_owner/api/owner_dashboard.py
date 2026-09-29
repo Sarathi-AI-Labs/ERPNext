@@ -1592,6 +1592,13 @@ def _get_project_detail_page(filters, perm) -> dict:
             for p in all_projects
         ],
         "cards": cards,
+        "shortcuts": [
+            {"label": "Project List", "icon": "▦", "route": "/app/project"},
+            {"label": "New Project", "icon": "＋", "route": "/app/project/new-project-1"},
+            {"label": "Work Orders", "icon": "⚙", "route": f"/app/work-order?project={project_name}"},
+            {"label": "BOMs", "icon": "📑", "route": "/app/bom"},
+            {"label": "Tasks", "icon": "✓", "route": f"/app/task?project={project_name}"},
+        ],
         "pipeline": pipe,
         "tasks": [
             {
