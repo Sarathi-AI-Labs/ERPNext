@@ -187,7 +187,7 @@ def get_owner_summary(filters=None):
     total_project_actual_cost = sum(flt(p.total_costing_amount) for p in open_projects)
 
     # 2. Executive Commercial Order Book (Sales Orders)
-    so_filters = {"docstatus": 1}
+    so_filters = {"docstatus": ["!=", 2]}
     if company:
         so_filters["company"] = company
     if customer:
@@ -218,7 +218,7 @@ def get_owner_summary(filters=None):
     ]
 
     # 3. Accounts Receivable & Overdue Cash Flow (Sales Invoices)
-    si_filters = {"docstatus": 1}
+    si_filters = {"docstatus": ["!=", 2]}
     if company:
         si_filters["company"] = company
     if customer:
@@ -799,6 +799,83 @@ def _get_live_activity(company=None, limit=12) -> list:
     return events[:limit]
 
 
+REPORT_COLUMNS_FALLBACK = {
+    "Sales Order Analysis": [
+        {"label": "Sales Order", "fieldname": "sales_order", "fieldtype": "Link", "options": "Sales Order", "width": 140},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 160},
+        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 140},
+        {"label": "Order Qty", "fieldname": "qty", "fieldtype": "Float", "width": 90},
+        {"label": "Delivered Qty", "fieldname": "delivered_qty", "fieldtype": "Float", "width": 100},
+        {"label": "Billed Amount", "fieldname": "billed_amount", "fieldtype": "Currency", "width": 120},
+        {"label": "Pending Amount", "fieldname": "pending_amount", "fieldtype": "Currency", "width": 120},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
+    ],
+    "Work Order Summary": [
+        {"label": "Work Order", "fieldname": "name", "fieldtype": "Link", "options": "Work Order", "width": 140},
+        {"label": "Production Item", "fieldname": "production_item", "fieldtype": "Link", "options": "Item", "width": 160},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
+        {"label": "Planned Qty", "fieldname": "qty", "fieldtype": "Float", "width": 100},
+        {"label": "Produced Qty", "fieldname": "produced_qty", "fieldtype": "Float", "width": 100},
+        {"label": "Planned Start", "fieldname": "planned_start_date", "fieldtype": "Date", "width": 110},
+        {"label": "Planned End", "fieldname": "planned_end_date", "fieldtype": "Date", "width": 110},
+    ],
+    "Accounts Receivable": [
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
+        {"label": "Voucher No", "fieldname": "voucher_no", "fieldtype": "Link", "options": "Sales Invoice", "width": 140},
+        {"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 110},
+        {"label": "Due Date", "fieldname": "due_date", "fieldtype": "Date", "width": 110},
+        {"label": "Invoiced Amount", "fieldname": "invoiced_amount", "fieldtype": "Currency", "width": 130},
+        {"label": "Paid Amount", "fieldname": "paid_amount", "fieldtype": "Currency", "width": 130},
+        {"label": "Outstanding Amount", "fieldname": "outstanding_amount", "fieldtype": "Currency", "width": 140},
+        {"label": "Age (Days)", "fieldname": "age", "fieldtype": "Int", "width": 90},
+    ],
+    "Warehouse Wise Stock Balance": [
+        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 150},
+        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 180},
+        {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 160},
+        {"label": "Balance Qty", "fieldname": "bal_qty", "fieldtype": "Float", "width": 100},
+        {"label": "Valuation Rate", "fieldname": "val_rate", "fieldtype": "Currency", "width": 120},
+        {"label": "Stock Value", "fieldname": "bal_val", "fieldtype": "Currency", "width": 130},
+    ],
+    "Production Analytics": [
+        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 160},
+        {"label": "Production Item", "fieldname": "item_name", "fieldtype": "Data", "width": 180},
+        {"label": "Work Order", "fieldname": "work_order", "fieldtype": "Link", "options": "Work Order", "width": 140},
+        {"label": "Produced Qty", "fieldname": "produced_qty", "fieldtype": "Float", "width": 110},
+        {"label": "Cycle Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
+    ],
+    "Project Summary": [
+        {"label": "Project", "fieldname": "name", "fieldtype": "Link", "options": "Project", "width": 150},
+        {"label": "Project Name", "fieldname": "project_name", "fieldtype": "Data", "width": 180},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 160},
+        {"label": "Estimated Cost", "fieldname": "estimated_costing", "fieldtype": "Currency", "width": 120},
+        {"label": "Actual Cost", "fieldname": "total_costing_amount", "fieldtype": "Currency", "width": 120},
+        {"label": "Total Billed", "fieldname": "total_billed_amount", "fieldtype": "Currency", "width": 120},
+        {"label": "% Complete", "fieldname": "percent_complete", "fieldtype": "Percent", "width": 90},
+    ],
+    "Profit and Loss Statement": [
+        {"label": "Account", "fieldname": "account", "fieldtype": "Link", "options": "Account", "width": 240},
+        {"label": "Category", "fieldname": "root_type", "fieldtype": "Data", "width": 140},
+        {"label": "Net Amount", "fieldname": "amount", "fieldtype": "Currency", "width": 160},
+    ],
+    "Gross and Net Profit Report": [
+        {"label": "Business Line", "fieldname": "line", "fieldtype": "Data", "width": 200},
+        {"label": "Revenue", "fieldname": "revenue", "fieldtype": "Currency", "width": 140},
+        {"label": "COGS", "fieldname": "cogs", "fieldtype": "Currency", "width": 140},
+        {"label": "Gross Profit", "fieldname": "gross_profit", "fieldtype": "Currency", "width": 140},
+        {"label": "Operating Expenses", "fieldname": "expenses", "fieldtype": "Currency", "width": 140},
+        {"label": "Net Profit", "fieldname": "net_profit", "fieldtype": "Currency", "width": 140},
+    ],
+    "Financial Ratios": [
+        {"label": "Ratio", "fieldname": "ratio", "fieldtype": "Data", "width": 240},
+        {"label": "Current Value", "fieldname": "value", "fieldtype": "Data", "width": 140},
+        {"label": "Industry Benchmark", "fieldname": "benchmark", "fieldtype": "Data", "width": 160},
+        {"label": "Health Assessment", "fieldname": "status", "fieldtype": "Data", "width": 140},
+    ],
+}
+
+
 @frappe.whitelist()
 def get_live_report_data(report_name, filters=None):
     """Executes native ERPNext Query Report in-memory and returns structured dataset.
@@ -900,10 +977,15 @@ def get_live_report_data(report_name, filters=None):
         from frappe.desk.query_report import run as run_query_report
 
         res = run_query_report(report_name=report_name, filters=report_filters)
+        cols = res.get("columns", [])
+        data = res.get("result", [])
+        if not cols and report_name in REPORT_COLUMNS_FALLBACK:
+            cols = REPORT_COLUMNS_FALLBACK[report_name]
+
         return {
             "report_name": report_name,
-            "columns": res.get("columns", []),
-            "result": res.get("result", []),
+            "columns": cols,
+            "result": data,
             "chart": res.get("chart"),
             "report_summary": res.get("report_summary"),
             "execution_time": res.get("execution_time", 0),
@@ -952,7 +1034,7 @@ def get_page_data(page_name: str, filters=None):
         return _get_sales_orders_page(filters, perm)
     elif page_name == "manufacturing":
         return _get_manufacturing_page(filters)
-    elif page_name == "stock_quality":
+    elif page_name in ("stock_quality", "working_capital", "working_capital_stock", "stock"):
         return _get_stock_quality_page(filters, perm)
     elif page_name in ("finance", "invoicing"):
         return _get_invoicing_page(filters, perm)
@@ -1367,7 +1449,7 @@ def _get_project_detail_page(filters, perm) -> dict:
     project_name = filters.get("project")
     if not project_name:
         first = frappe.get_all(
-            "Project", filters={"status": "Open"}, limit=1, pluck="name"
+            "Project", filters={"docstatus": ["!=", 2]}, limit=1, pluck="name"
         )
         project_name = first[0] if first else None
 
@@ -1518,7 +1600,7 @@ def _get_sales_orders_page(filters, perm) -> dict:
     customer = filters.get("customer")
     status = filters.get("status")
 
-    cond = {"docstatus": 1}
+    cond = {"docstatus": ["!=", 2]}
     if company:
         cond["company"] = company
     if customer:
@@ -1622,7 +1704,7 @@ def _get_sales_orders_page(filters, perm) -> dict:
 
 def _get_manufacturing_page(filters) -> dict:
     company = filters.get("company")
-    cond = {"docstatus": 1}
+    cond = {"docstatus": ["!=", 2]}
     if company:
         cond["company"] = company
 
