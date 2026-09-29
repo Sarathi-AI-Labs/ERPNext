@@ -215,18 +215,30 @@ frappe.SarathiOwnerDashboard = class {
         self.handleLiveSocketChange(data);
       });
 
-      // Listen for standard Frappe document events
+      // Listen for visibility control tower changes
+      frappe.realtime.on("sarathi_dashboard_changed", (data) => {
+        self.handleLiveSocketChange(data);
+      });
+
+      // Listen for standard Frappe document events across all operational doctypes
       frappe.realtime.on("doc_update", (data) => {
         if (
           data &&
           data.doctype &&
           [
+            "Project",
+            "Company",
+            "Customer",
             "Sales Order",
             "Sales Invoice",
             "Payment Entry",
             "Work Order",
             "Stock Entry",
-            "Project",
+            "Delivery Note",
+            "BOM",
+            "Task",
+            "Warehouse",
+            "Item",
           ].includes(data.doctype)
         ) {
           self.handleLiveSocketChange(data);
@@ -240,8 +252,27 @@ frappe.SarathiOwnerDashboard = class {
     const name = data.name || "";
     this.showLiveToast(`⚡ Live Update: ${dt} ${name} updated`);
 
+    // Dynamically refresh the dropdown options if a Company, Customer, or Project was modified
+    if (["Company", "Customer", "Project"].includes(dt)) {
+      this.refreshFilterDropdownsOnly();
+    }
+
     // Smoothly re-fetch without wiping the page with full-screen loading spinner
     this.smoothRefresh();
+  }
+
+  refreshFilterDropdownsOnly() {
+    const selectedCompany = this.$el.find("#sod-filter-company").val() || "";
+    frappe.call({
+      method: "sarathi_owner.api.owner_dashboard.get_owner_context",
+      args: { company: selectedCompany },
+      callback: (r) => {
+        if (r.message) {
+          this.context = r.message;
+          this.populateFilterDropdowns();
+        }
+      },
+    });
   }
 
   showLiveToast(msg) {
@@ -298,9 +329,14 @@ frappe.SarathiOwnerDashboard = class {
     });
 
     // Global Reactive Filters
+    this.$el.find("#sod-filter-company").on("change", function () {
+      self.populateFilterDropdowns();
+      self.refreshCurrentPage();
+    });
+
     this.$el
       .find(
-        "#sod-filter-company, #sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status",
+        "#sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status",
       )
       .on("change", function () {
         self.refreshCurrentPage();
@@ -451,33 +487,44 @@ frappe.SarathiOwnerDashboard = class {
 
   populateFilterDropdowns() {
     if (!this.context) return;
+    const selectedCompany = this.$el.find("#sod-filter-company").val() || "";
 
     // Companies
     const $co = this.$el.find("#sod-filter-company");
+    const currentCo = $co.val();
     $co.find("option:not(:first)").remove();
     (this.context.companies || []).forEach((c) => {
       $co.append(
         `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.company_name || c.name)}</option>`,
       );
     });
+    if (currentCo) $co.val(currentCo);
 
     // Customers
     const $cust = this.$el.find("#sod-filter-customer");
+    const currentCust = $cust.val();
     $cust.find("option:not(:first)").remove();
     (this.context.customers || []).forEach((c) => {
       $cust.append(
         `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.customer_name || c.name)}</option>`,
       );
     });
+    if (currentCust) $cust.val(currentCust);
 
-    // Projects
+    // Projects (Dynamically filtered by selected company)
     const $proj = this.$el.find("#sod-filter-project");
+    const currentProj = $proj.val();
     $proj.find("option:not(:first)").remove();
-    (this.context.projects || []).forEach((p) => {
-      $proj.append(
-        `<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(p.project_name || p.name)}</option>`,
-      );
-    });
+    (this.context.projects || [])
+      .filter((p) => !selectedCompany || p.company === selectedCompany)
+      .forEach((p) => {
+        $proj.append(
+          `<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(p.project_name || p.name)}</option>`,
+        );
+      });
+    if (currentProj && $proj.find(`option[value="${currentProj}"]`).length) {
+      $proj.val(currentProj);
+    }
   }
 
   getFilters() {

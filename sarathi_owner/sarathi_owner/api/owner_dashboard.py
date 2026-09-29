@@ -19,14 +19,43 @@ from sarathi_owner.api.pipeline import get_project_pipeline
 def broadcast_live_event(doc, method=None):
     """Publishes real-time WebSocket event via Socket.IO whenever ERPNext documents change."""
     try:
+        doctype = getattr(doc, "doctype", "")
+        name = getattr(doc, "name", "")
+        company = getattr(doc, "company", None)
+        modified = str(getattr(doc, "modified", now_datetime()))
+        payload = {
+            "doctype": doctype,
+            "name": name,
+            "company": company,
+            "modified": modified,
+        }
+
+        # 1. Publish to room='all' for sarathi_owner_live_change (Owner Tower)
         frappe.publish_realtime(
             "sarathi_owner_live_change",
-            {
-                "doctype": getattr(doc, "doctype", ""),
-                "name": getattr(doc, "name", ""),
-                "company": getattr(doc, "company", None),
-                "modified": str(getattr(doc, "modified", now_datetime())),
-            },
+            message=payload,
+            room="all",
+            after_commit=False,
+        )
+        frappe.publish_realtime(
+            "sarathi_owner_live_change",
+            message=payload,
+            room="all",
+            after_commit=True,
+        )
+
+        # 2. Also publish to sarathi_dashboard_changed for sarathicontroltower
+        frappe.publish_realtime(
+            "sarathi_dashboard_changed",
+            message=payload,
+            room="all",
+            after_commit=False,
+        )
+        frappe.publish_realtime(
+            "sarathi_dashboard_changed",
+            message=payload,
+            room="all",
+            after_commit=True,
         )
     except Exception:
         pass
@@ -75,7 +104,7 @@ def _get_date_bounds(date_range_str):
 
 
 @frappe.whitelist()
-def get_owner_context():
+def get_owner_context(company=None):
     """Returns baseline metadata for filters and user authorization."""
     perm = get_permission_context()
 
@@ -85,8 +114,12 @@ def get_owner_context():
     customers = frappe.get_all(
         "Customer", fields=["name", "customer_name"], order_by="name asc", limit=100
     )
+    proj_filters = {"docstatus": ["!=", 2]}
+    if company:
+        proj_filters["company"] = company
     projects = frappe.get_all(
         "Project",
+        filters=proj_filters,
         fields=["name", "project_name", "company", "status"],
         order_by="name asc",
     )
@@ -1447,9 +1480,13 @@ def _get_projects_page(filters, perm) -> dict:
 
 def _get_project_detail_page(filters, perm) -> dict:
     project_name = filters.get("project")
+    company = filters.get("company")
     if not project_name:
+        cond = {"docstatus": ["!=", 2]}
+        if company:
+            cond["company"] = company
         first = frappe.get_all(
-            "Project", filters={"docstatus": ["!=", 2]}, limit=1, pluck="name"
+            "Project", filters=cond, limit=1, pluck="name"
         )
         project_name = first[0] if first else None
 
@@ -1497,7 +1534,15 @@ def _get_project_detail_page(filters, perm) -> dict:
 
 
 def _get_customers_page(filters, perm) -> dict:
-    customers = frappe.get_all("Customer", fields=["name", "customer_name"], limit=50)
+    company = filters.get("company")
+    customer_filter = filters.get("customer")
+    cust_cond = {}
+    if customer_filter:
+        cust_cond["name"] = customer_filter
+
+    customers = frappe.get_all(
+        "Customer", filters=cust_cond, fields=["name", "customer_name"], limit=50
+    )
     can_finance = perm["can_view_finance"]
     fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
 
@@ -1505,20 +1550,26 @@ def _get_customers_page(filters, perm) -> dict:
     total_receivable_sum = 0.0
 
     for c in customers:
+        so_cond = {"customer": c.name, "docstatus": ["!=", 2]}
+        if company:
+            so_cond["company"] = company
         sos = frappe.get_all(
             "Sales Order",
-            filters={"customer": c.name, "docstatus": 1},
+            filters=so_cond,
             fields=["name", "grand_total"],
         )
-        inv_data = frappe.db.sql(
-            """
+
+        inv_query = """
             SELECT SUM(outstanding_amount) as outstanding, SUM(grand_total) as total_billed
             FROM `tabSales Invoice`
-            WHERE customer = %s AND docstatus = 1
-            """,
-            (c.name,),
-            as_dict=True,
-        )
+            WHERE customer = %s AND docstatus != 2
+        """
+        params = [c.name]
+        if company:
+            inv_query += " AND company = %s"
+            params.append(company)
+
+        inv_data = frappe.db.sql(inv_query, tuple(params), as_dict=True)
         out = (
             flt(inv_data[0].outstanding)
             if inv_data and inv_data[0].outstanding
