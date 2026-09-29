@@ -9,6 +9,7 @@ frappe.SarathiIndustrialDashboard = class {
       this.page.main,
     )[0];
     this.filters = {};
+    this.dateFilters = { from_date: "", to_date: "" };
     this.sequence = 0;
     this.detailSequence = 0;
     this.tab = "overview";
@@ -108,8 +109,16 @@ frappe.SarathiIndustrialDashboard = class {
     this.root.addEventListener("click", (e) => this.click(e));
     this.root.addEventListener("change", (e) => {
       if (e.target.dataset.filter) this.filterChanged(e.target);
+      if (e.target.dataset.dateFilter) {
+        this.dateFilters[e.target.dataset.dateFilter] = e.target.value;
+      }
       if (e.target.dataset.subFilter) this.subFilterChanged(e.target);
       if (e.target.dataset.accFilter) this.accFilterChanged(e.target);
+    });
+    this.root.addEventListener("input", (e) => {
+      if (e.target.dataset.dateFilter) {
+        this.dateFilters[e.target.dataset.dateFilter] = e.target.value;
+      }
     });
     this.root.addEventListener("keydown", (e) => {
       if (e.target.dataset.dateFilter && e.key === "Enter") {
@@ -129,7 +138,15 @@ frappe.SarathiIndustrialDashboard = class {
       }
     });
     window.addEventListener("focus", () => {
-      if (this.visible) this.load(true);
+      if (
+        this.visible &&
+        (!document.activeElement ||
+          !["INPUT", "SELECT", "TEXTAREA"].includes(
+            document.activeElement.tagName,
+          ))
+      ) {
+        this.load(true);
+      }
     });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden && this.visible) this.load(true);
@@ -222,6 +239,10 @@ frappe.SarathiIndustrialDashboard = class {
       "status",
     ])
       this.filters[k] = q.get(k) || "";
+    this.dateFilters = {
+      from_date: this.filters.from_date || "",
+      to_date: this.filters.to_date || "",
+    };
     this.tab = this.tabs[q.get("tab")] ? q.get("tab") : "overview";
     this.view = q.get("view") || "";
   }
@@ -252,6 +273,12 @@ frappe.SarathiIndustrialDashboard = class {
   }
   navigate(change) {
     Object.assign(this.filters, change);
+    if ("from_date" in change) {
+      this.dateFilters.from_date = change.from_date || "";
+    }
+    if ("to_date" in change) {
+      this.dateFilters.to_date = change.to_date || "";
+    }
     this.search = "";
     this.el("[data-search]").value = "";
     this.customerPage = this.projectPage = 0;
@@ -267,8 +294,14 @@ frappe.SarathiIndustrialDashboard = class {
     this.navigate(change);
   }
   applyDateFilter() {
-    const from = this.el('[data-date-filter="from_date"]')?.value || "";
-    const to = this.el('[data-date-filter="to_date"]')?.value || "";
+    const from =
+      this.dateFilters?.from_date ||
+      this.el('[data-date-filter="from_date"]')?.value ||
+      "";
+    const to =
+      this.dateFilters?.to_date ||
+      this.el('[data-date-filter="to_date"]')?.value ||
+      "";
     if (!from || !to) {
       frappe.msgprint(__("Please select both From date and To date."));
       return;
@@ -280,6 +313,7 @@ frappe.SarathiIndustrialDashboard = class {
     this.navigate({ from_date: from, to_date: to });
   }
   clearDateFilter() {
+    this.dateFilters = { from_date: "", to_date: "" };
     const fromEl = this.el('[data-date-filter="from_date"]');
     const toEl = this.el('[data-date-filter="to_date"]');
     if (fromEl) fromEl.value = "";
@@ -341,8 +375,16 @@ frappe.SarathiIndustrialDashboard = class {
         .join("");
     for (const n of this.root.querySelectorAll("[data-filter]"))
       n.value = this.filters[n.dataset.filter] || "";
-    for (const n of this.root.querySelectorAll("[data-date-filter]"))
-      n.value = this.filters[n.dataset.dateFilter] || "";
+    for (const n of this.root.querySelectorAll("[data-date-filter]")) {
+      const field = n.dataset.dateFilter;
+      const targetVal =
+        this.dateFilters?.[field] !== undefined && this.dateFilters[field] !== ""
+          ? this.dateFilters[field]
+          : this.filters[field] || "";
+      if (document.activeElement !== n && n.value !== targetVal) {
+        n.value = targetVal;
+      }
+    }
     const customer = d.customers.find((c) => c.name === this.filters.customer);
     const name =
       customer?.customer_name ||
