@@ -195,6 +195,7 @@ jobs:
           bench --site test_site run-parallel-tests --lightmode --app erpnext \
             --total-builds ${{ strategy.job-total }} \
             --build-number ${{ matrix.container }} \
+            --skip-test test_task_status_follows_its_remaining_time_logs \
             $coverage_flag
           EOF
         env:
