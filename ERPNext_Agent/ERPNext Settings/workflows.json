@@ -1,0 +1,13 @@
+{
+  "module": "ERPNext Settings",
+  "transitions": {
+    "Stock Settings": {
+      "is_submittable": false,
+      "allowed_actions": ["read", "update"]
+    },
+    "Manufacturing Settings": {
+      "is_submittable": false,
+      "allowed_actions": ["read", "update"]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Global Defaults",
+  "description": "Default company, currency, and date formats.",
+  "primary_doctypes": [
+    "Global Defaults"
+  ],
+  "slot_filling_questions": {
+    "default_currency": "What is the Default Currency?"
+  }
+}

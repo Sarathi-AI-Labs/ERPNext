@@ -1,0 +1,11 @@
+{
+  "module": "Quality",
+  "section": "Non Conformance",
+  "description": "Corrective and preventive action (CAPA) logs.",
+  "primary_doctypes": [
+    "Quality Action"
+  ],
+  "slot_filling_questions": {
+    "corrective_preventive": "What is the Corrective/Preventive?"
+  }
+}

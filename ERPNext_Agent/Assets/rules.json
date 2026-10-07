@@ -1,0 +1,24 @@
+{
+  "module": "Assets",
+  "doctypes": {
+    "Asset": {
+      "mandatory_fields": [
+        "item_code",
+        "asset_name",
+        "company",
+        "asset_category",
+        "gross_purchase_amount",
+        "purchase_date",
+        "available_for_use_date"
+      ],
+      "is_submittable": true
+    },
+    "Asset Category": {
+      "mandatory_fields": ["asset_category_name"]
+    },
+    "Asset Movement": {
+      "mandatory_fields": ["company", "transaction_date", "purpose", "assets"],
+      "is_submittable": true
+    }
+  }
+}

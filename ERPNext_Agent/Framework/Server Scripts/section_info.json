@@ -1,0 +1,12 @@
+{
+  "module": "Framework",
+  "section": "Server Scripts",
+  "description": "Sandboxed Python hooks on document save/submit.",
+  "primary_doctypes": [
+    "Server Script"
+  ],
+  "slot_filling_questions": {
+    "script_type": "What is the Script Type?",
+    "script": "What is the Script?"
+  }
+}

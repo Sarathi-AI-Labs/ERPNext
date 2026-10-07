@@ -1,0 +1,16 @@
+{
+  "module": "Manufacturing",
+  "section": "Setup",
+  "description": "Manufacturing operations, machinery workstations, and routing stages.",
+  "primary_doctypes": [
+    "Operation",
+    "Workstation",
+    "Workstation Type",
+    "Routing"
+  ],
+  "slot_filling_questions": {
+    "workstation_name": "What is the Workstation Name?",
+    "production_capacity": "What is the Job Capacity?",
+    "workstation_type": "What is the Workstation Type?"
+  }
+}

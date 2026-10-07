@@ -1,0 +1,17 @@
+{
+  "module": "Stock",
+  "section": "Setup",
+  "description": "Item masters, units of measure, and warehouse hierarchy.",
+  "primary_doctypes": [
+    "Item",
+    "Item Group",
+    "Warehouse"
+  ],
+  "slot_filling_questions": {
+    "item_code": "What is the Item Code?",
+    "item_group": "What is the Item Group?",
+    "stock_uom": "What is the Default Unit of Measure?",
+    "warehouse_name": "What is the Warehouse Name?",
+    "company": "What is the Company?"
+  }
+}

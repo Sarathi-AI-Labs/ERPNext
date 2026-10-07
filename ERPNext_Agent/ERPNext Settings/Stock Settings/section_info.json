@@ -1,0 +1,9 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Stock Settings",
+  "description": "Negative stock prohibition (strictly 0) and valuation rules.",
+  "primary_doctypes": [
+    "Stock Settings"
+  ],
+  "slot_filling_questions": {}
+}

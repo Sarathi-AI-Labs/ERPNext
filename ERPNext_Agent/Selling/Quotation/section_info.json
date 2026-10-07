@@ -1,0 +1,21 @@
+{
+  "module": "Selling",
+  "section": "Quotation",
+  "description": "Sales proposals and commercial estimates for leads and customers.",
+  "primary_doctypes": [
+    "Quotation"
+  ],
+  "slot_filling_questions": {
+    "quotation_to": "What is the Quotation To?",
+    "transaction_date": "What is the Date?",
+    "order_type": "What is the Order Type?",
+    "company": "What is the Company?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "selling_price_list": "What is the Price List?",
+    "price_list_currency": "What is the Price List Currency?",
+    "plc_conversion_rate": "What is the Price List Exchange Rate?",
+    "items": "What is the Items?",
+    "status": "What is the Status?"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "module": "Accounting",
+  "section": "Banking",
+  "description": "Bank master setup, company bank accounts, and bank clearing reconciliation.",
+  "primary_doctypes": [
+    "Bank",
+    "Bank Account",
+    "Payment Entry"
+  ],
+  "slot_filling_questions": {
+    "bank_name": "What is the Bank Name?",
+    "account_name": "What is the Account Name?",
+    "bank": "What is the Bank?",
+    "payment_type": "What is the Payment Type?",
+    "posting_date": "What is the Posting Date?",
+    "company": "What is the Company?",
+    "paid_from": "What is the Account Paid From?",
+    "paid_from_account_currency": "What is the Account Currency (From)?",
+    "paid_to": "What is the Account Paid To?",
+    "paid_to_account_currency": "What is the Account Currency (To)?",
+    "paid_amount": "What is the Paid Amount?",
+    "source_exchange_rate": "What is the Source Exchange Rate?",
+    "base_paid_amount": "What is the Paid Amount (Company Currency)?",
+    "received_amount": "What is the Received Amount?",
+    "target_exchange_rate": "What is the Target Exchange Rate?",
+    "base_received_amount": "What is the Received Amount (Company Currency)?"
+  }
+}

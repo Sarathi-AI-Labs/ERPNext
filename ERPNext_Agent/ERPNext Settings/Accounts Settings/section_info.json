@@ -1,0 +1,9 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Accounts Settings",
+  "description": "Credit limit enforcement and fiscal defaults.",
+  "primary_doctypes": [
+    "Accounts Settings"
+  ],
+  "slot_filling_questions": {}
+}

@@ -1,0 +1,14 @@
+{
+  "module": "Stock",
+  "section": "Reports",
+  "description": "Perpetual stock ledger, valuation balances, and ageing.",
+  "primary_doctypes": [
+    "Stock Entry",
+    "Bin"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "stock_entry_type": "What is the Stock Entry Type?",
+    "items": "What is the Items?"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "module": "Accounting",
+  "section": "Taxes",
+  "description": "Tax categories, GST rate templates, withholding tax, and tax calculation rules.",
+  "primary_doctypes": [
+    "Tax Category",
+    "Sales Taxes and Charges Template",
+    "Purchase Taxes and Charges Template"
+  ],
+  "slot_filling_questions": {
+    "title": "What is the Title?",
+    "company": "What is the Company?"
+  }
+}

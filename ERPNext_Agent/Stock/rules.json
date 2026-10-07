@@ -1,0 +1,37 @@
+{
+  "module": "Stock",
+  "negative_stock_allowed": false,
+  "doctypes": {
+    "Item": {
+      "mandatory_fields": ["item_code", "item_name", "item_group", "stock_uom"],
+      "unique_fields": ["item_code"]
+    },
+    "Warehouse": {
+      "mandatory_fields": ["warehouse_name", "company"],
+      "unique_fields": ["warehouse_name"]
+    },
+    "Stock Entry": {
+      "mandatory_fields": ["stock_entry_type", "company", "items"],
+      "is_submittable": true,
+      "items_mandatory_fields": ["item_code", "qty", "uom"],
+      "type_constraints": {
+        "Material Receipt": {
+          "source_warehouse_required": false,
+          "target_warehouse_required": true,
+          "basic_rate_required": true
+        },
+        "Material Issue": {
+          "source_warehouse_required": true,
+          "target_warehouse_required": false
+        },
+        "Material Transfer": {
+          "source_warehouse_required": true,
+          "target_warehouse_required": true
+        },
+        "Manufacture": {
+          "work_order_required": true
+        }
+      }
+    }
+  }
+}

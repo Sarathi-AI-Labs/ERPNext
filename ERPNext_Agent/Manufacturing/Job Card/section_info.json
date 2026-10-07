@@ -1,0 +1,14 @@
+{
+  "module": "Manufacturing",
+  "section": "Job Card",
+  "description": "Shop-floor machine/operator work assignments and actual cycle time tracking.",
+  "primary_doctypes": [
+    "Job Card"
+  ],
+  "slot_filling_questions": {
+    "work_order": "What is the Work Order?",
+    "company": "What is the Company?",
+    "operation": "What is the Operation?",
+    "workstation": "What is the Workstation?"
+  }
+}

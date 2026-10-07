@@ -1,0 +1,11 @@
+{
+  "module": "Organization",
+  "section": "Branch",
+  "description": "Physical corporate branch offices.",
+  "primary_doctypes": [
+    "Branch"
+  ],
+  "slot_filling_questions": {
+    "branch": "What is the Branch?"
+  }
+}

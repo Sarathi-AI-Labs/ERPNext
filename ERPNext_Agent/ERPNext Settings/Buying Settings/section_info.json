@@ -1,0 +1,9 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Buying Settings",
+  "description": "Purchase order tolerances and approvals.",
+  "primary_doctypes": [
+    "Buying Settings"
+  ],
+  "slot_filling_questions": {}
+}

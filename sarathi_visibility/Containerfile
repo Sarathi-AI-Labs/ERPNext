@@ -6,6 +6,7 @@ USER root
 RUN sed -i '1i map $http_origin $sarathi_socket_origin { default $http_origin; "" $proxy_x_forwarded_proto://$http_host; }' /templates/nginx/frappe.conf.template \
   && sed -i 's|proxy_set_header Origin .*;|proxy_set_header Origin $sarathi_socket_origin;|' /templates/nginx/frappe.conf.template
 COPY --chown=frappe:frappe sarathi_visibility /home/frappe/frappe-bench/apps/sarathi_visibility
+COPY --chown=frappe:frappe sarathi_owner /home/frappe/frappe-bench/apps/sarathi_owner
 RUN /home/frappe/frappe-bench/env/bin/python /home/frappe/frappe-bench/apps/sarathi_visibility/patch_socket_backend.py
 
 USER frappe
@@ -13,8 +14,11 @@ WORKDIR /home/frappe/frappe-bench
 
 RUN ls -1 apps > sites/apps.txt \
   && /home/frappe/frappe-bench/env/bin/pip install --no-deps -e apps/sarathi_visibility \
-  && mkdir -p assets/sarathi_visibility \
-  && cp -R apps/sarathi_visibility/sarathi_visibility/public/. assets/sarathi_visibility/
+  && /home/frappe/frappe-bench/env/bin/pip install --no-deps -e apps/sarathi_owner \
+  && mkdir -p assets/sarathi_visibility assets/sarathi_owner \
+  && cp -R apps/sarathi_visibility/sarathi_visibility/public/. assets/sarathi_visibility/ \
+  && cp -R apps/sarathi_owner/sarathi_owner/public/. assets/sarathi_owner/ \
+  && /home/frappe/frappe-bench/env/bin/python -c "import sarathi_owner, sarathi_visibility"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["start.sh"]

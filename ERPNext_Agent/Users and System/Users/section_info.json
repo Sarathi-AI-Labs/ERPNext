@@ -1,0 +1,12 @@
+{
+  "module": "Users and System",
+  "section": "Users",
+  "description": "User accounts, passwords, and role allocations.",
+  "primary_doctypes": [
+    "User"
+  ],
+  "slot_filling_questions": {
+    "email": "What is the Email?",
+    "first_name": "What is the First Name?"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "module": "Stock",
+  "section": "Delivery Note",
+  "description": "Outbound shipment and customer delivery fulfillment.",
+  "primary_doctypes": [
+    "Delivery Note"
+  ],
+  "slot_filling_questions": {
+    "customer": "What is the Customer?",
+    "posting_date": "What is the Date?",
+    "posting_time": "What is the Posting Time?",
+    "company": "What is the Company?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "selling_price_list": "What is the Price List?",
+    "price_list_currency": "What is the Price List Currency?",
+    "plc_conversion_rate": "What is the Price List Exchange Rate?",
+    "items": "What is the Delivery Note Item?",
+    "status": "What is the Status?"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "module": "Buying",
+  "section": "Material Request",
+  "description": "Internal purchase requisitions, indent approvals, and manufacturing component demand.",
+  "primary_doctypes": [
+    "Material Request"
+  ],
+  "slot_filling_questions": {
+    "material_request_type": "What is the Purpose?",
+    "company": "What is the Company?",
+    "transaction_date": "What is the Transaction Date?",
+    "items": "What is the Items?"
+  }
+}
