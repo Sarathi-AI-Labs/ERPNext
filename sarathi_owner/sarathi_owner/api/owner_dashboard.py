@@ -104,7 +104,7 @@ def get_owner_summary(filters=None):
 	if isinstance(filters, str):
 		try:
 			filters = json.loads(filters)
-		except Exception:
+		except json.JSONDecodeError:
 			filters = {}
 	filters = filters or {}
 
@@ -1275,7 +1275,7 @@ def get_live_report_data(report_name, filters=None):
 	if isinstance(filters, str):
 		try:
 			filters = json.loads(filters)
-		except Exception:
+		except json.JSONDecodeError:
 			filters = {}
 	filters = filters or {}
 
@@ -1475,7 +1475,7 @@ def get_page_data(page_name: str, filters=None):
 	if isinstance(filters, str):
 		try:
 			filters = json.loads(filters)
-		except Exception:
+		except json.JSONDecodeError:
 			filters = {}
 	filters = filters or {}
 

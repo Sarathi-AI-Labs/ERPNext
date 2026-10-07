@@ -362,7 +362,17 @@ run_ci_step "Get payments app" bench get-app payments --branch develop
 # Enable with CI_SKIP_ERPNEXT_ASSETS=1 to test; if PDF tests fail, unset it.
 erpnext_get_app_args=()
 if [ "${CI_SKIP_ERPNEXT_ASSETS:-0}" = "1" ]; then erpnext_get_app_args=(--skip-assets); fi
-run_ci_step "Get erpnext app" bench get-app erpnext "${GITHUB_WORKSPACE}/ERPNEXT_MAIN" "${erpnext_get_app_args[@]}"
+# Bench 5.28+ treats a local path as a remote app URL and attempts to access
+# `App.org`, which is not set for local directories. Copy the checked-out app
+# into the bench and install it directly instead.
+run_ci_step "Stage erpnext app" cp -a "${GITHUB_WORKSPACE}/ERPNEXT_MAIN" ~/frappe-bench/apps/erpnext
+if ! grep -qx "erpnext" ~/frappe-bench/sites/apps.txt; then
+    echo "erpnext" >> ~/frappe-bench/sites/apps.txt
+fi
+run_ci_step "Install erpnext app" bench pip install -e apps/erpnext
+if [ "${CI_SKIP_ERPNEXT_ASSETS:-0}" != "1" ]; then
+    run_ci_step "Build erpnext assets" bench build --app erpnext
+fi
 
 if [ "$TYPE" == "server" ]; then run_ci_step "Setup dev requirements" bench setup requirements --dev; fi
 
