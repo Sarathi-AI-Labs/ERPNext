@@ -357,11 +357,9 @@ cd ~/frappe-bench || exit
 
 run_ci_step "Get payments app" bench get-app payments --branch develop
 
-# Opt-in: skip building erpnext's frontend assets. Server tests don't need them, but PDF
-# tests (print formats) do — they pass only if the PDF renderer ignores missing assets.
-# Enable with CI_SKIP_ERPNEXT_ASSETS=1 to test; if PDF tests fail, unset it.
-erpnext_get_app_args=()
-if [ "${CI_SKIP_ERPNEXT_ASSETS:-0}" = "1" ]; then erpnext_get_app_args=(--skip-assets); fi
+# Server and patch tests do not require ERPNext frontend assets. The embedded ERPNext
+# snapshot has optional POS dependencies that are unavailable in this CI bench, so build
+# assets only when a workflow explicitly sets CI_SKIP_ERPNEXT_ASSETS=0.
 # Bench 5.28+ treats a local path as a remote app URL and attempts to access
 # `App.org`, which is not set for local directories. Copy the checked-out app
 # into the bench and install it directly instead.
@@ -373,7 +371,7 @@ if ! grep -qx "erpnext" ~/frappe-bench/sites/apps.txt; then
     printf "erpnext\n" >> ~/frappe-bench/sites/apps.txt
 fi
 run_ci_step "Install erpnext app" bench pip install -e apps/erpnext
-if [ "${CI_SKIP_ERPNEXT_ASSETS:-0}" != "1" ]; then
+if [ "${CI_SKIP_ERPNEXT_ASSETS:-1}" != "1" ]; then
     run_ci_step "Build erpnext assets" bench build --app erpnext
 fi
 
