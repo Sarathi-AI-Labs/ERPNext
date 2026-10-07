@@ -367,7 +367,10 @@ if [ "${CI_SKIP_ERPNEXT_ASSETS:-0}" = "1" ]; then erpnext_get_app_args=(--skip-a
 # into the bench and install it directly instead.
 run_ci_step "Stage erpnext app" cp -a "${GITHUB_WORKSPACE}/ERPNEXT_MAIN" ~/frappe-bench/apps/erpnext
 if ! grep -qx "erpnext" ~/frappe-bench/sites/apps.txt; then
-    echo "erpnext" >> ~/frappe-bench/sites/apps.txt
+    # `bench get-app payments` can leave apps.txt without a trailing newline.
+    # Insert one before appending so Frappe does not read `paymentserpnext`.
+    printf "\n" >> ~/frappe-bench/sites/apps.txt
+    printf "erpnext\n" >> ~/frappe-bench/sites/apps.txt
 fi
 run_ci_step "Install erpnext app" bench pip install -e apps/erpnext
 if [ "${CI_SKIP_ERPNEXT_ASSETS:-0}" != "1" ]; then

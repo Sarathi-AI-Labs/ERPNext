@@ -1,0 +1,18 @@
+rules:
+  - id: disallow-dynamic-python-execution
+    languages: [python]
+    severity: ERROR
+    message: Dynamic Python execution is not allowed. Use a sandboxed executor instead.
+    patterns:
+      - pattern-either:
+          - pattern: exec(...)
+          - pattern: eval(...)
+
+  - id: disallow-shell-subprocess
+    languages: [python]
+    severity: ERROR
+    message: Do not invoke a shell with untrusted command content.
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.$FUNC(..., shell=True, ...)
+          - pattern: subprocess.$FUNC(..., shell = True, ...)

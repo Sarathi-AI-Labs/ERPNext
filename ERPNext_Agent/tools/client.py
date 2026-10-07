@@ -33,6 +33,7 @@ class FrappeClient:
 			import sys
 
 			import frappe
+			from frappe.utils.safe_exec import safe_exec
 
 			# Capture print outputs in a safe scope
 			old_stdout = sys.stdout
@@ -40,7 +41,9 @@ class FrappeClient:
 			sys.stdout = redirected_output
 			try:
 				local_scope = {"frappe": frappe, "json": json, "sys": sys}
-				exec(python_code, local_scope)
+				safe_exec(
+					python_code, _globals={"frappe": frappe, "json": json, "sys": sys}, _locals=local_scope
+				)
 				output = redirected_output.getvalue().strip()
 				for line in reversed(output.splitlines()):
 					line = line.strip()

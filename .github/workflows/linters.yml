@@ -53,14 +53,11 @@ jobs:
           python-version: '3.12'
           cache: pip
 
-      - name: Download Semgrep rules
-        run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
-
       - name: Download semgrep
         run: pip install semgrep
 
-      - name: Run Semgrep rules
-        run: semgrep ci --exclude ERPNEXT_MAIN --exclude scratch --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+      - name: Run custom application security rules
+        run: semgrep scan --error --config ./.github/semgrep/custom-app-security.yml --exclude ERPNEXT_MAIN --exclude scratch ERPNext_Agent sarathi_owner sarathi_visibility resources/sarathi .github
 
       - name: Semgrep for Test Correctness
-        run: semgrep ci --include=**/test_*.py --config ./ERPNEXT_MAIN/semgrep/test-correctness.yml
+        run: semgrep scan --error --include=**/test_*.py --config ./ERPNEXT_MAIN/semgrep/test-correctness.yml
