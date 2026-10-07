@@ -38,8 +38,8 @@ concurrency:
   group: server-mariadb-develop-${{ github.event_name }}-${{ github.event.number || github.event_name == 'workflow_dispatch' && github.run_id || '' }}
   cancel-in-progress: true
 
-# Shared across both jobs. Both run in the SAME CI image so the bench lives at the identical
-# path (/home/ci/frappe-bench) on the setup runner and the test shards — that's what makes the
+# Shared across both jobs. Both run in the same CI image so the bench lives under $HOME on the
+# setup runner and the test shards — that's what makes the
 # packaged Python venv portable between them.
 env:
   TZ: 'Asia/Kolkata'
@@ -59,7 +59,7 @@ jobs:
   setup:
     name: Build & reinstall (setup)
     # Use GitHub-hosted runners so this workflow does not depend on a self-hosted runner.
-    # The shared CI image and /home/ci path keep the packaged bench portable to test shards.
+    # The shared CI image and HOME path keep the packaged bench portable to test shards.
     runs-on: ubuntu-latest
     timeout-minutes: 40
     container:
@@ -124,15 +124,17 @@ jobs:
           # Don't bake a dirty datadir — fail if mariadbd didn't finish stopping, rather than ship
           # an inconsistent datadir the shards would have to crash-recover.
           [ -f /home/ci/db-data/mysqld.pid ] && { echo "mariadbd did not shut down cleanly"; exit 1; }
-          mv /home/ci/db-data /home/ci/frappe-bench/mariadb-data
+          bench_dir="${HOME}/frappe-bench"
+          [ -d "$bench_dir" ] || { echo "Bench was not created at $bench_dir"; exit 1; }
+          mv /home/ci/db-data "$bench_dir/mariadb-data"
 
       # Package the prepared bench for the independent GitHub-hosted test runners.
       - name: Package prepared bench
         run: |
-          cp "${GITHUB_WORKSPACE}/.github/helper/hydrate.sh" /home/ci/frappe-bench/hydrate.sh
-          cp "${GITHUB_WORKSPACE}/.github/helper/start-db.sh" /home/ci/frappe-bench/start-db.sh
+          cp "${GITHUB_WORKSPACE}/.github/helper/hydrate.sh" "${HOME}/frappe-bench/hydrate.sh"
+          cp "${GITHUB_WORKSPACE}/.github/helper/start-db.sh" "${HOME}/frappe-bench/start-db.sh"
           # Exclude .git/node_modules; the mariadb-data datadir is included for fast shard setup.
-          tar czpf "${GITHUB_WORKSPACE}/bench-mariadb.tar.gz" -C /home/ci \
+          tar czpf "${GITHUB_WORKSPACE}/bench-mariadb.tar.gz" -C "${HOME}" \
             --exclude='.git' --exclude='node_modules' frappe-bench
           ls -lh "${GITHUB_WORKSPACE}/bench-mariadb.tar.gz"
 
@@ -175,11 +177,11 @@ jobs:
 
       - name: Untar prepared bench
         run: |
-          tar xzpf bench-mariadb.tar.gz -C /home/ci
-          ls -ld /home/ci/frappe-bench
+          tar xzpf bench-mariadb.tar.gz -C "${HOME}"
+          ls -ld "${HOME}/frappe-bench"
 
       - name: Hydrate (start DB on baked datadir + bench start)
-        run: bash /home/ci/frappe-bench/hydrate.sh
+        run: bash "${HOME}/frappe-bench/hydrate.sh"
         env:
           DB_HOST: 127.0.0.1
           SKIP_SYSTEM_SETUP: "1"
@@ -207,7 +209,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.container }}
-          path: /home/ci/frappe-bench/sites/coverage.xml
+          path: ~/frappe-bench/sites/coverage.xml
 
   coverage:
     name: Coverage Wrap Up
