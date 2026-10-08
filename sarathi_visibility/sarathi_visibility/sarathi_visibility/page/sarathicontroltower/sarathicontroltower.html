@@ -101,11 +101,17 @@
         <h2>Customers</h2>
         <p>Choose a customer to focus every chart and report</p>
       </div>
-      <button class="sd-button" data-action="associate">
-        Link existing customer
-      </button>
+      <div class="sd-panel-actions">
+        <div class="sd-view-toggle" role="group" aria-label="Customer view mode">
+          <button type="button" class="sd-toggle-btn active" data-action="toggle-customer-view" data-mode="table" title="Colorful Table View">☰ Colorful Table</button>
+          <button type="button" class="sd-toggle-btn" data-action="toggle-customer-view" data-mode="cards" title="Compact Grid Cards">⊞ Cards</button>
+        </div>
+        <button class="sd-button" data-action="associate">
+          Link existing customer
+        </button>
+      </div>
     </div>
-    <div class="sd-cards" data-customers></div>
+    <div class="sd-content-container" data-customers></div>
     <div data-customer-pagination></div>
   </section>
   <section class="sd-panel" data-project-panel>
@@ -114,9 +120,15 @@
         <h2 data-project-heading>Organization projects</h2>
         <p>Choose a project to inspect its manufacturing records</p>
       </div>
-      <span class="sd-pill" data-project-count></span>
+      <div class="sd-panel-actions">
+        <div class="sd-view-toggle" role="group" aria-label="Project view mode">
+          <button type="button" class="sd-toggle-btn active" data-action="toggle-project-view" data-mode="table" title="Colorful Table View">☰ Colorful Table</button>
+          <button type="button" class="sd-toggle-btn" data-action="toggle-project-view" data-mode="cards" title="Compact Grid Cards">⊞ Cards</button>
+        </div>
+        <span class="sd-pill" data-project-count></span>
+      </div>
     </div>
-    <div class="sd-cards" data-projects></div>
+    <div class="sd-content-container" data-projects></div>
     <div data-project-pagination></div>
   </section>
   <section class="sd-project-summary" data-project-summary hidden></section>

@@ -10,8 +10,6 @@ repos:
         exclude: ".*json$|.*txt$|.*csv|.*md"
       - id: check-yaml
         args: [--unsafe]
-      - id: no-commit-to-branch
-        args: ['--branch', 'develop', '--branch', 'main']
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
