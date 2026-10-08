@@ -163,6 +163,9 @@ frappe.SarathiIndustrialDashboard = class {
 			if (e.target.dataset.dateFilter) {
 				this.dateFilters[e.target.dataset.dateFilter] = e.target.value;
 			}
+			if (e.target.dataset.tableSearch) {
+				this.filterTable(e.target.dataset.tableSearch);
+			}
 		});
 		this.root.addEventListener("keydown", (e) => {
 			if (e.target.dataset.dateFilter && e.key === "Enter") {
@@ -520,7 +523,9 @@ frappe.SarathiIndustrialDashboard = class {
 		this.el("[data-live-projects]").innerHTML = this.liveCards();
 		this.el("[data-kpis]").innerHTML = d.kpis
 			.map((k, i) => {
-				const isText = typeof k.value === "string" && (k.value.length > 5 || isNaN(k.value));
+				const isDate = typeof k.value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(k.value);
+				const isText =
+					isDate || (typeof k.value === "string" && (k.value.length > 3 || isNaN(k.value)));
 				const formatted = typeof k.value === "number" ? this.num(k.value) : this.esc(k.value);
 				return `<button class="sd-kpi sd-tone-${i % 6}" data-kpi-label="${this.esc(
 					k.label
@@ -608,8 +613,28 @@ frappe.SarathiIndustrialDashboard = class {
 			);
 		}
 		return `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="customers" placeholder="Search customers..." autocomplete="off" spellcheck="false" aria-label="Search customers">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="customers">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${customers.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="active">Active Ops</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="orders">Open Orders</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="delayed">Delayed</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="customers">${
+					pageItems.length
+				}</strong> records</span>
+			</div>
+		</div>
 		<div class="sd-color-table-wrapper">
-			<table class="sd-color-table" aria-label="Customers Table">
+			<table class="sd-color-table" data-table-id="customers" aria-label="Customers Table">
 				<thead>
 					<tr class="sd-color-table-header-row">
 						<th class="sd-th-pin sd-th-purple">
@@ -664,7 +689,9 @@ frappe.SarathiIndustrialDashboard = class {
 							return `
 						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-customer="${this.esc(
 								c.name
-							)}" role="button" tabindex="0">
+							)}" data-active="${c.active > 0 ? "yes" : "no"}" data-orders="${
+								c.open_orders > 0 ? "yes" : "no"
+							}" data-delayed="${c.delayed > 0 ? "yes" : "no"}" role="button" tabindex="0">
 							<td class="sd-td-ribbon">
 								<div class="sd-row-ribbon sd-ribbon-purple">
 									<div class="sd-ribbon-box">
@@ -734,8 +761,28 @@ frappe.SarathiIndustrialDashboard = class {
 			return this.empty("No projects match this selection.");
 		}
 		return `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="projects" placeholder="Search projects..." autocomplete="off" spellcheck="false" aria-label="Search projects">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="projects">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${projects.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="in_progress">In Progress</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="completed">Completed</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="delayed">Delayed</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="projects">${
+					pageItems.length
+				}</strong> records</span>
+			</div>
+		</div>
 		<div class="sd-color-table-wrapper">
-			<table class="sd-color-table" aria-label="Projects Table">
+			<table class="sd-color-table" data-table-id="projects" aria-label="Projects Table">
 				<thead>
 					<tr class="sd-color-table-header-row">
 						<th class="sd-th-pin sd-th-purple">
@@ -791,7 +838,9 @@ frappe.SarathiIndustrialDashboard = class {
 							return `
 						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
 								p.name
-							)}" data-project-status="${this.esc(p.status)}" role="button" tabindex="0">
+							)}" data-project-status="${this.esc(p.status)}" data-delayed="${
+								p.delayed ? "yes" : "no"
+							}" role="button" tabindex="0">
 							<td class="sd-td-ribbon">
 								<div class="sd-row-ribbon sd-ribbon-purple">
 									<div class="sd-ribbon-box">
@@ -1125,40 +1174,7 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 	pipelineOverview() {
 		const selected = !!this.filters.project;
-		const steps = {
-			requests: "Material requests",
-			purchases: "Purchase orders",
-			receipts: "Purchase receipts",
-			work_orders: "Work Orders",
-			inspections: "Inspections",
-			deliveries: "Delivery notes",
-			sales_invoices: "Sales invoices",
-		};
-		const cards = this.data.pipeline_summary
-			.map(
-				(p) =>
-					`<article class="sd-pipeline-project"><strong>${this.esc(
-						p.project
-					)}</strong><div class="sd-pipeline-steps">${Object.entries(steps)
-						.map(
-							([key, label]) =>
-								`<button class="sd-pipeline-step ${
-									p[key] === null ? "sd-step-restricted" : p[key] ? "sd-step-recorded" : ""
-								}" data-report-project="${this.esc(p.project)}" data-report="${
-									key === "inspections" ? "quality" : key
-								}"><small>${label}</small><strong>${
-									p[key] === null ? "Access restricted" : p[key]
-								}</strong><span>${
-									p[key] === null
-										? "Read access required"
-										: p[key]
-										? "Recorded documents"
-										: "No submitted records"
-								}</span></button>`
-						)
-						.join("")}</div></article>`
-			)
-			.join("");
+		const projects = this.data.pipeline_summary || [];
 		const setup = this.data.tracking_setup
 			.map(
 				(p) =>
@@ -1171,11 +1187,146 @@ frappe.SarathiIndustrialDashboard = class {
 					)}${p.main_bom ? this.link("BOM", p.main_bom, "Open main BOM") : ""}</div>`
 			)
 			.join("");
+
+		const tableContent = projects.length
+			? `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="pipelines" placeholder="Search pipeline projects..." autocomplete="off" spellcheck="false" aria-label="Search pipeline projects">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="pipelines">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${projects.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="active">With Work Orders</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="inspections">With Inspections</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="deliveries">With Deliveries</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="pipelines">${
+					projects.length
+				}</strong> records</span>
+			</div>
+		</div>
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" data-table-id="pipelines" aria-label="Project Pipelines Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📦</span>
+								<span class="sd-pin-text">Project</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📋</span>
+								<span class="sd-pin-text">Material Requests</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛒</span>
+								<span class="sd-pin-text">Purchase Orders</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📥</span>
+								<span class="sd-pin-text">Purchase Receipts</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⚙️</span>
+								<span class="sd-pin-text">Work Orders</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-amber">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🔍</span>
+								<span class="sd-pin-text">Inspections</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-rose">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🚚</span>
+								<span class="sd-pin-text">Delivery Notes</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-violet">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🧾</span>
+								<span class="sd-pin-text">Sales Invoices</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${projects
+						.map((p, i) => {
+							const isEven = i % 2 === 0;
+							const pipeBtn = (key, reportName, label) => {
+								const val = p[key];
+								const isRestricted = val === null;
+								const cls = isRestricted
+									? "step-restricted"
+									: val
+									? "step-recorded"
+									: "step-zero";
+								const text = isRestricted ? "Restricted" : val ?? 0;
+								return `<button type="button" class="sd-pipeline-step-pill ${cls}" data-report-project="${this.esc(
+									p.project
+								)}" data-report="${reportName}" title="${label}: ${text}"><strong>${text}</strong></button>`;
+							};
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
+								p.project
+							)}" data-wo="${p.work_orders > 0 ? "yes" : "no"}" data-insp="${
+								p.inspections > 0 ? "yes" : "no"
+							}" data-del="${p.deliveries > 0 ? "yes" : "no"}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-symbol">⚙</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(p.project)}">${this.esc(p.project)}</strong>
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">${pipeBtn("requests", "requests", "Material Requests")}</td>
+							<td class="sd-td-cell">${pipeBtn("purchases", "purchases", "Purchase Orders")}</td>
+							<td class="sd-td-cell">${pipeBtn("receipts", "receipts", "Purchase Receipts")}</td>
+							<td class="sd-td-cell">${pipeBtn("work_orders", "work_orders", "Work Orders")}</td>
+							<td class="sd-td-cell">${pipeBtn("inspections", "quality", "Inspections")}</td>
+							<td class="sd-td-cell">${pipeBtn("deliveries", "deliveries", "Delivery Notes")}</td>
+							<td class="sd-td-cell">${pipeBtn("sales_invoices", "sales_invoices", "Sales Invoices")}</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-project="${this.esc(p.project)}">
+									Inspect ➔
+								</button>
+							</td>
+						</tr>`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>`
+			: this.empty();
+
 		return `<section class="sd-panel"><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project working pipeline" : "Project pipelines"
-		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${
-			cards || this.empty()
-		}<div class="sd-production-links"><button class="sd-button" data-report="part_production">Recorded cutting / welding / grinding outputs</button><button class="sd-button" data-report="material_history">Lifetime materials</button><button class="sd-button" data-report="tracking_setup">Part tracking setup</button></div><details class="sd-setup-details"><summary>Project attribution & physical part setup</summary>${setup}</details>${
+		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${tableContent}<div class="sd-production-links"><button class="sd-button" data-report="part_production">Recorded cutting / welding / grinding outputs</button><button class="sd-button" data-report="material_history">Lifetime materials</button><button class="sd-button" data-report="tracking_setup">Part tracking setup</button></div><details class="sd-setup-details"><summary>Project attribution & physical part setup</summary>${setup}</details>${
 			this.data.procurement_exception_count
 				? `<div class="sd-alert"><span>${this.data.procurement_exception_count} procurement item rows have missing or conflicting project links.</span><button class="sd-text-button" data-report="procurement_exceptions">Review records ↗</button></div>`
 				: ""
@@ -1187,93 +1338,175 @@ frappe.SarathiIndustrialDashboard = class {
 		const visible = selected
 			? entries
 			: entries.filter((p) => !["Completed", "Cancelled"].includes(p.live_status));
-		const metric = (project, label, value, report) =>
-			`<button class="sd-health-metric" data-report="${report}" data-report-project="${this.esc(
-				project
-			)}"><strong>${value == null ? "—" : this.num(value)}</strong><span>${label}</span></button>`;
+
+		const tableContent = visible.length
+			? `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="health" placeholder="Search project health..." autocomplete="off" spellcheck="false" aria-label="Search project health">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="health">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${visible.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="in_progress">In Progress</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="shortages">Shortages</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="delayed">Delayed</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="health">${visible.length}</strong> records</span>
+			</div>
+		</div>
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" data-table-id="health" aria-label="Project Health Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📦</span>
+								<span class="sd-pin-text">Project</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⭐</span>
+								<span class="sd-pin-text">Live Status</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏭</span>
+								<span class="sd-pin-text">Working Now</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⏱️</span>
+								<span class="sd-pin-text">Next Operation</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⚙️</span>
+								<span class="sd-pin-text">Ops Finished/Total</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-amber">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⚠️</span>
+								<span class="sd-pin-text">Shortages</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-rose">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛒</span>
+								<span class="sd-pin-text">PO & Receipts</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-violet">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🔍</span>
+								<span class="sd-pin-text">Quality Pass/Fail</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${visible
+						.map((p, i) => {
+							const isEven = i % 2 === 0;
+							const curOps = p.current_operations.length
+								? `<span class="sd-cell-badge sd-badge-azure"><span class="sd-dot-pulse live-green"></span> <strong>${this.esc(
+										p.current_operations.map((op) => op.operation || "Unnamed").join(", ")
+								  )}</strong></span>`
+								: `<span class="sd-cell-text" style="color:var(--sd-muted)">No Job Card open</span>`;
+							const nextOp = p.next_operation
+								? `<span class="sd-cell-text"><strong>${this.esc(
+										p.next_operation.operation || "Unnamed"
+								  )}</strong> · ${this.link(
+										"Work Order",
+										p.next_operation.work_order
+								  )}</span>`
+								: `<span class="sd-cell-text" style="color:var(--sd-muted)">None</span>`;
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
+								p.project
+							)}" data-health-status="${this.esc(p.live_status)}" data-shortages="${
+								p.material_shortages > 0 ? "yes" : "no"
+							}" data-delayed="${p.delayed ? "yes" : "no"}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-symbol">⚙</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(p.project)}">${this.esc(p.project)}</strong>
+										${
+											p.last_activity
+												? `<span class="sd-ribbon-sub">Active ${this.esc(
+														frappe.datetime.str_to_user(p.last_activity)
+												  )}</span>`
+												: `<span class="sd-ribbon-sub">No recent activity</span>`
+										}
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">${this.badge(p.live_status)}</td>
+							<td class="sd-td-cell">${curOps}</td>
+							<td class="sd-td-cell">${nextOp}</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-blue">
+									<strong>${this.num(p.operations_finished)}</strong> / ${this.num(p.operations_total)}
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								${
+									p.material_shortages > 0
+										? `<span class="sd-status-tag sd-tag-delayed"><strong>${this.num(
+												p.material_shortages
+										  )}</strong> Shortages</span>`
+										: `<span class="sd-status-tag sd-tag-ontrack">0 Shortages</span>`
+								}
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-teal">
+									PO: <strong>${this.num(p.purchase_orders)}</strong> · PR: <strong>${this.num(p.receipts)}</strong>
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-violet">
+									Pass: <strong>${this.num(p.inspection_passed)}</strong> · Fail: <strong>${this.num(
+								p.inspection_rejected
+							)}</strong>
+								</span>
+							</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-project="${this.esc(p.project)}">
+									Analysis ➔
+								</button>
+							</td>
+						</tr>`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>`
+			: this.empty(
+					"No open projects in this selection. Select a completed project to see its full health summary."
+			  );
+
 		return `<section class="sd-panel sd-health"><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project health at a glance" : "Open project health"
-		}</h2><p>Current recorded operation, next outstanding step, materials, quality and fulfillment · lifetime project records</p></div></div>${
-			visible
-				.map(
-					(p) =>
-						`<article class="sd-health-project"><div class="sd-health-head"><div><strong>${this.esc(
-							p.project
-						)}</strong> ${this.badge(p.live_status)}</div>${
-							p.last_activity
-								? `<small>Last recorded activity ${this.esc(
-										frappe.datetime.str_to_user(p.last_activity)
-								  )}</small>`
-								: `<small>No recorded production activity</small>`
-						}</div><div class="sd-health-work"><div><small>Working now</small><strong>${
-							p.current_operations.length
-								? p.current_operations
-										.map((op) => this.esc(op.operation || "Operation unnamed"))
-										.join(", ")
-								: "No Job Card time log open"
-						}</strong>${
-							p.current_operations.length
-								? `<small>${p.current_operations
-										.map((op) => this.esc(op.workstation || "Workstation unassigned"))
-										.join(" · ")}</small>`
-								: ""
-						}</div><div><small>Next outstanding operation</small><strong>${
-							p.next_operation
-								? `${this.esc(
-										p.next_operation.operation || "Operation unnamed"
-								  )} · ${this.link("Work Order", p.next_operation.work_order)}`
-								: "No outstanding recorded operation"
-						}</strong>${
-							p.next_operation
-								? `<small>${this.num(p.next_operation.remaining)} ${this.esc(
-										p.next_operation.unit || "units"
-								  )} remaining · ${this.esc(
-										p.next_operation.workstation || "Workstation unassigned"
-								  )}</small>`
-								: ""
-						}</div></div><div class="sd-health-metrics">${metric(
-							p.project,
-							"Operations finished",
-							p.operations_finished,
-							"operation_balance"
-						)}${metric(
-							p.project,
-							"Operations total",
-							p.operations_total,
-							"operation_balance"
-						)}${metric(
-							p.project,
-							"Material shortages",
-							p.material_shortages,
-							"materials"
-						)}${metric(p.project, "Purchase orders", p.purchase_orders, "purchases")}${metric(
-							p.project,
-							"Receipts",
-							p.receipts,
-							"receipts"
-						)}${metric(p.project, "Quality passed", p.inspection_passed, "quality")}${metric(
-							p.project,
-							"Quality rejected",
-							p.inspection_rejected,
-							"quality"
-						)}${metric(p.project, "Delivery notes", p.deliveries, "deliveries")}${metric(
-							p.project,
-							"Sales invoices",
-							p.sales_invoices,
-							"sales_invoices"
-						)}</div>${
-							p.material_shortages === null && !selected
-								? `<p class="sd-scope-note">Select this project for its material readiness; warehouse availability is scoped to the project’s Work Orders.</p>`
-								: ""
-						}<button class="sd-text-button" data-project="${this.esc(
-							p.project
-						)}">Open project analysis ↗</button></article>`
-				)
-				.join("") ||
-			this.empty(
-				"No open projects in this selection. Select a completed project to see its full health summary."
-			)
-		}<p class="sd-scope-note">An open Job Card time log is recorded activity, not proof of machine telemetry. A blank metric means read access or stock availability is unavailable. Inspection counts are submitted results, not part quantities.</p></section>`;
+		}</h2><p>Current recorded operation, next outstanding step, materials, quality and fulfillment · lifetime project records</p></div></div>${tableContent}<p class="sd-scope-note">An open Job Card time log is recorded activity, not proof of machine telemetry. A blank metric means read access or stock availability is unavailable. Inspection counts are submitted results, not part quantities.</p></section>`;
 	}
 	productionOverview() {
 		const selected = !!this.filters.project;
@@ -2317,7 +2550,66 @@ frappe.SarathiIndustrialDashboard = class {
 		}
 	}
 
+	filterTable(tableId) {
+		const table = this.root.querySelector(`table[data-table-id="${tableId}"]`);
+		if (!table) return;
+		const searchInput = this.root.querySelector(`input[data-table-search="${tableId}"]`);
+		const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+		const activePill = this.root.querySelector(
+			`[data-table-filters="${tableId}"] .sd-filter-pill.active`
+		);
+		const filter = activePill ? activePill.dataset.tableFilter : "all";
+
+		const rows = table.querySelectorAll("tbody tr");
+		let visibleCount = 0;
+		rows.forEach((row) => {
+			const textMatch = !query || row.textContent.toLowerCase().includes(query);
+			let filterMatch = true;
+
+			if (filter !== "all") {
+				if (tableId === "customers") {
+					if (filter === "active") filterMatch = row.dataset.active === "yes";
+					else if (filter === "orders") filterMatch = row.dataset.orders === "yes";
+					else if (filter === "delayed") filterMatch = row.dataset.delayed === "yes";
+				} else if (tableId === "projects") {
+					if (filter === "in_progress")
+						filterMatch = (row.dataset.projectStatus || "").toLowerCase() === "in progress";
+					else if (filter === "completed")
+						filterMatch = (row.dataset.projectStatus || "").toLowerCase() === "completed";
+					else if (filter === "delayed") filterMatch = row.dataset.delayed === "yes";
+				} else if (tableId === "health") {
+					if (filter === "in_progress")
+						filterMatch = (row.dataset.healthStatus || "").toLowerCase() === "in progress";
+					else if (filter === "shortages") filterMatch = row.dataset.shortages === "yes";
+					else if (filter === "delayed") filterMatch = row.dataset.delayed === "yes";
+				} else if (tableId === "pipelines") {
+					if (filter === "active") filterMatch = row.dataset.wo === "yes";
+					else if (filter === "inspections") filterMatch = row.dataset.insp === "yes";
+					else if (filter === "deliveries") filterMatch = row.dataset.del === "yes";
+				}
+			}
+
+			const visible = textMatch && filterMatch;
+			row.style.display = visible ? "" : "none";
+			if (visible) visibleCount++;
+		});
+
+		const countBadge = this.root.querySelector(`[data-table-count="${tableId}"]`);
+		if (countBadge) countBadge.textContent = visibleCount;
+	}
+
 	click(event) {
+		const pill = event.target.closest(".sd-filter-pill");
+		if (pill) {
+			const group = pill.closest("[data-table-filters]");
+			if (group) {
+				group.querySelectorAll(".sd-filter-pill").forEach((p) => p.classList.remove("active"));
+				pill.classList.add("active");
+				const tableId = group.dataset.tableFilters;
+				this.filterTable(tableId);
+			}
+			return;
+		}
 		const b = event.target.closest(
 			"button, .sd-setup-card, .sd-card, .sd-color-tr, a.sd-record-link, a[data-inspect], .sd-health-metric, .sd-pipeline-step, [data-customer], [data-project], [data-action]"
 		);

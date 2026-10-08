@@ -851,31 +851,33 @@
 .sd-live-card {
 	border: 1px solid var(--sd-border);
 	border-radius: 9px;
-	padding: 16px;
+	padding: 12px 14px;
 	min-width: 0;
 	background: #fbfdfd;
 }
 .sd-live-card .sd-panel-heading {
 	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 8px;
+	gap: 6px;
+	margin-bottom: 6px;
 }
 .sd-live-card > small {
 	color: var(--sd-muted);
+	font-size: 11px;
 }
 .sd-running-operation {
 	border-left: 3px solid #38b287;
 	background: #eaf7f2;
-	padding: 12px;
-	margin-top: 12px;
+	padding: 8px 10px;
+	margin-top: 8px;
 	border-radius: 5px;
 }
 .sd-running-operation strong {
 	color: #087e65;
+	font-size: 11.5px;
 }
 .sd-running-operation p {
-	margin: 8px 0;
-	font-size: 12px;
+	margin: 3px 0;
+	font-size: 11px;
 }
 .sd-running-operation small {
 	color: var(--sd-muted);
@@ -1448,21 +1450,27 @@
 	color: var(--sd-state-accent);
 }
 .sd-live-card {
-	border-radius: 13px;
+	border-radius: 11px;
 	background: linear-gradient(145deg, #fff, var(--sd-state-soft));
 	border-color: #dfe5ef;
 	box-shadow: 0 3px 10px #30497405;
-	padding: 19px;
+	padding: 12px 14px !important;
 }
 .sd-live-card > .sd-panel-heading > strong {
-	font-size: 15px;
-	overflow-wrap: anywhere;
+	font-size: 13.5px;
+	overflow-wrap: normal !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
 }
 .sd-live-card > p {
-	margin-top: 12px;
+	margin-top: 6px;
+	font-size: 11.5px;
 }
 .sd-live-card .sd-button {
-	margin-top: 8px;
+	margin-top: 6px;
+	padding: 5px 10px !important;
+	font-size: 11px !important;
 	color: var(--sd-state-accent);
 }
 .sd-running-operation {
@@ -3384,21 +3392,24 @@
 }
 .sd-setup-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-	gap: 14px;
+	grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+	gap: 10px;
 	margin-top: 14px;
+	width: 100%;
 }
 .sd-setup-card {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: space-between;
-	padding: 16px;
+	padding: 12px 10px !important;
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
 	border-radius: 12px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 	transition: all 0.2s ease;
+	min-width: 0;
+	box-sizing: border-box;
 }
 .sd-setup-card:hover {
 	transform: translateY(-2px);
@@ -3409,37 +3420,54 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 8px;
+	margin-bottom: 6px;
 }
 .sd-setup-icon {
-	font-size: 24px;
+	font-size: 20px;
 	line-height: 1;
 }
 .sd-setup-card h3 {
-	font-size: 15px;
+	font-size: 13px !important;
 	font-weight: 700;
 	color: #0f172a;
-	margin: 4px 0;
+	margin: 2px 0 4px 0;
+	white-space: nowrap !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .sd-setup-card p {
-	font-size: 12px;
+	font-size: 11px !important;
 	color: #64748b;
-	margin: 0 0 14px 0;
-	line-height: 1.4;
-	min-height: 34px;
+	margin: 0 0 10px 0;
+	line-height: 1.3;
+	min-height: 28px;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
 }
 .sd-setup-actions {
 	display: flex;
-	gap: 8px;
+	gap: 6px;
 	margin-top: auto;
 }
 .sd-setup-actions .sd-button {
 	flex: 1;
 	text-align: center;
 	justify-content: center;
-	padding: 6px 10px;
-	font-size: 12px;
-	font-weight: 600;
+	padding: 5px 6px !important;
+	font-size: 11px !important;
+	white-space: nowrap !important;
+}
+@media (max-width: 1200px) {
+	.sd-setup-cards {
+		grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+	}
+}
+@media (max-width: 768px) {
+	.sd-setup-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
 }
 
 /* Project Summary Box & Quick Links */
@@ -6130,4 +6158,320 @@
 .sd-cell-text,
 .sd-cell-link {
 	white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   WEB SEARCH & FILTER TOOLBAR FOR ALL TABLES
+   ========================================================================== */
+
+.sd-table-web-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	background: #ffffff;
+	padding: 12px 18px;
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+	margin-top: 10px;
+	margin-bottom: 12px;
+}
+
+.sd-table-search-wrap {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: #f8fafc;
+	padding: 8px 14px;
+	border-radius: 9px;
+	border: 1px solid #cbd5e1;
+	min-width: 280px;
+	max-width: 440px;
+	flex: 1;
+	transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.sd-table-search-wrap:focus-within {
+	border-color: #3b82f6;
+	background: #ffffff;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.sd-table-search-icon {
+	color: #64748b;
+	flex-shrink: 0;
+}
+
+.sd-table-search-input {
+	border: none;
+	outline: none;
+	background: transparent;
+	font-size: 13px;
+	width: 100%;
+	color: #1e293b;
+}
+
+.sd-table-filter-pills {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.sd-filter-pill {
+	background: #f1f5f9;
+	color: #475569;
+	border: 1px solid #cbd5e1;
+	font-size: 12px;
+	font-weight: 650;
+	padding: 5px 12px;
+	border-radius: 20px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	user-select: none;
+	white-space: nowrap !important;
+}
+
+.sd-filter-pill:hover {
+	background: #e2e8f0;
+	color: #0f172a;
+}
+
+.sd-filter-pill.active {
+	background: #2563eb;
+	color: #ffffff;
+	border-color: #1d4ed8;
+	box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.sd-table-count-badge {
+	display: flex;
+	align-items: center;
+}
+
+/* ==========================================================================
+   REDUCE LIVE CARD SIZES & SUBCONTRACTING SIZES
+   ========================================================================== */
+
+/* Reduce live group & live card size */
+.sd-live-group {
+	padding: 16px 20px !important;
+	border-radius: 14px !important;
+	margin-bottom: 14px !important;
+}
+
+.sd-live-group .sd-cards {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+	gap: 10px !important;
+}
+
+.sd-live-card {
+	padding: 12px 14px !important;
+	border-radius: 11px !important;
+	min-height: auto !important;
+}
+
+.sd-live-card .sd-panel-heading {
+	margin-bottom: 6px !important;
+	gap: 6px !important;
+}
+
+.sd-live-card > .sd-panel-heading > strong {
+	font-size: 13.5px !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+}
+
+.sd-live-card > small {
+	font-size: 11px !important;
+	white-space: nowrap !important;
+}
+
+.sd-running-operation {
+	padding: 6px 10px !important;
+	margin-top: 6px !important;
+	font-size: 11.5px !important;
+	border-radius: 6px !important;
+}
+
+.sd-running-operation strong {
+	font-size: 11.5px !important;
+}
+
+.sd-running-operation p {
+	margin: 2px 0 !important;
+	font-size: 11px !important;
+}
+
+.sd-live-card > p {
+	margin-top: 4px !important;
+	font-size: 11px !important;
+}
+
+.sd-live-card .sd-button {
+	margin-top: 4px !important;
+	padding: 4px 8px !important;
+	font-size: 10.5px !important;
+}
+
+/* Reduce Subcontracting card size & prevent horizontal scroll */
+[data-subcontracting-card-panel] {
+	padding: 12px 16px !important;
+	border-radius: 12px !important;
+	overflow-x: hidden !important;
+	width: 100% !important;
+}
+
+[data-subcontracting-card-panel] .sd-panel-heading {
+	margin-bottom: 8px !important;
+}
+
+[data-subcontracting-card-panel] .sd-cards {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 8px !important;
+}
+
+.sd-subcontracting-main-card {
+	padding: 10px 14px !important;
+	border-radius: 10px !important;
+	min-height: auto !important;
+	max-width: 280px !important;
+	flex: 1 1 260px !important;
+}
+
+.sd-subcontracting-main-card .sd-card-icon {
+	width: 28px !important;
+	height: 28px !important;
+	border-radius: 8px !important;
+	font-size: 14px !important;
+}
+
+.sd-subcontracting-main-card h3 {
+	font-size: 13px !important;
+	margin: 3px 0 !important;
+}
+
+.sd-subcontracting-main-card p {
+	margin: 2px 0 !important;
+	font-size: 11px !important;
+}
+
+/* Ensure Subcontracting section never scrolls right to left */
+[data-subcontracting-card-panel],
+[data-subcontracting-view],
+.sd-sub-pipeline-panel {
+	overflow-x: hidden !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+.sd-sub-pipeline-flow {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+	overflow-x: hidden !important;
+	gap: 6px !important;
+	width: 100% !important;
+	margin: 10px 0 4px 0 !important;
+	padding: 0 !important;
+}
+
+.sd-sub-pipe-node {
+	min-width: 0 !important;
+	max-width: none !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+	padding: 8px 6px !important;
+}
+
+.sd-sub-pipe-arrow {
+	display: none !important;
+}
+
+/* Color Table Pipeline Step Pills */
+.sd-pipeline-step-pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	padding: 4px 8px;
+	border-radius: 8px;
+	border: 1px solid #cbd5e1;
+	background: #f8fafc;
+	color: #334155;
+	font-weight: 700;
+	font-size: 12px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	text-decoration: none;
+	white-space: nowrap !important;
+}
+
+.sd-pipeline-step-pill:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.sd-pipeline-step-pill.step-recorded {
+	background: #eff6ff;
+	color: #1d4ed8;
+	border-color: #93c5fd;
+}
+
+.sd-pipeline-step-pill.step-zero {
+	background: #f8fafc;
+	color: #94a3b8;
+	border-color: #e2e8f0;
+}
+
+.sd-pipeline-step-pill.step-restricted {
+	background: #fff1f2;
+	color: #e11d48;
+	border-color: #fecdd3;
+	font-size: 10px;
+}
+
+/* Global No-Wrap & Word-Break Prevention */
+.sd-kpi,
+.sd-kpi *,
+.sd-live-card,
+.sd-live-card *,
+.sd-color-table,
+.sd-color-table *,
+.sd-setup-card,
+.sd-setup-card * {
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
+	hyphens: none !important;
+}
+
+.sd-kpi strong {
+	font-size: clamp(20px, 1.8vw, 26px) !important;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
+	hyphens: none !important;
+}
+
+.sd-kpi strong.sd-kpi-val-text,
+.sd-kpi-val-text {
+	font-size: 16px !important;
+	line-height: 1.2 !important;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
+	hyphens: none !important;
+}
+
+.sd-dashboard .sd-kpi {
+	padding: 14px 16px !important;
+	min-height: auto !important;
+}
+
+.sd-kpis {
+	grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important;
 }
