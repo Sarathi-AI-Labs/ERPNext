@@ -10,13 +10,11 @@ frappe.SarathiModuleBrowser = class {
 		if (this.root && typeof $ !== "undefined") {
 			$(this.root).find(".scm-launcher, .scm-owner-nav").remove();
 		}
-		return;
 		this.catalog = null;
 		this.busy = false;
 		this.loadSequence = 0;
 		this.launcher = document.createElement("div");
 		this.launcher.className = "scm-launcher";
-		this.root.querySelector(kind === "owner" ? ".sod-hero" : ".sd-hero").after(this.launcher);
 		this.launcher.addEventListener("click", (e) => {
 			if (e.target.closest("[data-scm-open]")) this.open();
 		});
