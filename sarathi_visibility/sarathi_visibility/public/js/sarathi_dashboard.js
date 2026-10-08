@@ -88,6 +88,8 @@ frappe.SarathiIndustrialDashboard = class {
 		this.accActiveKpi = "";
 		this.search = "";
 		this.customerPage = this.projectPage = 0;
+		this.customerViewMode = "table";
+		this.projectViewMode = "table";
 		this.tabs = {
 			overview: "Overview",
 			sales: "Sales",
@@ -596,55 +598,336 @@ frappe.SarathiIndustrialDashboard = class {
 			  }>Next</button></div>`
 			: "";
 	}
+	renderCustomerTable(customers) {
+		const perPage = this.customerViewMode === "table" ? 10 : 12;
+		const pageItems = customers.slice(this.customerPage * perPage, (this.customerPage + 1) * perPage);
+		if (!pageItems.length) {
+			return this.empty(
+				"No customers linked yet. Create a customer or link an existing customer to this organization."
+			);
+		}
+		return `
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" aria-label="Customers Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏢</span>
+								<span class="sd-pin-text">Customer / Organization</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛡️</span>
+								<span class="sd-pin-text">Projects Total</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⭐</span>
+								<span class="sd-pin-text">Active Ops</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">👍</span>
+								<span class="sd-pin-text">Open Orders</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⏱️</span>
+								<span class="sd-pin-text">Delivery Track</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-lime">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">💎</span>
+								<span class="sd-pin-text">System Health</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Direct Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${pageItems
+						.map((c, i) => {
+							const isEven = i % 2 === 0;
+							const initials = (c.customer_name || c.name || "CU").slice(0, 2).toUpperCase();
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-customer="${this.esc(
+								c.name
+							)}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-initials">${this.esc(initials)}</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(c.customer_name)}">${this.esc(c.customer_name)}</strong>
+										<span class="sd-ribbon-sub">${this.esc(c.name)}</span>
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-blue">
+									<strong>${c.project_count}</strong> ${c.project_count === 1 ? "Project" : "Projects"}
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-azure">
+									<span class="sd-dot-pulse ${c.active > 0 ? "live-green" : "live-gray"}"></span>
+									<strong>${c.active}</strong> Active
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-teal">
+									<span class="sd-order-icon">📦</span>
+									<strong>${c.open_orders}</strong> Orders
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								${
+									c.delayed > 0
+										? `<span class="sd-status-tag sd-tag-delayed"><span class="sd-tag-icon">✕</span> ${c.delayed} Delayed</span>`
+										: `<span class="sd-status-tag sd-tag-ontrack"><span class="sd-tag-icon">✓</span> On Track</span>`
+								}
+							</td>
+							<td class="sd-td-cell">
+								<div class="sd-traffic-capsule" title="${
+									c.delayed > 0
+										? "Requires attention (" + c.delayed + " delayed)"
+										: "Healthy operational flow"
+								}">
+									<span class="sd-cap-dot ${c.delayed === 0 ? "dot-green-active" : ""}"></span>
+									<span class="sd-cap-dot ${c.delayed === 1 ? "dot-amber-active" : ""}"></span>
+									<span class="sd-cap-dot ${c.delayed > 1 ? "dot-red-active" : ""}"></span>
+								</div>
+							</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-customer="${this.esc(c.name)}">
+									Focus Customer ➔
+								</button>
+							</td>
+						</tr>
+						`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>
+		`;
+	}
+
+	renderProjectTable(projects) {
+		const perPage = this.projectViewMode === "table" ? 10 : 12;
+		const pageItems = projects.slice(this.projectPage * perPage, (this.projectPage + 1) * perPage);
+		if (!pageItems.length) {
+			return this.empty("No projects match this selection.");
+		}
+		return `
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" aria-label="Projects Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📦</span>
+								<span class="sd-pin-text">Project & ID</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛡️</span>
+								<span class="sd-pin-text">Customer Entity</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⭐</span>
+								<span class="sd-pin-text">Lifecycle Status</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">👍</span>
+								<span class="sd-pin-text">Progress Completion</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⏱️</span>
+								<span class="sd-pin-text">Timeline Health</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-lime">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">💎</span>
+								<span class="sd-pin-text">Main BOM</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Project Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${pageItems
+						.map((p, i) => {
+							const isEven = i % 2 === 0;
+							const pct = Math.max(0, Math.min(100, Number(p.percent_complete || 0)));
+							const statusSlug = (p.status || "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
+								p.name
+							)}" data-project-status="${this.esc(p.status)}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-symbol">⚙</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(p.project_name)}">${this.esc(p.project_name)}</strong>
+										<span class="sd-ribbon-sub">${this.esc(p.name)}</span>
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-customer-chip" title="${this.esc(p.customer_name)}">
+									<span class="sd-chip-icon">🏢</span>
+									<strong>${this.esc(p.customer_name || "Unassigned")}</strong>
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-status-pill sd-pill-${statusSlug}">
+									${this.esc(p.status || "Open")}
+								</span>
+							</td>
+							<td class="sd-td-cell sd-td-progress">
+								<div class="sd-table-progress-box">
+									<div class="sd-table-progress-bar">
+										<div class="sd-table-progress-fill" style="width: ${pct}%;"></div>
+									</div>
+									<div class="sd-table-progress-meta">
+										<span class="sd-prog-pct">${this.num(p.percent_complete)}%</span>
+										<span class="sd-prog-wo">${p.work_order_count || 0} WOs</span>
+									</div>
+								</div>
+							</td>
+							<td class="sd-td-cell">
+								<div class="sd-traffic-capsule" title="${p.delayed ? "Project Delayed" : "Project On Track"}">
+									<span class="sd-cap-dot ${!p.delayed ? "dot-green-active" : ""}"></span>
+									<span class="sd-cap-dot ${p.delayed ? "dot-amber-active" : ""}"></span>
+									<span class="sd-cap-dot ${p.status === "Cancelled" ? "dot-red-active" : ""}"></span>
+								</div>
+								<span class="sd-sub-track ${p.delayed ? "track-delayed" : "track-ontrack"}">
+									${p.delayed ? "Delayed" : "On Track"}
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-bom-badge ${p.custom_sarathi_bom ? "has-bom" : "no-bom"}" title="${this.esc(
+								p.custom_sarathi_bom || ""
+							)}">
+									${p.custom_sarathi_bom ? "✓ " + this.esc(p.custom_sarathi_bom) : "Main BOM pending"}
+								</span>
+							</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-project="${this.esc(p.name)}">
+									Inspect Project ➔
+								</button>
+							</td>
+						</tr>
+						`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>
+		`;
+	}
+
+	updateViewToggleButtons() {
+		this.root.querySelectorAll("[data-action='toggle-customer-view']").forEach((btn) => {
+			btn.classList.toggle("active", btn.dataset.mode === this.customerViewMode);
+		});
+		this.root.querySelectorAll("[data-action='toggle-project-view']").forEach((btn) => {
+			btn.classList.toggle("active", btn.dataset.mode === this.projectViewMode);
+		});
+	}
+
 	renderCards() {
 		if (!this.data) return;
 		const matches = (r) => Object.values(r).join(" ").toLowerCase().includes(this.search);
 		const customers = this.data.customers.filter(matches),
 			projects = this.data.projects.filter(matches);
-		this.el("[data-customers]").innerHTML =
-			customers
-				.slice(this.customerPage * 12, (this.customerPage + 1) * 12)
-				.map(
-					(c) =>
-						`<button class="sd-card" data-customer="${this.esc(
-							c.name
-						)}"><span class="sd-card-icon">${this.esc(
-							c.customer_name.slice(0, 2).toUpperCase()
-						)}</span><h3>${this.esc(c.customer_name)}</h3><div>${this.badge(
-							`${c.project_count} projects`
-						)} ${c.delayed ? this.badge(`${c.delayed} delayed`) : ""}</div><p>${
-							c.active
-						} active · ${c.open_orders} open orders</p><small>${
-							c.project_count ? "View customer →" : "No projects yet →"
-						}</small></button>`
-				)
-				.join("") ||
-			this.empty(
-				"No customers linked yet. Create a customer or link an existing customer to this organization."
-			);
-		this.el("[data-projects]").innerHTML =
-			projects
-				.slice(this.projectPage * 12, (this.projectPage + 1) * 12)
-				.map(
-					(p) =>
-						`<button class="sd-card" data-project="${this.esc(
-							p.name
-						)}" data-project-status="${this.esc(p.status)}"><small>${this.esc(
-							p.name
-						)}</small><h3>${this.esc(p.project_name)}</h3><p>${this.esc(
-							p.customer_name
-						)}</p><div>${this.badge(p.status)} ${
-							p.delayed ? this.badge("Delayed") : ""
-						}</div><div class="sd-progress"><i style="width:${Math.max(
-							0,
-							Math.min(100, Number(p.percent_complete || 0))
-						)}%"></i></div><p>${this.num(p.percent_complete)}% project progress · ${
-							p.work_order_count
-						} WOs</p><small>${
-							p.custom_sarathi_bom ? this.esc(p.custom_sarathi_bom) : "Main BOM pending"
-						}</small></button>`
-				)
-				.join("") || this.empty("No projects match this selection.");
+		const custPerPage = this.customerViewMode === "table" ? 10 : 12;
+		const projPerPage = this.projectViewMode === "table" ? 10 : 12;
+
+		if (this.customerViewMode === "cards") {
+			this.el("[data-customers]").innerHTML =
+				`<div class="sd-cards">${customers
+					.slice(this.customerPage * custPerPage, (this.customerPage + 1) * custPerPage)
+					.map(
+						(c) =>
+							`<button class="sd-card" data-customer="${this.esc(
+								c.name
+							)}"><span class="sd-card-icon">${this.esc(
+								c.customer_name.slice(0, 2).toUpperCase()
+							)}</span><h3>${this.esc(c.customer_name)}</h3><div>${this.badge(
+								`${c.project_count} projects`
+							)} ${c.delayed ? this.badge(`${c.delayed} delayed`) : ""}</div><p>${
+								c.active
+							} active · ${c.open_orders} open orders</p><small>${
+								c.project_count ? "View customer →" : "No projects yet →"
+							}</small></button>`
+					)
+					.join("")}</div>` ||
+				this.empty(
+					"No customers linked yet. Create a customer or link an existing customer to this organization."
+				);
+		} else {
+			this.el("[data-customers]").innerHTML = this.renderCustomerTable(customers);
+		}
+
+		if (this.projectViewMode === "cards") {
+			this.el("[data-projects]").innerHTML =
+				`<div class="sd-cards">${projects
+					.slice(this.projectPage * projPerPage, (this.projectPage + 1) * projPerPage)
+					.map(
+						(p) =>
+							`<button class="sd-card" data-project="${this.esc(
+								p.name
+							)}" data-project-status="${this.esc(p.status)}"><small>${this.esc(
+								p.name
+							)}</small><h3>${this.esc(p.project_name)}</h3><p>${this.esc(
+								p.customer_name
+							)}</p><div>${this.badge(p.status)} ${
+								p.delayed ? this.badge("Delayed") : ""
+							}</div><div class="sd-progress"><i style="width:${Math.max(
+								0,
+								Math.min(100, Number(p.percent_complete || 0))
+							)}%"></i></div><p>${this.num(p.percent_complete)}% project progress · ${
+								p.work_order_count
+							} WOs</p><small>${
+								p.custom_sarathi_bom ? this.esc(p.custom_sarathi_bom) : "Main BOM pending"
+							}</small></button>`
+					)
+					.join("")}</div>` || this.empty("No projects match this selection.");
+		} else {
+			this.el("[data-projects]").innerHTML = this.renderProjectTable(projects);
+		}
+
 		this.el("[data-project-count]").textContent = `${projects.length} projects`;
 		this.el("[data-customer-pagination]").innerHTML = this.pagination(
 			"customer",
@@ -656,6 +939,7 @@ frappe.SarathiIndustrialDashboard = class {
 			this.projectPage,
 			projects.length
 		);
+		this.updateViewToggleButtons();
 	}
 	renderTabs() {
 		this.el(".sd-tabs").innerHTML = Object.entries(this.tabs)
@@ -1786,13 +2070,21 @@ frappe.SarathiIndustrialDashboard = class {
 
 	click(event) {
 		const b = event.target.closest(
-			"button, .sd-setup-card, .sd-card, a.sd-record-link, a[data-inspect], .sd-health-metric, .sd-pipeline-step"
+			"button, .sd-setup-card, .sd-card, .sd-color-tr, a.sd-record-link, a[data-inspect], .sd-health-metric, .sd-pipeline-step, [data-customer], [data-project], [data-action]"
 		);
 		if (!b || b.disabled) return;
 		const d = b.dataset;
 		if (d.inspect) {
 			event.preventDefault();
 			this.showRecordFormModal(null, d.doctype, d.inspect);
+		} else if (d.action === "toggle-customer-view") {
+			this.customerViewMode = d.mode || (this.customerViewMode === "table" ? "cards" : "table");
+			this.customerPage = 0;
+			this.renderCards();
+		} else if (d.action === "toggle-project-view") {
+			this.projectViewMode = d.mode || (this.projectViewMode === "table" ? "cards" : "table");
+			this.projectPage = 0;
+			this.renderCards();
 		} else if (d.action === "toggle-ai") this.toggleAiChat();
 		else if (d.action === "switch-owner") frappe.set_route("sarathiownertower");
 		else if (d.action === "apply-dates") this.applyDateFilter();
