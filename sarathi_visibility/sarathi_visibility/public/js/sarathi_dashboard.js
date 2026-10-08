@@ -244,12 +244,20 @@ frappe.SarathiIndustrialDashboard = class {
 			}
 		}, 1000);
 		this.show();
+		this.root?.querySelector(".scm-launcher")?.remove();
+		if (this.root && typeof $ !== "undefined") {
+			$(this.root).find(".scm-launcher").remove();
+		}
 		frappe.require(
 			[
 				"/assets/sarathi_owner/css/sarathi_module_browser.css",
 				"/assets/sarathi_owner/js/sarathi_module_browser.js",
 			],
 			() => {
+				this.root?.querySelector(".scm-launcher")?.remove();
+				if (this.root && typeof $ !== "undefined") {
+					$(this.root).find(".scm-launcher").remove();
+				}
 				this.moduleBrowser ||= new frappe.SarathiModuleBrowser(this, "industrial");
 			}
 		);
@@ -329,6 +337,10 @@ frappe.SarathiIndustrialDashboard = class {
 	show() {
 		if (this.visible) return;
 		this.visible = true;
+		this.root?.querySelector(".scm-launcher")?.remove();
+		if (this.root && typeof $ !== "undefined") {
+			$(this.root).find(".scm-launcher").remove();
+		}
 		this.readUrl();
 		if (this.view === "accounting") {
 			this.showAccountingView();

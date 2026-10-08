@@ -1,16 +1,6 @@
 /* Scoped shared module browser: preserves existing dashboard and pipeline styles. */
 .scm-launcher {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 14px;
-	flex-wrap: wrap;
-	background: linear-gradient(110deg, #eef1ff, #e7f7f4);
-	border: 1px solid #dce5f3;
-	border-radius: 14px;
-	padding: 15px 19px;
-	margin: 17px 0;
-	color: #263c61;
+	display: none !important;
 }
 .scm-launcher strong {
 	display: flex;
