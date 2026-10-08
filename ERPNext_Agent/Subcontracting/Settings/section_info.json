@@ -1,0 +1,9 @@
+{
+  "module": "Subcontracting",
+  "section": "Settings",
+  "description": "Subcontracting parameters and scrap tolerances.",
+  "primary_doctypes": [
+    "Subcontracting Settings"
+  ],
+  "slot_filling_questions": {}
+}

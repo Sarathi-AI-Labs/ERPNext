@@ -1,0 +1,16 @@
+{
+  "module": "Users and System",
+  "doctypes": {
+    "User": {
+      "mandatory_fields": ["email", "first_name"],
+      "unique_fields": ["email"]
+    },
+    "Role": {
+      "mandatory_fields": ["role_name"],
+      "unique_fields": ["role_name"]
+    },
+    "User Permission": {
+      "mandatory_fields": ["user", "allow", "for_value"]
+    }
+  }
+}

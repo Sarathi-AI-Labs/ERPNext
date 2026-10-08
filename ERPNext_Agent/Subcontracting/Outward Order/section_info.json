@@ -1,0 +1,16 @@
+{
+  "module": "Subcontracting",
+  "section": "Outward Order",
+  "description": "Receipt of finished subcontracted items and raw material consumption.",
+  "primary_doctypes": [
+    "Subcontracting Receipt"
+  ],
+  "slot_filling_questions": {
+    "supplier": "What is the Job Worker?",
+    "company": "What is the Company?",
+    "posting_date": "What is the Date?",
+    "posting_time": "What is the Posting Time?",
+    "items": "What is the Items?",
+    "status": "What is the Status?"
+  }
+}

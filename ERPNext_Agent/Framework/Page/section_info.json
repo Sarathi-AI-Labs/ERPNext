@@ -1,0 +1,9 @@
+{
+  "module": "Framework",
+  "section": "Page",
+  "description": "Custom single-page applications inside Frappe desk.",
+  "primary_doctypes": [
+    "Page"
+  ],
+  "slot_filling_questions": {}
+}

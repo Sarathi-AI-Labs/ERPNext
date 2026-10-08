@@ -1,0 +1,12 @@
+{
+  "module": "Organization",
+  "section": "Sarathi Customer Organization",
+  "description": "Sarathi multi-tenant client organization mapping.",
+  "primary_doctypes": [
+    "Customer"
+  ],
+  "slot_filling_questions": {
+    "customer_name": "What is the Customer Name?",
+    "customer_type": "What is the Customer Type?"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "Create and Submit Work Order for Project",
+    "prompt": "Create a Work Order for 20 units of ITEM-MOTOR-01 using BOM BOM-ITEM-MOTOR-01-001 in project PROJ-001 under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Work Order",
+          "values": {
+            "production_item": "ITEM-MOTOR-01",
+            "bom_no": "BOM-ITEM-MOTOR-01-001",
+            "qty": 20,
+            "company": "SarathiAILabs",
+            "wip_warehouse": "Work In Progress - S",
+            "fg_warehouse": "Finished Goods - S",
+            "project": "PROJ-001"
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "submit_document",
+        "parameters": {
+          "doctype": "Work Order",
+          "name": "{{step_1.name}}"
+        }
+      }
+    ]
+  }
+]

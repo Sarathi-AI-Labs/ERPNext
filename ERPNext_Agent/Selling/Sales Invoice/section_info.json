@@ -1,0 +1,23 @@
+{
+  "module": "Selling",
+  "section": "Sales Invoice",
+  "description": "Customer tax invoices and accounts receivable recognition.",
+  "primary_doctypes": [
+    "Sales Invoice"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "customer": "What is the Customer?",
+    "posting_date": "What is the Posting Date?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "selling_price_list": "What is the Price List?",
+    "price_list_currency": "What is the Price List Currency?",
+    "plc_conversion_rate": "What is the Price List Exchange Rate?",
+    "items": "What is the Items?",
+    "base_net_total": "What is the Net Total (Company Currency)?",
+    "grand_total": "What is the Grand Total?",
+    "base_grand_total": "What is the Grand Total (Company Currency?",
+    "debit_to": "What is the Debit To?"
+  }
+}

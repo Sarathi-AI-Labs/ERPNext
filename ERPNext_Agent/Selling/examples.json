@@ -1,0 +1,36 @@
+[
+  {
+    "scenario": "Create and Submit Sales Order",
+    "prompt": "Create a Sales Order for Global Motors for 10 units of ITEM-PROD-01 at rate 500 under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Sales Order",
+          "values": {
+            "customer": "Global Motors",
+            "company": "SarathiAILabs",
+            "delivery_date": "2026-10-30",
+            "items": [
+              {
+                "item_code": "ITEM-PROD-01",
+                "qty": 10,
+                "rate": 500.0,
+                "delivery_date": "2026-10-30"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "submit_document",
+        "parameters": {
+          "doctype": "Sales Order",
+          "name": "{{step_1.name}}"
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "module": "Quality",
+  "doctypes": {
+    "Quality Inspection": {
+      "mandatory_fields": ["inspection_type", "item_code", "status", "readings"],
+      "is_submittable": true,
+      "status_options": ["Accepted", "Rejected"]
+    },
+    "Quality Inspection Parameter": {
+      "mandatory_fields": ["parameter"]
+    },
+    "Quality Inspection Template": {
+      "mandatory_fields": ["quality_inspection_template_name", "parameters"]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "module": "Buying",
+  "section": "Setup",
+  "description": "Vendor registry, payment terms, and vendor categorization.",
+  "primary_doctypes": [
+    "Supplier",
+    "Supplier Group"
+  ],
+  "slot_filling_questions": {
+    "supplier_name": "What is the Supplier Name?",
+    "supplier_type": "What is the Supplier Type?",
+    "supplier_group_name": "What is the Supplier Group Name?"
+  }
+}

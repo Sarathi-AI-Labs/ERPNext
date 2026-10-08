@@ -1,0 +1,9 @@
+{
+  "module": "Framework",
+  "section": "Report",
+  "description": "Query and script report definitions.",
+  "primary_doctypes": [
+    "Report"
+  ],
+  "slot_filling_questions": {}
+}

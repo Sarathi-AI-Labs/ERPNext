@@ -1,0 +1,17 @@
+{
+  "module": "Users and System",
+  "transitions": {
+    "User": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update", "delete"]
+    },
+    "Role": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update"]
+    },
+    "User Permission": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update", "delete"]
+    }
+  }
+}

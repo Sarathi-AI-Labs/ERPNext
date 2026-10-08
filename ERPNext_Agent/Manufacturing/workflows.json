@@ -1,0 +1,28 @@
+{
+  "module": "Manufacturing",
+  "transitions": {
+    "BOM": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Draft", "allowed_actions": ["submit", "delete", "update"]},
+        "1": {"label": "Submitted", "allowed_actions": ["cancel", "update_custom_fields"]},
+        "2": {"label": "Cancelled", "allowed_actions": ["amend"]}
+      }
+    },
+    "Work Order": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Draft", "allowed_actions": ["submit", "delete", "update"]},
+        "1": {"label": "Not Started / In Process", "allowed_actions": ["cancel", "stop"]},
+        "2": {"label": "Cancelled", "allowed_actions": ["amend"]}
+      }
+    },
+    "Job Card": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Open", "allowed_actions": ["start", "submit", "update"]},
+        "1": {"label": "Completed", "allowed_actions": ["cancel"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "module": "Stock",
+  "section": "Settings",
+  "description": "Zero negative stock rule and serial/batch defaults.",
+  "primary_doctypes": [
+    "Stock Settings"
+  ],
+  "slot_filling_questions": {}
+}

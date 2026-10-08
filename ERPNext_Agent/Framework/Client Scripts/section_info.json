@@ -1,0 +1,11 @@
+{
+  "module": "Framework",
+  "section": "Client Scripts",
+  "description": "Browser-side JavaScript hooks for desk forms.",
+  "primary_doctypes": [
+    "Client Script"
+  ],
+  "slot_filling_questions": {
+    "dt": "What is the DocType?"
+  }
+}

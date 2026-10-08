@@ -1,0 +1,9 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Projects Settings",
+  "description": "Project costing and timesheet validation rules.",
+  "primary_doctypes": [
+    "Projects Settings"
+  ],
+  "slot_filling_questions": {}
+}

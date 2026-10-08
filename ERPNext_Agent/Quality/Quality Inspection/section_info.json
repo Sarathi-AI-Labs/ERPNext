@@ -1,0 +1,18 @@
+{
+  "module": "Quality",
+  "section": "Quality Inspection",
+  "description": "Measurement testing and acceptance/rejection verdicts.",
+  "primary_doctypes": [
+    "Quality Inspection"
+  ],
+  "slot_filling_questions": {
+    "report_date": "What is the Report Date?",
+    "status": "What is the Status?",
+    "inspection_type": "What is the Inspection Type?",
+    "reference_type": "What is the Reference Type?",
+    "reference_name": "What is the Reference Name?",
+    "item_code": "What is the Item Code?",
+    "sample_size": "What is the Sample Size?",
+    "inspected_by": "What is the Inspected By?"
+  }
+}

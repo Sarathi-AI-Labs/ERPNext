@@ -1,0 +1,14 @@
+{
+  "module": "Stock",
+  "section": "Material Request",
+  "description": "Internal inventory requisitions and purchase indents.",
+  "primary_doctypes": [
+    "Material Request"
+  ],
+  "slot_filling_questions": {
+    "material_request_type": "What is the Purpose?",
+    "company": "What is the Company?",
+    "transaction_date": "What is the Transaction Date?",
+    "items": "What is the Items?"
+  }
+}

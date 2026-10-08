@@ -1,0 +1,16 @@
+{
+  "module": "Manufacturing",
+  "section": "Work Order",
+  "description": "Production batch authorization, WIP warehouse staging, and finished goods assembly.",
+  "primary_doctypes": [
+    "Work Order"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "production_item": "What is the Item To Manufacture?",
+    "bom_no": "What is the BOM No?",
+    "qty": "What is the Qty To Manufacture?",
+    "planned_start_date": "What is the Planned Start Date?",
+    "status": "What is the Status?"
+  }
+}

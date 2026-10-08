@@ -1,0 +1,27 @@
+{
+  "module": "Accounting",
+  "section": "Payments",
+  "description": "Customer receipts, vendor remittances, advance payments, and internal bank transfers.",
+  "primary_doctypes": [
+    "Payment Entry",
+    "Payment Request",
+    "Mode of Payment"
+  ],
+  "slot_filling_questions": {
+    "payment_type": "What is the Payment Type?",
+    "posting_date": "What is the Posting Date?",
+    "company": "What is the Company?",
+    "paid_from": "What is the Account Paid From?",
+    "paid_from_account_currency": "What is the Account Currency (From)?",
+    "paid_to": "What is the Account Paid To?",
+    "paid_to_account_currency": "What is the Account Currency (To)?",
+    "paid_amount": "What is the Paid Amount?",
+    "source_exchange_rate": "What is the Source Exchange Rate?",
+    "base_paid_amount": "What is the Paid Amount (Company Currency)?",
+    "received_amount": "What is the Received Amount?",
+    "target_exchange_rate": "What is the Target Exchange Rate?",
+    "base_received_amount": "What is the Received Amount (Company Currency)?",
+    "payment_request_type": "What is the Payment Request Type?",
+    "grand_total": "What is the Amount?"
+  }
+}

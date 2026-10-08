@@ -1,0 +1,13 @@
+{
+  "module": "Quality",
+  "section": "Setup",
+  "description": "Inspection parameters, tolerances, and checklists.",
+  "primary_doctypes": [
+    "Quality Inspection Parameter",
+    "Quality Inspection Template"
+  ],
+  "slot_filling_questions": {
+    "quality_inspection_template_name": "What is the Quality Inspection Template Name?",
+    "item_quality_inspection_parameter": "What is the Item Quality Inspection Parameter?"
+  }
+}

@@ -1,0 +1,35 @@
+line-length = 110
+target-version = "py310"
+
+[lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "RUF",
+]
+ignore = [
+    "B017",
+    "B018",
+    "B023",
+    "B904",
+    "E101",
+    "E402",
+    "E501",
+    "E741",
+    "F401",
+    "F403",
+    "F405",
+    "F722",
+    "W191",
+    "RUF001",
+]
+typing-modules = ["frappe.types.DF"]
+
+[format]
+quote-style = "double"
+indent-style = "tab"
+docstring-code-format = true

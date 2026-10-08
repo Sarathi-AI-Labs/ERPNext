@@ -1,0 +1,15 @@
+{
+  "module": "Stock",
+  "section": "Tools",
+  "description": "Physical stock count reconciliations and landed cost vouchers.",
+  "primary_doctypes": [
+    "Stock Reconciliation"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "purpose": "What is the Purpose?",
+    "posting_date": "What is the Posting Date?",
+    "posting_time": "What is the Posting Time?",
+    "items": "What is the Items?"
+  }
+}

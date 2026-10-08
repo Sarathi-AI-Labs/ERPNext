@@ -1,0 +1,13 @@
+{
+  "module": "Users and System",
+  "section": "Permissions",
+  "description": "Row level security restricting users to specific companies/records.",
+  "primary_doctypes": [
+    "User Permission"
+  ],
+  "slot_filling_questions": {
+    "user": "What is the User?",
+    "allow": "What is the Allow?",
+    "for_value": "What is the For Value?"
+  }
+}

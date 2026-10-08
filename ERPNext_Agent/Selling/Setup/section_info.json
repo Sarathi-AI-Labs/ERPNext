@@ -1,0 +1,14 @@
+{
+  "module": "Selling",
+  "section": "Setup",
+  "description": "Customer master records, territories, and sales partners.",
+  "primary_doctypes": [
+    "Customer",
+    "Customer Group"
+  ],
+  "slot_filling_questions": {
+    "customer_name": "What is the Customer Name?",
+    "customer_type": "What is the Customer Type?",
+    "customer_group_name": "What is the Customer Group Name?"
+  }
+}

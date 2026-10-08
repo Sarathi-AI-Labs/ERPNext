@@ -1,0 +1,9 @@
+{
+  "module": "ERPNext Settings",
+  "section": "POS Settings",
+  "description": "Point of sale cash register configurations.",
+  "primary_doctypes": [
+    "POS Settings"
+  ],
+  "slot_filling_questions": {}
+}

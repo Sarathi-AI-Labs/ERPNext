@@ -1,0 +1,9 @@
+{
+  "module": "Framework",
+  "section": "Workspace",
+  "description": "Desk sidebar and dashboard workspace layouts.",
+  "primary_doctypes": [
+    "Workspace"
+  ],
+  "slot_filling_questions": {}
+}

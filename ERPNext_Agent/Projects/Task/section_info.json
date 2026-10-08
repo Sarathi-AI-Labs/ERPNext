@@ -1,0 +1,11 @@
+{
+  "module": "Projects",
+  "section": "Task",
+  "description": "Discrete project work breakdown items, milestones, and dependencies.",
+  "primary_doctypes": [
+    "Task"
+  ],
+  "slot_filling_questions": {
+    "subject": "What is the Subject?"
+  }
+}

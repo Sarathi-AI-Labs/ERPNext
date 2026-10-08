@@ -1,0 +1,22 @@
+{
+  "module": "Manufacturing",
+  "section": "Reports",
+  "description": "Production progress, workstation utilization, and BOM cost comparison.",
+  "primary_doctypes": [
+    "Work Order",
+    "BOM"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "production_item": "What is the Item To Manufacture?",
+    "bom_no": "What is the BOM No?",
+    "qty": "What is the Qty To Manufacture?",
+    "planned_start_date": "What is the Planned Start Date?",
+    "status": "What is the Status?",
+    "item": "What is the Item to Manufacture?",
+    "quantity": "What is the Quantity (Output Qty)?",
+    "items": "What is the Components?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Conversion Rate?"
+  }
+}

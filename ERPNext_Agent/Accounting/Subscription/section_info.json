@@ -1,0 +1,12 @@
+{
+  "module": "Accounting",
+  "section": "Subscription",
+  "description": "Recurring billing plans, customer subscriptions, and automated renewal invoices.",
+  "primary_doctypes": [
+    "Customer"
+  ],
+  "slot_filling_questions": {
+    "customer_name": "What is the Customer Name?",
+    "customer_type": "What is the Customer Type?"
+  }
+}

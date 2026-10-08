@@ -1,0 +1,17 @@
+{
+  "module": "Organization",
+  "transitions": {
+    "Company": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update"]
+    },
+    "Fiscal Year": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update"]
+    },
+    "Cost Center": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update"]
+    }
+  }
+}

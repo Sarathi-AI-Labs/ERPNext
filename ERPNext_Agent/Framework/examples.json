@@ -1,0 +1,22 @@
+[
+  {
+    "scenario": "Add Custom Field to DocType",
+    "prompt": "Add a custom Check field called custom_urgent to Project",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Custom Field",
+          "values": {
+            "dt": "Project",
+            "fieldname": "custom_urgent",
+            "label": "Is Urgent",
+            "fieldtype": "Check",
+            "default": "0"
+          }
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "module": "Buying",
+  "section": "Purchase Invoice",
+  "description": "Accounts payable billing against purchase orders and incoming goods receipts.",
+  "primary_doctypes": [
+    "Purchase Invoice",
+    "Supplier"
+  ],
+  "slot_filling_questions": {
+    "supplier": "What is the Supplier?",
+    "posting_date": "What is the Posting Date?",
+    "items": "What is the Items?",
+    "credit_to": "What is the Credit To?",
+    "supplier_name": "What is the Supplier Name?",
+    "supplier_type": "What is the Supplier Type?"
+  }
+}

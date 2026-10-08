@@ -1,0 +1,11 @@
+{
+  "module": "Quality",
+  "section": "Quality Goals and Reviews",
+  "description": "ISO quality objectives and management reviews.",
+  "primary_doctypes": [
+    "Quality Goal"
+  ],
+  "slot_filling_questions": {
+    "goal": "What is the Goal?"
+  }
+}
