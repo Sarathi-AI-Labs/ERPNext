@@ -1,29 +1,40 @@
-x-customizable-image: &customizable_image
-  # By default the image used only contains the `frappe` and `erpnext` apps.
-  # See https://github.com/frappe/frappe_docker/blob/main/docs/02-setup/02-build-setup.md#define-custom-apps
-  # about using custom images.
-  image: ${CUSTOM_IMAGE:-frappe/erpnext}:${CUSTOM_TAG:-$ERPNEXT_VERSION}
-  pull_policy: ${PULL_POLICY:-always}
-  restart: ${RESTART_POLICY:-unless-stopped}
-
-x-depends-on-configurator: &depends_on_configurator
-  depends_on:
-    configurator:
-      condition: service_completed_successfully
-
-x-backend-defaults: &backend_defaults
-  <<: [*depends_on_configurator, *customizable_image]
-  volumes:
-    - sites:/home/frappe/frappe-bench/sites
+name: frappe_docker
 
 services:
+  backend:
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner/public:/home/frappe/frappe-bench/assets/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      MYSQL_ROOT_PASSWORD: admin
+      MARIADB_ROOT_PASSWORD: admin
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
   configurator:
-    <<: *backend_defaults
-    platform: linux/amd64
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: none
     entrypoint:
       - bash
       - -c
-    # add redis_socketio for backward compatibility
     command:
       - >
         ls -1 apps > sites/apps.txt;
@@ -33,68 +44,244 @@ services:
         bench set-config -g redis_queue "redis://$$REDIS_QUEUE";
         bench set-config -g redis_socketio "redis://$$REDIS_QUEUE";
         bench set-config -gp socketio_port $$SOCKETIO_PORT;
-        bench set-config -g chromium_path /usr/bin/chromium-headless-shell;
     environment:
-      DB_HOST: ${DB_HOST:-}
-      DB_PORT: ${DB_PORT:-}
-      REDIS_CACHE: ${REDIS_CACHE:-}
-      REDIS_QUEUE: ${REDIS_QUEUE:-}
-      SOCKETIO_PORT: 9000
-    depends_on: {}
-    restart: on-failure
-
-  backend:
-    <<: *backend_defaults
-    platform: linux/amd64
-    environment:
-      GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
-      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
-      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-120}
-
-  frontend:
-    <<: *customizable_image
-    platform: linux/amd64
-    command:
-      - nginx-entrypoint.sh
-    environment:
-      BACKEND: backend:8000
-      SOCKETIO: websocket:9000
-      FRAPPE_SITE_NAME_HEADER: ${FRAPPE_SITE_NAME_HEADER:-$$host}
-      UPSTREAM_REAL_IP_ADDRESS: ${UPSTREAM_REAL_IP_ADDRESS:-127.0.0.1}
-      UPSTREAM_REAL_IP_HEADER: ${UPSTREAM_REAL_IP_HEADER:-X-Forwarded-For}
-      UPSTREAM_REAL_IP_RECURSIVE: ${UPSTREAM_REAL_IP_RECURSIVE:-off}
-      PROXY_READ_TIMEOUT: ${PROXY_READ_TIMEOUT:-120}
-      CLIENT_MAX_BODY_SIZE: ${CLIENT_MAX_BODY_SIZE:-50m}
+      DB_HOST: db
+      DB_PORT: "3306"
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+      SOCKETIO_PORT: "9000"
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     volumes:
       - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+
+  create-site:
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: none
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    entrypoint:
+      - bash
+      - -c
+    command:
+      - >
+        wait-for-it -t 120 db:3306;
+        wait-for-it -t 120 redis-cache:6379;
+        wait-for-it -t 120 redis-queue:6379;
+        export start=`date +%s`;
+        until [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".db_host // empty"` ]] && \
+          [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".redis_cache // empty"` ]] && \
+          [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".redis_queue // empty"` ]];
+        do
+          echo "Waiting for sites/common_site_config.json to be created";
+          sleep 5;
+          if (( `date +%s`-start > 120 )); then
+            echo "could not find sites/common_site_config.json with required keys";
+            exit 1;
+          fi;
+        done;
+        echo "sites/common_site_config.json found";
+        if [ -d "sites/frontend" ]; then
+          echo "Site frontend already exists, skipping creation";
+        else
+          bench new-site --mariadb-user-host-login-scope='%' --admin-password=admin --db-root-username=root --db-root-password=admin --install-app erpnext --set-default frontend;
+        fi;
+
+  db:
+    image: mariadb:11.8
+    networks:
+      - frappe_network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MARIADB_ROOT_PASSWORD: admin
+    volumes:
+      - db-data:/var/lib/mysql
+
+  frontend:
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
     depends_on:
-      - backend
       - websocket
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command:
+      - bash
+      - -c
+      - >
+        wait-for-it -t 120 backend:8000 &&
+        wait-for-it -t 120 websocket:9000 &&
+        exec nginx-entrypoint.sh
+    environment:
+      BACKEND: backend:8000
+      FRAPPE_SITE_NAME_HEADER: frontend
+      SOCKETIO: websocket:9000
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: 120
+      CLIENT_MAX_BODY_SIZE: 50m
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_visibility/sarathi_visibility/public:/home/frappe/frappe-bench/assets/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner/public:/home/frappe/frappe-bench/assets/sarathi_owner
+    ports:
+      - "8080:8080"
+
+  queue-long:
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command:
+      - bench
+      - worker
+      - --queue
+      - long,default,short
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  queue-short:
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command:
+      - bench
+      - worker
+      - --queue
+      - short,default
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  redis-queue:
+    image: redis:6.2-alpine
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - redis-queue-data:/data
+
+  redis-cache:
+    image: redis:6.2-alpine
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  scheduler:
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command:
+      - bench
+      - schedule
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    environment:
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
 
   websocket:
-    <<: [*depends_on_configurator, *customizable_image]
-    platform: linux/amd64
+    image: sarathi/erpnext-sarathi:v16.33.0
+    networks:
+      - frappe_network
+    deploy:
+      restart_policy:
+        condition: on-failure
     command:
       - node
       - /home/frappe/frappe-bench/apps/frappe/socketio.js
+    environment:
+      SARATHI_SOCKET_BACKEND_URL: http://backend:8000
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+      PYTHONPATH: /home/frappe/frappe-bench/apps/sarathi_owner
     volumes:
       - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./sarathi_visibility/sarathi_visibility:/home/frappe/frappe-bench/apps/sarathi_visibility/sarathi_visibility
+      - ./sarathi_owner/sarathi_owner:/home/frappe/frappe-bench/apps/sarathi_owner/sarathi_owner
+      - ./sarathi_owner/sarathi_owner.pth:/home/frappe/frappe-bench/env/lib/python3.14/site-packages/sarathi_owner.pth
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
 
-  queue-short:
-    <<: *backend_defaults
-    platform: linux/amd64
-    command: bench worker --queue short,default
-
-  queue-long:
-    <<: *backend_defaults
-    platform: linux/amd64
-    command: bench worker --queue long,default,short
-
-  scheduler:
-    <<: *backend_defaults
-    platform: linux/amd64
-    command: bench schedule
-
-# ERPNext requires local assets access (Frappe does not)
 volumes:
+  db-data:
+  redis-queue-data:
   sites:
+  logs:
+
+networks:
+  frappe_network:
+    driver: bridge
