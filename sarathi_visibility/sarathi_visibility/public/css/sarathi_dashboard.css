@@ -6475,3 +6475,207 @@
 .sd-kpis {
 	grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important;
 }
+
+/* ==========================================================================
+   Prevent Horizontal Scroll (Left-to-Right & Right-to-Left) on
+   "Organization projects" and "Project pipelines"
+   ========================================================================== */
+
+/* Overall Dashboard Container Safeguard */
+.sd-dashboard {
+	overflow-x: hidden !important;
+	max-width: 100% !important;
+}
+
+/* Organization projects & Project pipelines Panels & Wrappers */
+[data-project-panel],
+[data-project-panel] .sd-content-container,
+[data-project-panel] [data-projects],
+[data-project-panel] .sd-color-table-wrapper,
+[data-pipeline-panel],
+[data-pipeline-panel] .sd-color-table-wrapper,
+[data-health-panel],
+[data-health-panel] .sd-color-table-wrapper {
+	overflow-x: hidden !important;
+	max-width: 100% !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+/* Eliminate forced min-width so tables adapt smoothly within panel width */
+[data-project-panel] .sd-color-table,
+[data-pipeline-panel] .sd-color-table,
+[data-health-panel] .sd-color-table {
+	min-width: 0 !important;
+	width: 100% !important;
+	table-layout: auto !important;
+}
+
+/* Project Pipelines Table: Compact and Responsive 9-Column Layout */
+[data-pipeline-panel] .sd-color-table thead tr th.sd-th-pin {
+	padding: 10px 4px !important;
+	font-size: 11px !important;
+	white-space: nowrap !important;
+}
+
+[data-pipeline-panel] .sd-pin-badge {
+	gap: 4px !important;
+	justify-content: center !important;
+}
+
+[data-pipeline-panel] .sd-pin-text {
+	font-size: 11px !important;
+}
+
+[data-pipeline-panel] .sd-pin-icon {
+	font-size: 12px !important;
+}
+
+[data-pipeline-panel] .sd-td-ribbon {
+	width: 20% !important;
+	min-width: 130px !important;
+	max-width: 200px !important;
+	padding: 6px 8px !important;
+}
+
+[data-pipeline-panel] .sd-row-ribbon {
+	padding: 6px 14px 6px 8px !important;
+	gap: 6px !important;
+	clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%) !important;
+}
+
+[data-pipeline-panel] .sd-ribbon-box {
+	width: 24px !important;
+	height: 24px !important;
+	font-size: 11px !important;
+}
+
+[data-pipeline-panel] .sd-ribbon-name {
+	font-size: 12px !important;
+}
+
+[data-pipeline-panel] .sd-td-cell {
+	padding: 6px 3px !important;
+	text-align: center !important;
+}
+
+[data-pipeline-panel] .sd-pipeline-step-pill {
+	min-width: 28px !important;
+	padding: 3px 5px !important;
+	font-size: 11px !important;
+	white-space: nowrap !important;
+}
+
+[data-pipeline-panel] .sd-td-action {
+	width: 75px !important;
+	padding: 6px 4px !important;
+}
+
+[data-pipeline-panel] .sd-row-action-btn {
+	padding: 4px 6px !important;
+	font-size: 10.5px !important;
+	white-space: nowrap !important;
+}
+
+[data-pipeline-panel] .sd-production-links {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 8px !important;
+	width: 100% !important;
+	overflow-x: hidden !important;
+}
+
+[data-pipeline-panel] .sd-production-links .sd-button {
+	white-space: normal !important;
+	text-align: center !important;
+}
+
+/* Organization Projects Table: Compact and Responsive 7-Column Layout */
+[data-project-panel] .sd-color-table thead tr th.sd-th-pin {
+	padding: 10px 6px !important;
+	font-size: 11.5px !important;
+	white-space: nowrap !important;
+}
+
+[data-project-panel] .sd-td-ribbon {
+	width: 22% !important;
+	min-width: 140px !important;
+	max-width: 220px !important;
+	padding: 8px 10px !important;
+}
+
+[data-project-panel] .sd-row-ribbon {
+	padding: 6px 16px 6px 10px !important;
+	gap: 8px !important;
+}
+
+[data-project-panel] .sd-ribbon-box {
+	width: 26px !important;
+	height: 26px !important;
+	font-size: 12px !important;
+}
+
+[data-project-panel] .sd-ribbon-name {
+	font-size: 12.5px !important;
+}
+
+[data-project-panel] .sd-td-cell {
+	padding: 8px 6px !important;
+	font-size: 12px !important;
+}
+
+[data-project-panel] .sd-cell-badge,
+[data-project-panel] .sd-status-tag {
+	padding: 4px 8px !important;
+	font-size: 11.5px !important;
+	white-space: nowrap !important;
+}
+
+[data-project-panel] .sd-td-action {
+	width: 80px !important;
+	padding: 8px 6px !important;
+}
+
+[data-project-panel] .sd-row-action-btn {
+	padding: 4px 8px !important;
+	font-size: 11px !important;
+	white-space: nowrap !important;
+}
+
+/* Organization Projects Cards View: Responsive Wrap & No Scroll */
+[data-project-panel] .sd-cards {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+	gap: 12px !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	overflow-x: hidden !important;
+}
+
+[data-project-panel] .sd-card {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	box-sizing: border-box !important;
+	overflow: hidden !important;
+}
+
+/* Toolbars inside both panels: Fit 100% with no overflow */
+[data-project-panel] .sd-table-web-toolbar,
+[data-pipeline-panel] .sd-table-web-toolbar,
+[data-health-panel] .sd-table-web-toolbar {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box !important;
+	overflow-x: hidden !important;
+	padding: 8px 12px !important;
+	gap: 8px !important;
+}
+
+[data-project-panel] .sd-table-search-wrap,
+[data-pipeline-panel] .sd-table-search-wrap,
+[data-health-panel] .sd-table-search-wrap {
+	min-width: 150px !important;
+	max-width: 280px !important;
+	flex: 1 1 180px !important;
+}
