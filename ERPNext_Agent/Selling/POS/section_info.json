@@ -1,0 +1,17 @@
+{
+  "module": "Selling",
+  "section": "POS",
+  "description": "Retail checkout profiles and cashier registers.",
+  "primary_doctypes": [
+    "POS Profile"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "warehouse": "What is the Warehouse?",
+    "payments": "What is the Payment Methods?",
+    "currency": "What is the Currency?",
+    "write_off_account": "What is the Write Off Account?",
+    "write_off_cost_center": "What is the Write Off Cost Center?",
+    "write_off_limit": "What is the Write Off Limit?"
+  }
+}

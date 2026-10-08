@@ -1,0 +1,14 @@
+{
+  "module": "Assets",
+  "section": "Setup",
+  "description": "Asset categories, depreciation rate tables, and plant floor locations.",
+  "primary_doctypes": [
+    "Asset Category",
+    "Location"
+  ],
+  "slot_filling_questions": {
+    "asset_category_name": "What is the Asset Category Name?",
+    "accounts": "What is the Accounts?",
+    "location_name": "What is the Location Name?"
+  }
+}

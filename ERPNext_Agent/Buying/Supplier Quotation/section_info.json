@@ -1,0 +1,20 @@
+{
+  "module": "Buying",
+  "section": "Supplier Quotation",
+  "description": "Commercial quotations received from vendors with price validity periods.",
+  "primary_doctypes": [
+    "Supplier Quotation",
+    "Supplier"
+  ],
+  "slot_filling_questions": {
+    "supplier": "What is the Supplier?",
+    "company": "What is the Company?",
+    "status": "What is the Status?",
+    "transaction_date": "What is the Date?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "items": "What is the Items?",
+    "supplier_name": "What is the Supplier Name?",
+    "supplier_type": "What is the Supplier Type?"
+  }
+}

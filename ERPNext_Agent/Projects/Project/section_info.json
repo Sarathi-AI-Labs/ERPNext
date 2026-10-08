@@ -1,0 +1,12 @@
+{
+  "module": "Projects",
+  "section": "Project",
+  "description": "Industrial project planning, customer delivery tracking, and Sarathi BOM/Manufacturing links.",
+  "primary_doctypes": [
+    "Project"
+  ],
+  "slot_filling_questions": {
+    "project_name": "What is the Project Name?",
+    "company": "What is the Company?"
+  }
+}

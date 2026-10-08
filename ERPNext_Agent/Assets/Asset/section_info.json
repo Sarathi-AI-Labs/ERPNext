@@ -1,0 +1,18 @@
+{
+  "module": "Assets",
+  "section": "Asset",
+  "description": "Fixed asset master registry, asset tags, custodian assignments, and location tracking.",
+  "primary_doctypes": [
+    "Asset",
+    "Asset Category"
+  ],
+  "slot_filling_questions": {
+    "item_code": "What is the Item Code?",
+    "asset_name": "What is the Asset Name?",
+    "location": "What is the Location?",
+    "company": "What is the Company?",
+    "purchase_date": "What is the Purchase Date?",
+    "asset_category_name": "What is the Asset Category Name?",
+    "accounts": "What is the Accounts?"
+  }
+}

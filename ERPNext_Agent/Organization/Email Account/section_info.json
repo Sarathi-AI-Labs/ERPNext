@@ -1,0 +1,11 @@
+{
+  "module": "Organization",
+  "section": "Email Account",
+  "description": "SMTP/IMAP company mailboxes.",
+  "primary_doctypes": [
+    "Email Account"
+  ],
+  "slot_filling_questions": {
+    "email_id": "What is the Email Address?"
+  }
+}

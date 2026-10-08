@@ -1,0 +1,12 @@
+{
+  "module": "Stock",
+  "section": "Pick List",
+  "description": "Warehouse picking slips for batch and serial item fulfillment.",
+  "primary_doctypes": [
+    "Pick List"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "status": "What is the Status?"
+  }
+}

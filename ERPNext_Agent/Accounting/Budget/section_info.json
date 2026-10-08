@@ -1,0 +1,16 @@
+{
+  "module": "Accounting",
+  "section": "Budget",
+  "description": "Cost center and project budget variance tracking and monthly expense limits.",
+  "primary_doctypes": [
+    "Cost Center",
+    "Account"
+  ],
+  "slot_filling_questions": {
+    "cost_center_name": "What is the Cost Center Name?",
+    "parent_cost_center": "What is the Parent Cost Center?",
+    "company": "What is the Company?",
+    "account_name": "What is the Account Name?",
+    "parent_account": "What is the Parent Account?"
+  }
+}

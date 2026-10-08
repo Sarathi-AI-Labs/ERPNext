@@ -1,0 +1,20 @@
+{
+  "module": "Accounting",
+  "section": "Accounts Setup",
+  "description": "Chart of Accounts management, cost center budget trees, and fiscal year configurations.",
+  "primary_doctypes": [
+    "Account",
+    "Cost Center",
+    "Fiscal Year"
+  ],
+  "slot_filling_questions": {
+    "account_name": "What is the Account Name?",
+    "company": "What is the Company?",
+    "parent_account": "What is the Parent Account?",
+    "cost_center_name": "What is the Cost Center Name?",
+    "parent_cost_center": "What is the Parent Cost Center?",
+    "year": "What is the Year Name?",
+    "year_start_date": "What is the Year Start Date?",
+    "year_end_date": "What is the Year End Date?"
+  }
+}

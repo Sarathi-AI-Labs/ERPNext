@@ -1,0 +1,40 @@
+[
+  {
+    "scenario": "Create Balanced Journal Entry",
+    "prompt": "Create a Journal Entry transferring 5000 INR from Bank Account to Petty Cash under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Journal Entry",
+          "values": {
+            "voucher_type": "Bank Entry",
+            "company": "SarathiAILabs",
+            "posting_date": "2026-10-01",
+            "accounts": [
+              {
+                "account": "Petty Cash - S",
+                "debit_in_account_currency": 5000.0,
+                "credit_in_account_currency": 0.0
+              },
+              {
+                "account": "Bank Account - S",
+                "debit_in_account_currency": 0.0,
+                "credit_in_account_currency": 5000.0
+              }
+            ]
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "submit_document",
+        "parameters": {
+          "doctype": "Journal Entry",
+          "name": "{{step_1.name}}"
+        }
+      }
+    ]
+  }
+]

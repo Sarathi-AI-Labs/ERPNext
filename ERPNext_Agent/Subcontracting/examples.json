@@ -1,0 +1,20 @@
+[
+  {
+    "scenario": "Query Active Subcontracting Orders",
+    "prompt": "List all submitted Subcontracting Orders for supplier Acme Jobwork",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "search_documents",
+        "parameters": {
+          "doctype": "Subcontracting Order",
+          "filters": {
+            "supplier": "Acme Jobwork",
+            "docstatus": 1
+          },
+          "fields": ["name", "purchase_order", "supplier_warehouse", "status"]
+        }
+      }
+    ]
+  }
+]

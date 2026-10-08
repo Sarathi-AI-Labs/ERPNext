@@ -1,0 +1,15 @@
+{
+  "module": "Users and System",
+  "section": "System Settings",
+  "description": "Platform session controls, timezone, and security configurations.",
+  "primary_doctypes": [
+    "System Settings"
+  ],
+  "slot_filling_questions": {
+    "language": "What is the Language?",
+    "time_zone": "What is the Time Zone?",
+    "date_format": "What is the Date Format?",
+    "time_format": "What is the Time Format?",
+    "number_format": "What is the Number Format?"
+  }
+}

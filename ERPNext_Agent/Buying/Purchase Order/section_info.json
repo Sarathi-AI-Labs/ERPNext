@@ -1,0 +1,20 @@
+{
+  "module": "Buying",
+  "section": "Purchase Order",
+  "description": "Legally binding vendor procurement contracts with delivery lead times and pricing terms.",
+  "primary_doctypes": [
+    "Purchase Order",
+    "Supplier"
+  ],
+  "slot_filling_questions": {
+    "supplier": "What is the Supplier?",
+    "transaction_date": "What is the Date?",
+    "company": "What is the Company?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "items": "What is the Items?",
+    "status": "What is the Status?",
+    "supplier_name": "What is the Supplier Name?",
+    "supplier_type": "What is the Supplier Type?"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "module": "Organization",
+  "section": "Role Permissions",
+  "description": "Role based access control and row permissions.",
+  "primary_doctypes": [
+    "User Permission",
+    "Role"
+  ],
+  "slot_filling_questions": {
+    "user": "What is the User?",
+    "allow": "What is the Allow?",
+    "for_value": "What is the For Value?",
+    "role_name": "What is the Role Name?"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "module": "Subcontracting",
+  "doctypes": {
+    "Subcontracting Order": {
+      "mandatory_fields": ["purchase_order", "supplier", "company", "supplier_warehouse", "items"],
+      "is_submittable": true
+    },
+    "Subcontracting Receipt": {
+      "mandatory_fields": ["subcontracting_order", "supplier", "company", "items"],
+      "is_submittable": true
+    },
+    "Subcontracting BOM": {
+      "mandatory_fields": ["finished_good", "service_item"]
+    }
+  }
+}

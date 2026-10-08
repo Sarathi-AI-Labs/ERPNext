@@ -1,0 +1,21 @@
+{
+  "module": "Assets",
+  "transitions": {
+    "Asset": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Draft", "allowed_actions": ["submit", "delete", "update"]},
+        "1": {"label": "Submitted", "allowed_actions": ["cancel", "scrap", "transfer"]},
+        "2": {"label": "Cancelled", "allowed_actions": ["amend"]}
+      }
+    },
+    "Asset Movement": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Draft", "allowed_actions": ["submit", "delete", "update"]},
+        "1": {"label": "Submitted", "allowed_actions": ["cancel"]},
+        "2": {"label": "Cancelled", "allowed_actions": ["amend"]}
+      }
+    }
+  }
+}

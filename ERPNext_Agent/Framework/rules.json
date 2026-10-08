@@ -1,0 +1,15 @@
+{
+  "module": "Framework",
+  "doctypes": {
+    "Custom Field": {
+      "mandatory_fields": ["dt", "fieldname", "label", "fieldtype"],
+      "naming_convention": "fieldname must start with 'custom_'"
+    },
+    "Property Setter": {
+      "mandatory_fields": ["doc_type", "property", "value"]
+    },
+    "Server Script": {
+      "mandatory_fields": ["script_type", "script"]
+    }
+  }
+}

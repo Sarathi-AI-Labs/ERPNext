@@ -1,0 +1,11 @@
+{
+  "module": "Framework",
+  "section": "DocType",
+  "description": "Frappe core meta-schema builder and controller definitions.",
+  "primary_doctypes": [
+    "DocType"
+  ],
+  "slot_filling_questions": {
+    "module": "What is the Module?"
+  }
+}

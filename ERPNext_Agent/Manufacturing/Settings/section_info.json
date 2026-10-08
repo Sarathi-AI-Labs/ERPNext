@@ -1,0 +1,9 @@
+{
+  "module": "Manufacturing",
+  "section": "Settings",
+  "description": "Overproduction allowances and shop floor backflush rules.",
+  "primary_doctypes": [
+    "Manufacturing Settings"
+  ],
+  "slot_filling_questions": {}
+}

@@ -1,0 +1,20 @@
+{
+  "module": "Buying",
+  "section": "Reports",
+  "description": "Procurement analytics, supplier delivery performance, and purchase order tracking.",
+  "primary_doctypes": [
+    "Purchase Order",
+    "Purchase Invoice"
+  ],
+  "slot_filling_questions": {
+    "supplier": "What is the Supplier?",
+    "transaction_date": "What is the Date?",
+    "company": "What is the Company?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "items": "What is the Items?",
+    "status": "What is the Status?",
+    "posting_date": "What is the Posting Date?",
+    "credit_to": "What is the Credit To?"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Other Settings",
+  "description": "Miscellaneous ERPNext configuration parameters.",
+  "primary_doctypes": [
+    "Global Defaults"
+  ],
+  "slot_filling_questions": {
+    "default_currency": "What is the Default Currency?"
+  }
+}

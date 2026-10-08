@@ -1,0 +1,63 @@
+name: Linters
+
+on:
+  pull_request: { }
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  linters:
+    name: linters
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install and Run Pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  js-unit-tests:
+    name: js unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run JS unit tests
+        working-directory: ERPNEXT_MAIN
+        run: yarn test:js
+
+  semgrep:
+    name: semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Download semgrep
+        run: pip install semgrep
+
+      - name: Run custom application security rules
+        run: semgrep scan --error --config ./.github/semgrep/custom-app-security.yml --exclude ERPNEXT_MAIN --exclude scratch ERPNext_Agent sarathi_owner sarathi_visibility resources/sarathi .github
+
+      - name: Semgrep for Test Correctness
+        run: semgrep scan --error --include=**/test_*.py --config ./ERPNEXT_MAIN/semgrep/test-correctness.yml

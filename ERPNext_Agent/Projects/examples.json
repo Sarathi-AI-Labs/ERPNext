@@ -1,0 +1,34 @@
+[
+  {
+    "scenario": "Create Industrial Project with Custom BOM Link",
+    "prompt": "Create a Project named Alpha Factory Automation linked to BOM-ITEM-MOTOR-01-001 with manufacturing enabled under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Project",
+          "values": {
+            "project_name": "Alpha Factory Automation",
+            "company": "SarathiAILabs",
+            "status": "Open",
+            "custom_sarathi_manufacturing": 1,
+            "custom_sarathi_bom": "BOM-ITEM-MOTOR-01-001"
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Task",
+          "values": {
+            "subject": "Initial Design & BOM Review",
+            "project": "{{step_1.name}}",
+            "status": "Open"
+          }
+        }
+      }
+    ]
+  }
+]

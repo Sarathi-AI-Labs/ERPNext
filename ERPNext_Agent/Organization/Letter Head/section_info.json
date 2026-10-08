@@ -1,0 +1,11 @@
+{
+  "module": "Organization",
+  "section": "Letter Head",
+  "description": "Official document letterheads and headers.",
+  "primary_doctypes": [
+    "Letter Head"
+  ],
+  "slot_filling_questions": {
+    "letter_head_name": "What is the Letter Head Name?"
+  }
+}

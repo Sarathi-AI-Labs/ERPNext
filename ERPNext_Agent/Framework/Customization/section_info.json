@@ -1,0 +1,16 @@
+{
+  "module": "Framework",
+  "section": "Customization",
+  "description": "DocType schema extensions and field overrides.",
+  "primary_doctypes": [
+    "Custom Field",
+    "Property Setter"
+  ],
+  "slot_filling_questions": {
+    "dt": "What is the DocType?",
+    "fieldtype": "What is the Field Type?",
+    "doctype_or_field": "What is the Applied On?",
+    "doc_type": "What is the DocType?",
+    "property": "What is the Property?"
+  }
+}

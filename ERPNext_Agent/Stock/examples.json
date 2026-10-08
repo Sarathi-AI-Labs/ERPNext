@@ -1,0 +1,54 @@
+[
+  {
+    "scenario": "Check Stock Availability Before Transfer",
+    "prompt": "Check if we have at least 5 units of ITEM-RAW-001 in Stores - S",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "search_documents",
+        "parameters": {
+          "doctype": "Bin",
+          "filters": {
+            "item_code": "ITEM-RAW-001",
+            "warehouse": "Stores - S"
+          },
+          "fields": ["actual_qty", "reserved_qty", "projected_qty"]
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "Create Material Receipt for Initial Balance",
+    "prompt": "Receive 100 units of ITEM-BOLT-01 at rate 15 into Stores - S under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Stock Entry",
+          "values": {
+            "stock_entry_type": "Material Receipt",
+            "company": "SarathiAILabs",
+            "items": [
+              {
+                "item_code": "ITEM-BOLT-01",
+                "qty": 100,
+                "uom": "Nos",
+                "t_warehouse": "Stores - S",
+                "basic_rate": 15.0
+              }
+            ]
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "submit_document",
+        "parameters": {
+          "doctype": "Stock Entry",
+          "name": "{{step_1.name}}"
+        }
+      }
+    ]
+  }
+]

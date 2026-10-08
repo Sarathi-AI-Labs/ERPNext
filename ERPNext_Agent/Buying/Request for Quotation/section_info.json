@@ -1,0 +1,19 @@
+{
+  "module": "Buying",
+  "section": "Request for Quotation",
+  "description": "Tendering documents sent to multiple vendors to solicit competitive bids.",
+  "primary_doctypes": [
+    "Request for Quotation",
+    "Supplier"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "transaction_date": "What is the Date?",
+    "status": "What is the Status?",
+    "suppliers": "What is the Suppliers?",
+    "items": "What is the Items?",
+    "subject": "What is the Subject?",
+    "supplier_name": "What is the Supplier Name?",
+    "supplier_type": "What is the Supplier Type?"
+  }
+}

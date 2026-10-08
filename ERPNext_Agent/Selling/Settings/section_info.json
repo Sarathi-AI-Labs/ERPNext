@@ -1,0 +1,11 @@
+{
+  "module": "Selling",
+  "section": "Settings",
+  "description": "Credit limit verification and price list policies.",
+  "primary_doctypes": [
+    "Selling Settings"
+  ],
+  "slot_filling_questions": {
+    "sales_update_frequency": "What is the How often should sales data be updated in Company/Project??"
+  }
+}

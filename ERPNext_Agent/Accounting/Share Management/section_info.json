@@ -1,0 +1,15 @@
+{
+  "module": "Accounting",
+  "section": "Share Management",
+  "description": "Equity allocation, shareholder register, and share transfers.",
+  "primary_doctypes": [
+    "Company"
+  ],
+  "slot_filling_questions": {
+    "company_name": "What is the Company?",
+    "abbr": "What is the Abbr?",
+    "default_currency": "What is the Default Currency?",
+    "country": "What is the Country?",
+    "valuation_method": "What is the Default Stock Valuation Method?"
+  }
+}

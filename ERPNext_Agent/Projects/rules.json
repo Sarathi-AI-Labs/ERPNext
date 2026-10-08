@@ -1,0 +1,21 @@
+{
+  "module": "Projects",
+  "doctypes": {
+    "Project": {
+      "mandatory_fields": ["project_name", "company"],
+      "unique_fields": ["project_name"],
+      "custom_fields": {
+        "custom_sarathi_manufacturing": {"fieldtype": "Check", "default": 0},
+        "custom_sarathi_bom": {"fieldtype": "Link", "options": "BOM"}
+      }
+    },
+    "Task": {
+      "mandatory_fields": ["subject", "project"],
+      "status_options": ["Open", "Working", "Pending Review", "Completed", "Cancelled"]
+    },
+    "Timesheet": {
+      "mandatory_fields": ["company", "time_logs"],
+      "is_submittable": true
+    }
+  }
+}

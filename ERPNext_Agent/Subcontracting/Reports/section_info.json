@@ -1,0 +1,19 @@
+{
+  "module": "Subcontracting",
+  "section": "Reports",
+  "description": "Vendor stock tracking and material reconciliation.",
+  "primary_doctypes": [
+    "Subcontracting Order"
+  ],
+  "slot_filling_questions": {
+    "purchase_order": "What is the Subcontracting Purchase Order?",
+    "supplier": "What is the Job Worker?",
+    "supplier_name": "What is the Job Worker Name?",
+    "supplier_warehouse": "What is the Job Worker Warehouse?",
+    "company": "What is the Company?",
+    "transaction_date": "What is the Date?",
+    "items": "What is the Items?",
+    "service_items": "What is the Service Items?",
+    "status": "What is the Status?"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "module": "Users and System",
+  "section": "Audits",
+  "description": "System access logs, document modification trails, and security audits.",
+  "primary_doctypes": [
+    "Activity Log"
+  ],
+  "slot_filling_questions": {
+    "subject": "What is the Subject?"
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "scenario": "Verify Negative Stock Setting",
+    "prompt": "Check if allow_negative_stock is enabled in Stock Settings",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "get_value",
+        "parameters": {
+          "doctype": "Stock Settings",
+          "filters": "Stock Settings",
+          "fieldname": ["allow_negative_stock"]
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "module": "Manufacturing",
+  "section": "Material Planning",
+  "description": "Master production scheduling, material demand aggregation, and automated work order generation.",
+  "primary_doctypes": [
+    "Production Plan"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "posting_date": "What is the Posting Date?",
+    "po_items": "What is the Assembly Items?"
+  }
+}
