@@ -1,0 +1,9 @@
+{
+  "module": "ERPNext Settings",
+  "section": "Manufacturing Settings",
+  "description": "Work order backflush rules and capacity tolerances.",
+  "primary_doctypes": [
+    "Manufacturing Settings"
+  ],
+  "slot_filling_questions": {}
+}

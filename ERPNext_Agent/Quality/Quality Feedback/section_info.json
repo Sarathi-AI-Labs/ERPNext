@@ -1,0 +1,13 @@
+{
+  "module": "Quality",
+  "section": "Quality Feedback",
+  "description": "Customer and supplier quality complaints.",
+  "primary_doctypes": [
+    "Quality Feedback"
+  ],
+  "slot_filling_questions": {
+    "template": "What is the Template?",
+    "document_type": "What is the Type?",
+    "document_name": "What is the Feedback By?"
+  }
+}

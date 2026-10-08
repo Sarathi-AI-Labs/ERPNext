@@ -1,0 +1,9 @@
+{
+  "module": "Projects",
+  "section": "Settings",
+  "description": "Timesheet billing rates and project defaults.",
+  "primary_doctypes": [
+    "Projects Settings"
+  ],
+  "slot_filling_questions": {}
+}

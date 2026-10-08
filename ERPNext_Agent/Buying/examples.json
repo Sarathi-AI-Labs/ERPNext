@@ -1,0 +1,37 @@
+[
+  {
+    "scenario": "Create and Submit Purchase Order",
+    "prompt": "Create a Purchase Order to Acme Supplies for 50 units of ITEM-RAW-001 at rate 20 under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Purchase Order",
+          "values": {
+            "supplier": "Acme Supplies",
+            "company": "SarathiAILabs",
+            "schedule_date": "2026-10-15",
+            "items": [
+              {
+                "item_code": "ITEM-RAW-001",
+                "qty": 50,
+                "rate": 20.0,
+                "schedule_date": "2026-10-15",
+                "warehouse": "Stores - S"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "submit_document",
+        "parameters": {
+          "doctype": "Purchase Order",
+          "name": "{{step_1.name}}"
+        }
+      }
+    ]
+  }
+]

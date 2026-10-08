@@ -1,0 +1,21 @@
+[
+  {
+    "scenario": "Query Assets by Category",
+    "prompt": "List all active Machinery assets registered under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "search_documents",
+        "parameters": {
+          "doctype": "Asset",
+          "filters": {
+            "company": "SarathiAILabs",
+            "asset_category": "Machinery",
+            "docstatus": 1
+          },
+          "fields": ["name", "asset_name", "gross_purchase_amount", "location", "status"]
+        }
+      }
+    ]
+  }
+]

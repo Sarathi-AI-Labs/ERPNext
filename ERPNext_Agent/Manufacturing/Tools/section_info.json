@@ -1,0 +1,16 @@
+{
+  "module": "Manufacturing",
+  "section": "Tools",
+  "description": "BOM rate replacement tools and bulk revision replanning.",
+  "primary_doctypes": [
+    "BOM"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "item": "What is the Item to Manufacture?",
+    "quantity": "What is the Quantity (Output Qty)?",
+    "items": "What is the Components?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Conversion Rate?"
+  }
+}

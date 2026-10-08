@@ -1,0 +1,21 @@
+{
+  "module": "Accounting",
+  "doctypes": {
+    "Journal Entry": {
+      "mandatory_fields": ["company", "posting_date", "accounts"],
+      "is_submittable": true,
+      "invariants": {
+        "balanced_entry": "sum(debit) == sum(credit)"
+      },
+      "account_row_mandatory_fields": ["account"]
+    },
+    "Payment Entry": {
+      "mandatory_fields": ["payment_type", "company", "paid_from", "paid_to", "paid_amount"],
+      "is_submittable": true
+    },
+    "Account": {
+      "mandatory_fields": ["account_name", "company", "root_type"],
+      "root_types": ["Asset", "Liability", "Equity", "Income", "Expense"]
+    }
+  }
+}

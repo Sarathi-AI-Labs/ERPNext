@@ -1,0 +1,21 @@
+{
+  "module": "Buying",
+  "doctypes": {
+    "Supplier": {
+      "mandatory_fields": ["supplier_name", "supplier_group"],
+      "unique_fields": ["supplier_name"]
+    },
+    "Purchase Order": {
+      "mandatory_fields": ["supplier", "company", "schedule_date", "items"],
+      "is_submittable": true,
+      "items_mandatory_fields": ["item_code", "qty", "rate", "schedule_date"],
+      "item_constraints": {
+        "stock_item_requires_warehouse": true
+      }
+    },
+    "Purchase Invoice": {
+      "mandatory_fields": ["supplier", "company", "items"],
+      "is_submittable": true
+    }
+  }
+}

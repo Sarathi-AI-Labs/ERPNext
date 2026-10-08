@@ -1,0 +1,27 @@
+{
+  "module": "Manufacturing",
+  "doctypes": {
+    "BOM": {
+      "mandatory_fields": ["item", "quantity", "company", "items"],
+      "is_submittable": true,
+      "items_mandatory_fields": ["item_code", "qty"],
+      "custom_fields": {
+        "custom_sarathi_project": {"fieldtype": "Link", "options": "Project", "allow_on_submit": 1}
+      }
+    },
+    "Work Order": {
+      "mandatory_fields": ["production_item", "bom_no", "qty", "company", "wip_warehouse", "fg_warehouse"],
+      "is_submittable": true,
+      "preconditions": {
+        "bom_must_be_submitted": true,
+        "bom_must_be_active": true
+      }
+    },
+    "Operation": {
+      "mandatory_fields": ["operation"]
+    },
+    "Workstation": {
+      "mandatory_fields": ["workstation_name"]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "module": "Projects",
+  "section": "Setup",
+  "description": "Project types and labor activity categorizations.",
+  "primary_doctypes": [
+    "Project Type",
+    "Activity Type"
+  ],
+  "slot_filling_questions": {
+    "project_type": "What is the Project Type?",
+    "activity_type": "What is the Activity Type?"
+  }
+}

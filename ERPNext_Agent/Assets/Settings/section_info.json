@@ -1,0 +1,12 @@
+{
+  "module": "Assets",
+  "section": "Settings",
+  "description": "Asset numbering series, automated depreciation posting toggles, and default ledgers.",
+  "primary_doctypes": [
+    "Asset Category"
+  ],
+  "slot_filling_questions": {
+    "asset_category_name": "What is the Asset Category Name?",
+    "accounts": "What is the Accounts?"
+  }
+}

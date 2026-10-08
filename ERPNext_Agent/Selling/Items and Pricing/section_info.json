@@ -1,0 +1,14 @@
+{
+  "module": "Selling",
+  "section": "Items and Pricing",
+  "description": "Sales product catalog, price lists, and discounts.",
+  "primary_doctypes": [
+    "Item",
+    "Item Price"
+  ],
+  "slot_filling_questions": {
+    "item_code": "What is the Item Code?",
+    "item_group": "What is the Item Group?",
+    "stock_uom": "What is the Default Unit of Measure?"
+  }
+}

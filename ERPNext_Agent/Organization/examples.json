@@ -1,0 +1,34 @@
+[
+  {
+    "scenario": "Query Company Details",
+    "prompt": "Show me the default currency and abbreviation of SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "search_documents",
+        "parameters": {
+          "doctype": "Company",
+          "filters": {"name": "SarathiAILabs"},
+          "fields": ["name", "abbr", "default_currency", "country"]
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "Create New Department",
+    "prompt": "Create a new department called AI Research under SarathiAILabs",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Department",
+          "values": {
+            "department_name": "AI Research",
+            "company": "SarathiAILabs"
+          }
+        }
+      }
+    ]
+  }
+]

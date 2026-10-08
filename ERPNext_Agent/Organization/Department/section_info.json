@@ -1,0 +1,12 @@
+{
+  "module": "Organization",
+  "section": "Department",
+  "description": "Internal operational divisions and reporting lines.",
+  "primary_doctypes": [
+    "Department"
+  ],
+  "slot_filling_questions": {
+    "department_name": "What is the Department?",
+    "company": "What is the Company?"
+  }
+}

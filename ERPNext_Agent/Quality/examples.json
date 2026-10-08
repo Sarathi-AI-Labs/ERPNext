@@ -1,0 +1,38 @@
+[
+  {
+    "scenario": "Inspect Incoming Purchase Batch",
+    "prompt": "Create an Accepted Incoming Quality Inspection for ITEM-RAW-001 under Purchase Receipt PR-2026-0001",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "create_document",
+        "parameters": {
+          "doctype": "Quality Inspection",
+          "values": {
+            "inspection_type": "Incoming",
+            "reference_type": "Purchase Receipt",
+            "reference_name": "PR-2026-0001",
+            "item_code": "ITEM-RAW-001",
+            "sample_size": 5,
+            "status": "Accepted",
+            "readings": [
+              {
+                "specification": "Visual Inspection",
+                "reading_1": "Pass",
+                "status": "Accepted"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "step": 2,
+        "tool": "submit_document",
+        "parameters": {
+          "doctype": "Quality Inspection",
+          "name": "{{step_1.name}}"
+        }
+      }
+    ]
+  }
+]

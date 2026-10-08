@@ -22,19 +22,12 @@
     <!-- Main Content Area -->
     <main class="sod-main">
       <div class="sod-top">
-        <span class="sod-breadcrumb" id="sod-breadcrumb"
-          >Workspace /
-          <a href="javascript:void(0)" class="sod-link" data-action="go-home"
-            >Owner</a
-          >
-          / <b id="sod-crumb-text">Home</b></span
-        >
+        <span class="sod-breadcrumb" id="sod-breadcrumb">Workspace /
+          <a href="javascript:void(0)" class="sod-link" data-action="go-home">Owner</a>
+          / <b id="sod-crumb-text">Home</b></span>
         <div style="display: flex; align-items: center; gap: 12px">
-          <div
-            class="sod-live-status-pill"
-            id="sod-live-status-pill"
-            title="Connected to ERPNext Realtime Socket.IO Gateway"
-          >
+          <div class="sod-live-status-pill" id="sod-live-status-pill"
+            title="Connected to ERPNext Realtime Socket.IO Gateway">
             <span class="sod-pulse-dot"></span>
             <span id="sod-live-status-text">LIVE SYNCED</span>
           </div>
@@ -56,92 +49,118 @@
           </p>
         </div>
         <div class="sod-hero-actions">
-          <button
-            class="sod-btn sod-btn-glass"
-            data-action="run-quick-report"
-            title="Open embedded live reports inside the tower"
-          >
-            ⚡ Live Report Runner
-          </button>
-          <button
-            class="sod-btn sod-btn-glass"
-            data-action="refresh"
-            title="Sync all live values"
-          >
+          <button class="sod-btn sod-btn-glass" data-action="refresh" title="Sync all live values">
             ↻ Refresh
           </button>
           <div class="sod-hero-symbol">✧</div>
         </div>
       </section>
 
-      <!-- Global Filter Bar -->
+      <!-- Global Filter Bar with Searchable Combos & Non-Overlapping Date Range -->
       <section class="sod-filters" id="sod-filters" aria-label="Global Filters">
-        <div class="sod-filter-group">
-          <label>Company</label>
-          <select
-            id="sod-filter-company"
-            class="sod-select"
-            aria-label="Company filter"
-          >
+        <!-- Company Search & Suggestion Combo -->
+        <div class="sod-filter-group sod-combo-group">
+          <label for="sod-filter-company-input">Company</label>
+          <div class="sod-search-combo">
+            <input type="text" id="sod-filter-company-input" class="sod-combo-input" placeholder="All Companies"
+              autocomplete="off" />
+            <button type="button" class="sod-combo-chevron" id="sod-combo-company-btn"
+              aria-label="Toggle company options">▾</button>
+            <div class="sod-suggestions-menu" id="sod-company-suggestions"></div>
+          </div>
+          <select id="sod-filter-company" class="sod-hidden-select" style="display:none;" aria-label="Company filter">
             <option value="">All Companies</option>
           </select>
         </div>
-        <div class="sod-filter-group">
-          <label>Date Range</label>
-          <select
-            id="sod-filter-date"
-            class="sod-select"
-            aria-label="Date Range filter"
-          >
-            <option value="all">All Dates</option>
-            <option value="this_month">This Month</option>
-            <option value="last_month">Last Month</option>
-            <option value="this_quarter">This Quarter</option>
-            <option value="this_year">This Fiscal Year</option>
-          </select>
+
+        <!-- Date Range Filter with Floating Custom Range Picker (Zero Overlap) -->
+        <div class="sod-filter-group sod-combo-group sod-date-group">
+          <label for="sod-filter-date">Date Range</label>
+          <div class="sod-date-wrapper">
+            <select id="sod-filter-date" class="sod-select" aria-label="Date Range filter">
+              <option value="all">All Dates</option>
+              <option value="today">Today</option>
+              <option value="this_week">This Week</option>
+              <option value="this_month">This Month</option>
+              <option value="last_month">Last Month</option>
+              <option value="this_quarter">This Quarter</option>
+              <option value="this_year">This Fiscal Year</option>
+              <option value="custom">Custom Date Range 📅</option>
+            </select>
+
+            <!-- Floating Custom Date Range Popover (Generous Full Width, Zero Overlap) -->
+            <div class="sod-date-popover" id="sod-date-popover">
+              <div class="sod-date-popover-header">
+                <span>📅 Custom Date Range</span>
+                <button type="button" class="sod-date-popover-close" id="sod-date-popover-close"
+                  aria-label="Close date picker">✕</button>
+              </div>
+              <div class="sod-date-popover-fields">
+                <div class="sod-date-field-col">
+                  <label for="sod-filter-from-date">From Date</label>
+                  <input type="date" id="sod-filter-from-date" class="sod-date-full-input" aria-label="From Date" />
+                </div>
+                <div class="sod-date-popover-arrow">→</div>
+                <div class="sod-date-field-col">
+                  <label for="sod-filter-to-date">To Date</label>
+                  <input type="date" id="sod-filter-to-date" class="sod-date-full-input" aria-label="To Date" />
+                </div>
+              </div>
+              <div class="sod-date-popover-footer">
+                <button type="button" class="sod-btn-date-clear" id="sod-date-clear-btn">Clear</button>
+                <button type="button" class="sod-btn-date-apply" id="sod-date-apply-btn">Apply Range</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="sod-filter-group">
-          <label>Customer</label>
-          <select
-            id="sod-filter-customer"
-            class="sod-select"
-            aria-label="Customer filter"
-          >
+
+        <!-- Customer Search & Suggestion Combo -->
+        <div class="sod-filter-group sod-combo-group">
+          <label for="sod-filter-customer-input">Customer</label>
+          <div class="sod-search-combo">
+            <input type="text" id="sod-filter-customer-input" class="sod-combo-input" placeholder="All Customers"
+              autocomplete="off" />
+            <button type="button" class="sod-combo-chevron" id="sod-combo-customer-btn"
+              aria-label="Toggle customer options">▾</button>
+            <div class="sod-suggestions-menu" id="sod-customer-suggestions"></div>
+          </div>
+          <select id="sod-filter-customer" class="sod-hidden-select" style="display:none;" aria-label="Customer filter">
             <option value="">All Customers</option>
           </select>
         </div>
-        <div class="sod-filter-group">
-          <label>Project</label>
-          <select
-            id="sod-filter-project"
-            class="sod-select"
-            aria-label="Project filter"
-          >
+
+        <!-- Project Search & Suggestion Combo -->
+        <div class="sod-filter-group sod-combo-group">
+          <label for="sod-filter-project-input">Project</label>
+          <div class="sod-search-combo">
+            <input type="text" id="sod-filter-project-input" class="sod-combo-input" placeholder="All Projects"
+              autocomplete="off" />
+            <button type="button" class="sod-combo-chevron" id="sod-combo-project-btn"
+              aria-label="Toggle project options">▾</button>
+            <div class="sod-suggestions-menu" id="sod-project-suggestions"></div>
+          </div>
+          <select id="sod-filter-project" class="sod-hidden-select" style="display:none;" aria-label="Project filter">
             <option value="">All Projects</option>
           </select>
         </div>
+
+        <!-- Status Filter -->
         <div class="sod-filter-group">
-          <label>Status</label>
-          <select
-            id="sod-filter-status"
-            class="sod-select"
-            aria-label="Project status filter"
-          >
+          <label for="sod-filter-status">Status</label>
+          <select id="sod-filter-status" class="sod-select" aria-label="Project status filter">
             <option value="">All Statuses</option>
             <option value="Open">Open</option>
+            <option value="On Hold">On Hold</option>
             <option value="Completed">Completed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
+
+        <!-- Global Search Input -->
         <div class="sod-filter-group sod-search-group">
-          <label>Search ERPNext</label>
-          <input
-            type="search"
-            id="sod-search-input"
-            class="sod-input"
-            placeholder="Search ID, customer, item..."
-            aria-label="Search records"
-          />
+          <label for="sod-search-input">Search ERPNext</label>
+          <input type="search" id="sod-search-input" class="sod-input" placeholder="Search ID, customer, item..."
+            aria-label="Search records" />
         </div>
       </section>
 
@@ -160,11 +179,7 @@
     <div class="sod-detail-card" role="dialog" aria-modal="true">
       <div class="sod-modal-head">
         <h2 id="sod-modal-title">Stage Details</h2>
-        <button
-          class="sod-btn-close"
-          id="sod-modal-close"
-          aria-label="Close dialog"
-        >
+        <button class="sod-btn-close" id="sod-modal-close" aria-label="Close dialog">
           ✕
         </button>
       </div>

@@ -1,0 +1,16 @@
+[
+  {
+    "scenario": "Query User Roles and Permissions",
+    "prompt": "Check what roles user Administrator has assigned",
+    "plan": [
+      {
+        "step": 1,
+        "tool": "get_document",
+        "parameters": {
+          "doctype": "User",
+          "name": "Administrator"
+        }
+      }
+    ]
+  }
+]

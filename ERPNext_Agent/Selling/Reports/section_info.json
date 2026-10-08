@@ -1,0 +1,27 @@
+{
+  "module": "Selling",
+  "section": "Reports",
+  "description": "Sales funnel, revenue trends, and booking reports.",
+  "primary_doctypes": [
+    "Sales Order",
+    "Sales Invoice"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "customer": "What is the Customer?",
+    "order_type": "What is the Order Type?",
+    "transaction_date": "What is the Date?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "selling_price_list": "What is the Price List?",
+    "price_list_currency": "What is the Price List Currency?",
+    "plc_conversion_rate": "What is the Price List Exchange Rate?",
+    "items": "What is the Items?",
+    "status": "What is the Status?",
+    "posting_date": "What is the Posting Date?",
+    "base_net_total": "What is the Net Total (Company Currency)?",
+    "grand_total": "What is the Grand Total?",
+    "base_grand_total": "What is the Grand Total (Company Currency?",
+    "debit_to": "What is the Debit To?"
+  }
+}

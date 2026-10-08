@@ -1,0 +1,19 @@
+{
+  "module": "Stock",
+  "section": "Purchase Receipt",
+  "description": "Inbound vendor delivery receipts and inventory intake.",
+  "primary_doctypes": [
+    "Purchase Receipt"
+  ],
+  "slot_filling_questions": {
+    "supplier": "What is the Supplier?",
+    "posting_date": "What is the Date?",
+    "posting_time": "What is the Posting Time?",
+    "company": "What is the Company?",
+    "currency": "What is the Currency?",
+    "conversion_rate": "What is the Exchange Rate?",
+    "items": "What is the Items?",
+    "base_net_total": "What is the Net Total (Company Currency)?",
+    "status": "What is the Status?"
+  }
+}

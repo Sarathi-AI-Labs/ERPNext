@@ -1,0 +1,21 @@
+# Image contains BOTH apps. Do not combine with the development source mounts.
+services:
+  backend:
+    image: ${CUSTOM_IMAGE:?Set CUSTOM_IMAGE to the Sarathi image}:${CUSTOM_TAG:?Set CUSTOM_TAG to a pinned release}
+    environment:
+      SARATHI_BASE_URL: ${SARATHI_BASE_URL:-https://erp.sarathiailabs.com}
+    build:
+      context: .
+      dockerfile: sarathi_visibility/Containerfile
+      args:
+        ERPNEXT_VERSION: ${ERPNEXT_VERSION:-v16.33.0}
+  frontend:
+    environment:
+      FRAPPE_SITE_NAME_HEADER: ${SARATHI_SITE:-erp.sarathiailabs.com}
+  websocket:
+    environment:
+      # Internal service address, independent of browser/domain/site-folder names.
+      SARATHI_SOCKET_BACKEND_URL: http://backend:8000
+  db:
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?Set the existing production DB password}

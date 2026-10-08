@@ -1,0 +1,11 @@
+{
+  "module": "Users and System",
+  "section": "Roles",
+  "description": "System roles and module permission matrices.",
+  "primary_doctypes": [
+    "Role"
+  ],
+  "slot_filling_questions": {
+    "role_name": "What is the Role Name?"
+  }
+}

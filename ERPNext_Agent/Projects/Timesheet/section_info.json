@@ -1,0 +1,11 @@
+{
+  "module": "Projects",
+  "section": "Timesheet",
+  "description": "Employee labor hour logging and billable project charges.",
+  "primary_doctypes": [
+    "Timesheet"
+  ],
+  "slot_filling_questions": {
+    "time_logs": "What is the Time Sheets?"
+  }
+}

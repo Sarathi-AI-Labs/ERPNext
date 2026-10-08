@@ -1,0 +1,16 @@
+{
+  "module": "Subcontracting",
+  "section": "Setup",
+  "description": "Service items and outsourced process specifications.",
+  "primary_doctypes": [
+    "Subcontracting BOM"
+  ],
+  "slot_filling_questions": {
+    "finished_good": "What is the Finished Good?",
+    "finished_good_qty": "What is the Finished Good Qty?",
+    "finished_good_bom": "What is the Finished Good BOM?",
+    "service_item": "What is the Service Item?",
+    "service_item_qty": "What is the Service Item Qty?",
+    "service_item_uom": "What is the Service Item UOM?"
+  }
+}

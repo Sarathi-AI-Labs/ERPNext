@@ -1,0 +1,21 @@
+{
+  "module": "Subcontracting",
+  "transitions": {
+    "Subcontracting Order": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Draft", "allowed_actions": ["submit", "delete", "update"]},
+        "1": {"label": "Submitted", "allowed_actions": ["cancel"]},
+        "2": {"label": "Cancelled", "allowed_actions": ["amend"]}
+      }
+    },
+    "Subcontracting Receipt": {
+      "is_submittable": true,
+      "states": {
+        "0": {"label": "Draft", "allowed_actions": ["submit", "delete", "update"]},
+        "1": {"label": "Submitted", "allowed_actions": ["cancel"]},
+        "2": {"label": "Cancelled", "allowed_actions": ["amend"]}
+      }
+    }
+  }
+}

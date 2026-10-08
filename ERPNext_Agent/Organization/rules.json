@@ -1,0 +1,29 @@
+{
+  "module": "Organization",
+  "doctypes": {
+    "Company": {
+      "mandatory_fields": ["company_name", "abbr", "default_currency", "country"],
+      "unique_fields": ["company_name", "abbr"],
+      "field_constraints": {
+        "abbr": {
+          "max_length": 5,
+          "pattern": "^[A-Z0-9]+$"
+        }
+      }
+    },
+    "Fiscal Year": {
+      "mandatory_fields": ["year", "year_start_date", "year_end_date"],
+      "date_order": ["year_start_date", "year_end_date"]
+    },
+    "Cost Center": {
+      "mandatory_fields": ["cost_center_name", "company"],
+      "posting_rule": "Transactions can only select Cost Centers where is_group == 0"
+    },
+    "Department": {
+      "mandatory_fields": ["department_name"]
+    },
+    "Branch": {
+      "mandatory_fields": ["branch"]
+    }
+  }
+}

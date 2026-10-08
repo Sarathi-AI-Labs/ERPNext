@@ -1,0 +1,18 @@
+{
+  "module": "Selling",
+  "doctypes": {
+    "Customer": {
+      "mandatory_fields": ["customer_name", "customer_group", "territory"],
+      "unique_fields": ["customer_name"]
+    },
+    "Sales Order": {
+      "mandatory_fields": ["customer", "company", "delivery_date", "items"],
+      "is_submittable": true,
+      "items_mandatory_fields": ["item_code", "qty", "rate", "delivery_date"]
+    },
+    "Sales Invoice": {
+      "mandatory_fields": ["customer", "company", "items"],
+      "is_submittable": true
+    }
+  }
+}

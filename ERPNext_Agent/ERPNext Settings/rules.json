@@ -1,0 +1,23 @@
+{
+  "module": "ERPNext Settings",
+  "doctypes": {
+    "Stock Settings": {
+      "is_single": true,
+      "invariants": {
+        "allow_negative_stock": 0
+      }
+    },
+    "Manufacturing Settings": {
+      "is_single": true
+    },
+    "Accounts Settings": {
+      "is_single": true
+    },
+    "Buying Settings": {
+      "is_single": true
+    },
+    "Selling Settings": {
+      "is_single": true
+    }
+  }
+}

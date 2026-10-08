@@ -1,0 +1,13 @@
+{
+  "module": "Framework",
+  "transitions": {
+    "Custom Field": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update", "delete"]
+    },
+    "Property Setter": {
+      "is_submittable": false,
+      "allowed_actions": ["create", "read", "update", "delete"]
+    }
+  }
+}

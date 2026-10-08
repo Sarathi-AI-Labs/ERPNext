@@ -1,0 +1,12 @@
+{
+  "module": "Organization",
+  "section": "User",
+  "description": "System user profiles, credentials, and roles.",
+  "primary_doctypes": [
+    "User"
+  ],
+  "slot_filling_questions": {
+    "email": "What is the Email?",
+    "first_name": "What is the First Name?"
+  }
+}

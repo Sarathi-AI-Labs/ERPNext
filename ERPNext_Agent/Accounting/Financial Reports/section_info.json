@@ -1,0 +1,15 @@
+{
+  "module": "Accounting",
+  "section": "Financial Reports",
+  "description": "General Ledger, Trial Balance, Profit and Loss, and Balance Sheet analysis.",
+  "primary_doctypes": [
+    "Journal Entry",
+    "GL Entry"
+  ],
+  "slot_filling_questions": {
+    "company": "What is the Company?",
+    "voucher_type": "What is the Entry Type?",
+    "posting_date": "What is the Posting Date?",
+    "accounts": "What is the Accounting Entries?"
+  }
+}

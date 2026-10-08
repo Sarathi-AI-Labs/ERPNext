@@ -1,0 +1,9 @@
+{
+  "module": "Buying",
+  "section": "Settings",
+  "description": "Buying tolerances, purchase order approval rules, and supplier scorecards.",
+  "primary_doctypes": [
+    "Buying Settings"
+  ],
+  "slot_filling_questions": {}
+}
