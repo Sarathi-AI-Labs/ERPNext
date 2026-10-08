@@ -9,8 +9,13 @@ on:
     types: [opened, reopened, synchronize, labeled]
     paths-ignore:
       - '**.js'
+      - '**.css'
+      - '**.svg'
       - '**.md'
       - '**.html'
+      - '.github/**'
+      - 'compose.yaml'
+      - 'pwd.yml'
       - 'crowdin.yml'
       - '.coderabbit.yml'
       - '.mergify.yml'

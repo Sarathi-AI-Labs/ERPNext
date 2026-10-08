@@ -11,3 +11,8 @@ scratch/
 *.env
 .env
 node_modules/
+
+# Cache directories
+.ruff_cache/
+.pytest_cache/
+
