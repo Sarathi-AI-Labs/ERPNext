@@ -224,15 +224,31 @@
 .sd-kpi span {
 	font-size: 12px;
 	font-weight: 650;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
+	hyphens: none !important;
 }
 .sd-kpi strong {
 	font-size: clamp(19px, 2vw, 28px);
 	font-weight: 750;
-	overflow-wrap: anywhere;
+	overflow-wrap: normal !important;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
+	hyphens: none !important;
+}
+.sd-kpi strong.sd-kpi-val-text {
+	font-size: clamp(14px, 1.25vw, 19px) !important;
+	letter-spacing: -0.2px !important;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
 }
 .sd-kpi small {
 	color: #087e8b;
 	font-size: 10px;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
 }
 .sd-panel {
 	background: white;
@@ -1092,9 +1108,15 @@
 	color: var(--sd-card-accent);
 	font-size: clamp(22px, 2.2vw, 32px);
 	letter-spacing: -0.7px;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
+	hyphens: none !important;
 }
 .sd-kpi small {
 	color: #536782;
+	white-space: nowrap !important;
+	word-break: keep-all !important;
 }
 .sd-kpi:hover {
 	transform: translateY(-3px);
@@ -5763,4 +5785,349 @@
 	background: linear-gradient(135deg, #6d28d9, #5b21b6);
 	transform: scale(1.04);
 	box-shadow: 0 4px 14px rgba(109, 40, 217, 0.38);
+}
+
+/* ==========================================================================
+   COLORFUL EXECUTIVE MODAL TABLE & DIALOG SYSTEM (CARD CLICK)
+   ========================================================================== */
+
+/* Wide spacious dialog so table is never small or cramped */
+.sd-card-details-dialog .modal-dialog {
+	width: 95vw !important;
+	max-width: 1440px !important;
+	min-width: 90vw !important;
+	margin: 20px auto !important;
+}
+
+.sd-card-details-dialog .modal-content {
+	border-radius: 20px !important;
+	border: 1px solid #dce5f3 !important;
+	box-shadow: 0 25px 60px rgba(15, 23, 42, 0.22) !important;
+	overflow: hidden !important;
+	background: #ffffff !important;
+}
+
+.sd-card-details-dialog .modal-header {
+	background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+	color: #ffffff !important;
+	padding: 18px 26px !important;
+	border-bottom: 2px solid #334155 !important;
+}
+
+.sd-card-details-dialog .modal-title {
+	color: #ffffff !important;
+	font-size: 19px !important;
+	font-weight: 750 !important;
+	letter-spacing: -0.3px !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+}
+
+.sd-card-details-dialog .modal-header .btn-modal-close,
+.sd-card-details-dialog .modal-header .close {
+	color: #ffffff !important;
+	opacity: 0.8 !important;
+	font-size: 24px !important;
+	text-shadow: none !important;
+	transition: opacity 0.2s, transform 0.2s !important;
+}
+
+.sd-card-details-dialog .modal-header .btn-modal-close:hover,
+.sd-card-details-dialog .modal-header .close:hover {
+	opacity: 1 !important;
+	transform: scale(1.15) !important;
+}
+
+.sd-card-details-dialog .modal-body {
+	padding: 24px !important;
+	background: #f8fafc !important;
+	max-height: calc(88vh - 100px) !important;
+	overflow-y: auto !important;
+}
+
+/* Modal toolbar & search bar */
+.sd-modal-view-container {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 100%;
+}
+
+.sd-modal-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	background: #ffffff;
+	padding: 14px 20px;
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.sd-modal-search-wrap {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: #f1f5f9;
+	padding: 10px 16px;
+	border-radius: 10px;
+	border: 1px solid #cbd5e1;
+	min-width: 320px;
+	max-width: 500px;
+	flex: 1;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sd-modal-search-wrap:focus-within {
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+	background: #ffffff;
+}
+
+.sd-modal-search-svg {
+	color: #64748b;
+	flex-shrink: 0;
+}
+
+.sd-modal-search-input {
+	border: none;
+	outline: none;
+	background: transparent;
+	font-size: 13.5px;
+	width: 100%;
+	color: #1e293b;
+}
+
+.sd-modal-meta-pills {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+/* Modal Table Scroll & Structure */
+.sd-modal-table-scroll {
+	width: 100%;
+	overflow-x: auto;
+	overflow-y: visible;
+	border-radius: 16px;
+	border: 1px solid #dce5f3;
+	background: #ffffff;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.sd-modal-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	min-width: 980px;
+}
+
+/* Corner rounding on dynamic column headers */
+.sd-color-table thead tr th:first-child,
+.sd-modal-table thead tr th:first-child {
+	border-top-left-radius: 16px !important;
+	text-align: left !important;
+	padding-left: 20px !important;
+}
+
+.sd-color-table thead tr th:last-child,
+.sd-modal-table thead tr th:last-child {
+	border-top-right-radius: 16px !important;
+}
+
+.sd-color-table thead tr th.sd-th-plum,
+.sd-modal-table thead tr th.sd-th-plum {
+	background: linear-gradient(135deg, #581c87, #7c3aed);
+}
+
+/* Form detail modal view (Document Information & Child Tables) */
+.sd-modal-form-view {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+}
+
+.sd-modal-form-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	background: #ffffff;
+	padding: 16px 22px;
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.sd-modal-form-header-left {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.sd-modal-form-back-btn {
+	background: #f1f5f9;
+	border: 1px solid #cbd5e1;
+	color: #334155;
+	padding: 8px 16px;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 13px;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.sd-modal-form-back-btn:hover {
+	background: #e2e8f0;
+	color: #0f172a;
+	transform: translateX(-2px);
+}
+
+.sd-modal-form-title-badge {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.sd-form-doctype-tag {
+	font-size: 11px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #7c3aed;
+	background: #f5f3ff;
+	padding: 2px 8px;
+	border-radius: 6px;
+	border: 1px solid #ddd6fe;
+	width: fit-content;
+}
+
+.sd-form-docname-title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 800;
+	color: #0f172a;
+}
+
+.sd-modal-form-header-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.sd-modal-form-section-title {
+	font-size: 13.5px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.6px;
+	color: #475569;
+	padding-bottom: 6px;
+	border-bottom: 2px solid #e2e8f0;
+	margin-top: 8px;
+}
+
+.sd-modal-form-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 14px;
+}
+
+.sd-modal-field-card {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-left: 4px solid #7c3aed;
+	border-radius: 12px;
+	padding: 14px 18px;
+	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sd-modal-field-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.sd-modal-field-label {
+	font-size: 11px;
+	font-weight: 750;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	color: #64748b;
+}
+
+.sd-modal-field-val {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e293b;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sd-modal-related-block {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 10px;
+}
+
+.sd-modal-related-title {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.sd-modal-related-title h4 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 750;
+	color: #1e293b;
+}
+
+.sd-btn-xs {
+	padding: 6px 14px !important;
+	font-size: 11.5px !important;
+}
+
+/* Strictly prevent word, date, and number wrapping everywhere */
+.sd-kpi,
+.sd-kpi *,
+.sd-color-table,
+.sd-color-table *,
+.sd-modal-table,
+.sd-modal-table * {
+	word-break: keep-all !important;
+	overflow-wrap: normal !important;
+	hyphens: none !important;
+}
+
+.sd-kpi strong,
+.sd-kpi span,
+.sd-kpi small,
+.sd-kpi .sd-metric-label,
+.sd-cell-badge,
+.sd-status-tag,
+.sd-status-pill,
+.sd-traffic-capsule,
+.sd-row-action-btn,
+.sd-ribbon-name,
+.sd-ribbon-sub,
+.sd-pin-badge,
+.sd-pin-text,
+.sd-modal-table td,
+.sd-modal-table th,
+.sd-color-table td,
+.sd-color-table th,
+.sd-cell-text,
+.sd-cell-link {
+	white-space: nowrap !important;
 }

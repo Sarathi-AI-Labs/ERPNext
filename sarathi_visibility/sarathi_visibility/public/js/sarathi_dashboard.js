@@ -519,18 +519,19 @@ frappe.SarathiIndustrialDashboard = class {
 		)}. Totals include only records you may read.`;
 		this.el("[data-live-projects]").innerHTML = this.liveCards();
 		this.el("[data-kpis]").innerHTML = d.kpis
-			.map(
-				(k, i) =>
-					`<button class="sd-kpi sd-tone-${i % 6}" data-kpi-label="${this.esc(
-						k.label
-					)}" data-report="${k.report}" data-subset="${
-						k.subset || ""
-					}"><span class="sd-metric-label">${this.workspaceIcon(k.label)}${this.esc(
-						k.label
-					)}</span><strong>${
-						typeof k.value === "number" ? this.num(k.value) : this.esc(k.value)
-					}</strong><small>View records ↗</small></button>`
-			)
+			.map((k, i) => {
+				const isText = typeof k.value === "string" && (k.value.length > 5 || isNaN(k.value));
+				const formatted = typeof k.value === "number" ? this.num(k.value) : this.esc(k.value);
+				return `<button class="sd-kpi sd-tone-${i % 6}" data-kpi-label="${this.esc(
+					k.label
+				)}" data-report="${k.report}" data-subset="${
+					k.subset || ""
+				}"><span class="sd-metric-label">${this.workspaceIcon(k.label)}${this.esc(
+					k.label
+				)}</span><strong class="${
+					isText ? "sd-kpi-val-text" : ""
+				}">${formatted}</strong><small>View records ↗</small></button>`;
+			})
 			.join("");
 		this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
 		this.el("[data-project-panel]").hidden = !!this.filters.project;
@@ -1718,21 +1719,63 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 
 	formatCellValue(c, val) {
-		if (val === null || val === undefined || val === "") return "—";
-		if (c.fieldtype === "Currency") return "₹" + this.num(val);
-		if (["Float", "Int", "Percent"].includes(c.fieldtype))
-			return this.num(val) + (c.fieldtype === "Percent" ? "%" : "");
-		if (c.fieldtype === "Date") return frappe.datetime.str_to_user(val);
-		if (
-			String(c.fieldname).toLowerCase().includes("status") ||
-			String(c.label).toLowerCase().includes("status")
-		) {
-			return this.badge(val);
+		if (val === null || val === undefined || val === "" || val === "—") {
+			return '<span style="color:#94a3b8; font-weight:500;">—</span>';
+		}
+		if (c.fieldtype === "Currency") {
+			return `<span class="sd-cell-badge sd-badge-azure" style="white-space:nowrap;"><strong>₹${this.num(
+				val
+			)}</strong></span>`;
+		}
+		if (c.fieldtype === "Percent") {
+			const pct = Math.min(100, Math.max(0, Number(val) || 0));
+			return `<div class="sd-table-progress-box" style="margin: 0 auto; min-width: 100px;"><div class="sd-table-progress-bar"><div class="sd-table-progress-fill" style="width: ${pct}%;"></div></div><div class="sd-table-progress-meta" style="justify-content: center;"><span class="sd-prog-pct">${this.num(
+				val
+			)}%</span></div></div>`;
+		}
+		if (["Float", "Int"].includes(c.fieldtype)) {
+			return `<span class="sd-cell-badge sd-badge-teal" style="white-space:nowrap;"><strong>${this.num(
+				val
+			)}</strong></span>`;
+		}
+		if (c.fieldtype === "Date" || c.fieldtype === "Datetime") {
+			const formatted = frappe.datetime?.str_to_user ? frappe.datetime.str_to_user(val) : String(val);
+			return `<span class="sd-cell-badge sd-badge-blue" style="white-space:nowrap;"><span style="font-size:12px;">📅</span> ${this.esc(
+				formatted
+			)}</span>`;
+		}
+		const strVal = String(val);
+		const fieldName = String(c.fieldname || "").toLowerCase();
+		const colLabel = String(c.label || "").toLowerCase();
+		if (fieldName.includes("status") || colLabel.includes("status") || fieldName.includes("state")) {
+			const lower = strVal.toLowerCase();
+			if (/completed|finished|delivered|closed|submitted/.test(lower)) {
+				return `<span class="sd-status-tag sd-tag-ontrack" style="white-space:nowrap;"><span class="sd-tag-icon">✓</span> ${this.esc(
+					val
+				)}</span>`;
+			}
+			if (/delayed|overdue|shortage|cancelled|failed|rejected/.test(lower)) {
+				return `<span class="sd-status-tag sd-tag-delayed" style="white-space:nowrap;"><span class="sd-tag-icon">✕</span> ${this.esc(
+					val
+				)}</span>`;
+			}
+			if (/in progress|working|active|running/.test(lower)) {
+				return `<span class="sd-cell-badge sd-badge-blue" style="white-space:nowrap;"><span class="sd-dot-pulse live-green"></span> ${this.esc(
+					val
+				)}</span>`;
+			}
+			return `<span class="sd-status-pill sd-pill-${this.statusColor(
+				val
+			)}" style="white-space:nowrap;">${this.esc(val)}</span>`;
 		}
 		if (c.fieldtype === "Link" && c.options && val) {
-			return this.link(c.options, val);
+			return `<a href="javascript:void(0)" class="sd-record-link sd-cell-link" data-inspect="${this.esc(
+				val
+			)}" data-doctype="${this.esc(
+				c.options
+			)}" style="white-space:nowrap; font-weight:600; color:#2563eb;">${this.esc(val)} ↗</a>`;
 		}
-		return this.esc(val);
+		return `<span class="sd-cell-text" style="white-space:nowrap;">${this.esc(val)}</span>`;
 	}
 
 	async showCardDetailsModal(reportKey, subset = "", label = "", projectContext = "") {
@@ -1785,30 +1828,99 @@ frappe.SarathiIndustrialDashboard = class {
 
 		const defaultDt = this.getDocTypeForReport(reportKey);
 
+		const PIN_THEMES = [
+			{ cls: "sd-th-purple", defaultIcon: "🏢" },
+			{ cls: "sd-th-blue", defaultIcon: "🛡️" },
+			{ cls: "sd-th-azure", defaultIcon: "⭐" },
+			{ cls: "sd-th-teal", defaultIcon: "👍" },
+			{ cls: "sd-th-forest", defaultIcon: "⏱️" },
+			{ cls: "sd-th-lime", defaultIcon: "💎" },
+			{ cls: "sd-th-olive", defaultIcon: "🏷️" },
+		];
+
+		const getColumnIcon = (col, idx) => {
+			const s = `${col.label || ""} ${col.fieldname || ""}`.toLowerCase();
+			if (/customer|client|organization|party/.test(s)) return "🏢";
+			if (/project|task|operation|work_order|wo/.test(s)) return "📋";
+			if (/item|part|product|material|bom/.test(s)) return "📦";
+			if (/status|state|workflow/.test(s)) return "🛡️";
+			if (/date|time|schedule|due/.test(s)) return "📅";
+			if (/qty|quantity|count|delivered|produced/.test(s)) return "⏱️";
+			if (/amount|cost|price|total|value|rate|curr|balance|tax/.test(s)) return "💰";
+			if (/percent|pct|progress|compl/.test(s)) return "⭐";
+			if (/warehouse|location/.test(s)) return "🏬";
+			if (/supplier|vendor/.test(s)) return "🤝";
+			if (/user|manager|assign|owner/.test(s)) return "👤";
+			return PIN_THEMES[idx % PIN_THEMES.length].defaultIcon;
+		};
+
 		const renderTableBody = (filteredRows) => {
 			if (!filteredRows.length) {
 				return `<tr><td colspan="${
 					columns.length + 1
-				}" style="text-align: center; padding: 36px; color: #64748b;">No matching records found.</td></tr>`;
+				}" style="text-align: center; padding: 48px; color: #64748b; font-size: 14px; font-weight: 600;">No matching records found.</td></tr>`;
 			}
 			return filteredRows
-				.map((row) => {
+				.map((row, rIdx) => {
 					const docName = row.name || row.parent || row.project || row.item_code || "";
 					const doctype = row.doctype || defaultDt;
+					const isEven = rIdx % 2 === 0;
+
+					const firstCol = columns[0];
+					const firstVal = firstCol ? row[firstCol.fieldname] ?? docName : docName;
+					const primaryName =
+						row.customer_name ||
+						row.project_name ||
+						row.item_name ||
+						row.title ||
+						firstVal ||
+						docName ||
+						"—";
+					const subName =
+						primaryName !== docName && docName ? docName : row.doctype || defaultDt || "";
+					const initials =
+						String(primaryName)
+							.replace(/[^a-zA-Z0-9]/g, "")
+							.slice(0, 2)
+							.toUpperCase() || "ID";
+
 					return `
-          <tr class="sd-modal-row" data-name="${this.esc(docName)}" data-doctype="${this.esc(doctype)}">
+          <tr class="sd-color-tr sd-modal-row ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-name="${this.esc(
+						docName
+					)}" data-doctype="${this.esc(doctype)}">
+            <td class="sd-td-ribbon">
+              <div class="sd-row-ribbon ${rIdx % 2 === 0 ? "sd-ribbon-purple" : "sd-ribbon-plum"}">
+                <div class="sd-ribbon-box">
+                  <span class="sd-ribbon-initials">${this.esc(initials)}</span>
+                </div>
+                <div class="sd-ribbon-content">
+                  <strong class="sd-ribbon-name" title="${this.esc(primaryName)}">${this.esc(
+						primaryName
+					)}</strong>
+                  ${
+						subName
+							? `<span class="sd-ribbon-sub" title="${this.esc(subName)}">${this.esc(
+									subName
+							  )}</span>`
+							: ""
+					}
+                </div>
+                <div class="sd-ribbon-chevron"></div>
+              </div>
+            </td>
             ${columns
+				.slice(1)
 				.map((c) => {
 					const val = row[c.fieldname];
-					return `<td>${this.formatCellValue(c, val)}</td>`;
+					return `<td class="sd-td-cell">${this.formatCellValue(c, val)}</td>`;
 				})
 				.join("")}
-            <td style="text-align: right; white-space: nowrap;">
+            <td class="sd-td-cell sd-td-action" style="text-align: center; white-space: nowrap;">
               ${
 					docName
-						? `<button type="button" class="sd-button sd-modal-btn-view" data-action="view-row-form" data-name="${this.esc(
+						? `<button type="button" class="sd-row-action-btn sd-modal-btn-view" data-action="view-row-form" data-name="${this.esc(
 								docName
-						  )}" data-doctype="${this.esc(doctype)}">View Form 📄</button>`
+						  )}" data-doctype="${this.esc(doctype)}">View Form ➔</button>`
 						: "—"
 				}
             </td>
@@ -1846,12 +1958,30 @@ frappe.SarathiIndustrialDashboard = class {
         </div>
 
         <!-- Table Scroll Container -->
-        <div class="sd-modal-table-scroll">
-          <table class="sd-modal-table">
+        <div class="sd-color-table-wrapper sd-modal-table-scroll">
+          <table class="sd-color-table sd-modal-table" aria-label="${this.esc(title)} Table">
             <thead>
-              <tr>
-                ${columns.map((c) => `<th>${this.esc(c.label)}</th>`).join("")}
-                <th style="text-align: right; width: 110px;">Action</th>
+              <tr class="sd-color-table-header-row">
+                ${columns
+					.map((c, i) => {
+						const theme = PIN_THEMES[i % PIN_THEMES.length];
+						const pinIcon = getColumnIcon(c, i);
+						return `
+                  <th class="sd-th-pin ${theme.cls}">
+                    <div class="sd-pin-badge">
+                      <span class="sd-pin-icon">${pinIcon}</span>
+                      <span class="sd-pin-text">${this.esc(c.label)}</span>
+                    </div>
+                  </th>
+                `;
+					})
+					.join("")}
+                <th class="sd-th-pin sd-th-olive" style="text-align: center; width: 130px;">
+                  <div class="sd-pin-badge">
+                    <span class="sd-pin-icon">⚡</span>
+                    <span class="sd-pin-text">Action</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody class="sd-modal-tbody">
@@ -1875,6 +2005,9 @@ frappe.SarathiIndustrialDashboard = class {
 		// Wire row click / View Form button
 		$container.off("click", ".sd-modal-btn-view, .sd-modal-row td:not(:last-child)");
 		$container.on("click", ".sd-modal-btn-view, .sd-modal-row td:not(:last-child)", (e) => {
+			if ($(e.target).closest("a, button:not(.sd-modal-btn-view)").length) {
+				return;
+			}
 			const $target = $(e.target).closest("tr");
 			const name = $target.attr("data-name");
 			let dt = $target.attr("data-doctype");
@@ -1883,6 +2016,27 @@ frappe.SarathiIndustrialDashboard = class {
 			}
 			if (name && dt) {
 				this.showRecordFormModal(dialog, dt, name, () => {
+					this.renderCardDetailsTable(
+						dialog,
+						data,
+						reportKey,
+						subset,
+						title,
+						project,
+						currentSearch
+					);
+				});
+			}
+		});
+
+		$container.off("click", ".sd-record-link");
+		$container.on("click", ".sd-record-link", (e) => {
+			e.stopPropagation();
+			const targetName =
+				$(e.target).attr("data-inspect") || $(e.target).text().trim().replace(/ ↗$/, "");
+			const targetDt = $(e.target).attr("data-doctype") || defaultDt;
+			if (targetName && targetDt) {
+				this.showRecordFormModal(dialog, targetDt, targetName, () => {
 					this.renderCardDetailsTable(
 						dialog,
 						data,
@@ -1927,6 +2081,32 @@ frappe.SarathiIndustrialDashboard = class {
 			const columns = data.columns || [];
 			const related = data.related || [];
 			const status = row.status || row.workflow_state || row.docstatus_name || "";
+
+			const PIN_THEMES = [
+				{ cls: "sd-th-purple", defaultIcon: "🏢" },
+				{ cls: "sd-th-blue", defaultIcon: "🛡️" },
+				{ cls: "sd-th-azure", defaultIcon: "⭐" },
+				{ cls: "sd-th-teal", defaultIcon: "👍" },
+				{ cls: "sd-th-forest", defaultIcon: "⏱️" },
+				{ cls: "sd-th-lime", defaultIcon: "💎" },
+				{ cls: "sd-th-olive", defaultIcon: "🏷️" },
+			];
+
+			const getColumnIcon = (col, idx) => {
+				const s = `${col.label || ""} ${col.fieldname || ""}`.toLowerCase();
+				if (/customer|client|organization|party/.test(s)) return "🏢";
+				if (/project|task|operation|work_order|wo/.test(s)) return "📋";
+				if (/item|part|product|material|bom/.test(s)) return "📦";
+				if (/status|state|workflow/.test(s)) return "🛡️";
+				if (/date|time|schedule|due/.test(s)) return "📅";
+				if (/qty|quantity|count|delivered|produced/.test(s)) return "⏱️";
+				if (/amount|cost|price|total|value|rate|curr|balance|tax/.test(s)) return "💰";
+				if (/percent|pct|progress|compl/.test(s)) return "⭐";
+				if (/warehouse|location/.test(s)) return "🏬";
+				if (/supplier|vendor/.test(s)) return "🤝";
+				if (/user|manager|assign|owner/.test(s)) return "👤";
+				return PIN_THEMES[idx % PIN_THEMES.length].defaultIcon;
+			};
 
 			let formHtml = `
         <div class="sd-modal-form-view">
@@ -1992,30 +2172,99 @@ frappe.SarathiIndustrialDashboard = class {
               ${
 					rel.total
 						? `
-                <div class="sd-modal-table-scroll sd-modal-nested-table-wrap">
-                  <table class="sd-modal-table sd-modal-nested-table">
+                <div class="sd-color-table-wrapper sd-modal-table-scroll sd-modal-nested-table-wrap">
+                  <table class="sd-color-table sd-modal-table sd-modal-nested-table" aria-label="${this.esc(
+						rel.title
+					)} Table">
                     <thead>
-                      <tr>
-                        ${rel.columns.map((rc) => `<th>${this.esc(rc.label)}</th>`).join("")}
-                        <th style="width: 80px; text-align: right;">Action</th>
+                      <tr class="sd-color-table-header-row">
+                        ${rel.columns
+							.map((rc, ci) => {
+								const theme = PIN_THEMES[ci % PIN_THEMES.length];
+								const pinIcon = getColumnIcon(rc, ci);
+								return `
+                          <th class="sd-th-pin ${theme.cls}">
+                            <div class="sd-pin-badge">
+                              <span class="sd-pin-icon">${pinIcon}</span>
+                              <span class="sd-pin-text">${this.esc(rc.label)}</span>
+                            </div>
+                          </th>
+                        `;
+							})
+							.join("")}
+                        <th class="sd-th-pin sd-th-olive" style="width: 120px; text-align: center;">
+                          <div class="sd-pin-badge">
+                            <span class="sd-pin-icon">⚡</span>
+                            <span class="sd-pin-text">Action</span>
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       ${rel.rows
-							.map((rrow) => {
-								const rname = rrow.name || rrow.parent;
+							.map((rrow, ri) => {
+								const rname = rrow.name || rrow.parent || "";
 								const rdt = rrow.doctype || rel.doctype || "";
+								const isEvenRow = ri % 2 === 0;
+								const firstRelCol = rel.columns[0];
+								const firstRelVal = firstRelCol
+									? rrow[firstRelCol.fieldname] ?? rname
+									: rname;
+								const rPrimary =
+									rrow.project_name ||
+									rrow.customer_name ||
+									rrow.item_name ||
+									firstRelVal ||
+									rname ||
+									"—";
+								const rSub = rPrimary !== rname && rname ? rname : rdt || "";
+								const rInitials =
+									String(rPrimary)
+										.replace(/[^a-zA-Z0-9]/g, "")
+										.slice(0, 2)
+										.toUpperCase() || "ID";
 								return `
-                          <tr>
+                          <tr class="sd-color-tr ${
+								isEvenRow ? "sd-tr-even" : "sd-tr-odd"
+							}" data-name="${this.esc(rname)}" data-doctype="${this.esc(rdt)}">
+                            <td class="sd-td-ribbon">
+                              <div class="sd-row-ribbon ${
+									ri % 2 === 0 ? "sd-ribbon-purple" : "sd-ribbon-plum"
+								}">
+                                <div class="sd-ribbon-box">
+                                  <span class="sd-ribbon-initials">${this.esc(rInitials)}</span>
+                                </div>
+                                <div class="sd-ribbon-content">
+                                  <strong class="sd-ribbon-name" title="${this.esc(rPrimary)}">${this.esc(
+									rPrimary
+								)}</strong>
+                                  ${
+										rSub
+											? `<span class="sd-ribbon-sub" title="${this.esc(
+													rSub
+											  )}">${this.esc(rSub)}</span>`
+											: ""
+									}
+                                </div>
+                                <div class="sd-ribbon-chevron"></div>
+                              </div>
+                            </td>
                             ${rel.columns
-								.map((rc) => `<td>${this.formatCellValue(rc, rrow[rc.fieldname])}</td>`)
+								.slice(1)
+								.map(
+									(rc) =>
+										`<td class="sd-td-cell">${this.formatCellValue(
+											rc,
+											rrow[rc.fieldname]
+										)}</td>`
+								)
 								.join("")}
-                            <td style="text-align: right;">
+                            <td class="sd-td-cell sd-td-action" style="text-align: center; white-space: nowrap;">
                               ${
 									rname
-										? `<button type="button" class="sd-button sd-btn-xs sd-modal-nested-btn" data-doctype="${this.esc(
+										? `<button type="button" class="sd-row-action-btn sd-btn-xs sd-modal-nested-btn" data-doctype="${this.esc(
 												rdt
-										  )}" data-name="${this.esc(rname)}">Inspect</button>`
+										  )}" data-name="${this.esc(rname)}">Inspect ➔</button>`
 										: "—"
 								}
                             </td>
