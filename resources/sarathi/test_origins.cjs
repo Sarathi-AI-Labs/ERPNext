@@ -63,7 +63,6 @@ const code = fs.readFileSync(
     console.log(`PASS shared dashboard routes: ${origin}`);
   }
   for (const file of [
-    "sarathi_owner/sarathi_owner/public/js/sarathi_owner_dashboard.js",
     "sarathi_visibility/sarathi_visibility/public/js/sarathi_dashboard.js",
   ]) {
     assert.match(

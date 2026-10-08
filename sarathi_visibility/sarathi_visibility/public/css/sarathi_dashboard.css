@@ -5257,3 +5257,7 @@
 		transform: rotate(360deg);
 	}
 }
+
+.scm-launcher {
+	display: none !important;
+}

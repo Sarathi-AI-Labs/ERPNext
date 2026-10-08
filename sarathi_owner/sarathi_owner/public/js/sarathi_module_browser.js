@@ -3,13 +3,14 @@ frappe.SarathiModuleBrowser = class {
 	constructor(dashboard, kind) {
 		this.dashboard = dashboard;
 		this.kind = kind;
-		this.root = dashboard.root;
-		if (kind === "owner") {
-			// Remove ERPNext modules from owner dashboard sidebar & layout per user request
-			this.root?.querySelector("#sod-nav")?.querySelector(".scm-owner-nav")?.remove();
-			this.root?.querySelector(".scm-launcher")?.remove();
-			return;
+		this.root = dashboard?.root;
+		// Remove ERPNext modules launcher from dashboard per user request
+		this.root?.querySelector("#sod-nav")?.querySelector(".scm-owner-nav")?.remove();
+		this.root?.querySelector(".scm-launcher")?.remove();
+		if (this.root && typeof $ !== "undefined") {
+			$(this.root).find(".scm-launcher, .scm-owner-nav").remove();
 		}
+		return;
 		this.catalog = null;
 		this.busy = false;
 		this.loadSequence = 0;
@@ -66,14 +67,17 @@ frappe.SarathiModuleBrowser = class {
 				}
 			}
 		} catch (e) {
-			this.launcher.innerHTML =
-				"<span>ERPNext modules could not be refreshed.</span><button data-scm-open>Retry</button>";
+			if (this.launcher) {
+				this.launcher.innerHTML =
+					"<span>ERPNext modules could not be refreshed.</span><button data-scm-open>Retry</button>";
+			}
 			this.setStatus("Module refresh failed. Check your connection and retry.");
 		} finally {
 			this.busy = false;
 		}
 	}
 	renderLauncher() {
+		if (!this.launcher) return;
 		this.launcher.innerHTML = `<div><strong>${this.icon("grid")} ERPNext modules</strong><small>${
 			this.catalog.counts.modules
 		} available workspaces · Installed ERPNext ${this.esc(
