@@ -88,6 +88,8 @@ frappe.SarathiIndustrialDashboard = class {
 		this.accActiveKpi = "";
 		this.search = "";
 		this.customerPage = this.projectPage = 0;
+		this.customerViewMode = "table";
+		this.projectViewMode = "table";
 		this.tabs = {
 			overview: "Overview",
 			sales: "Sales",
@@ -160,6 +162,9 @@ frappe.SarathiIndustrialDashboard = class {
 		this.root.addEventListener("input", (e) => {
 			if (e.target.dataset.dateFilter) {
 				this.dateFilters[e.target.dataset.dateFilter] = e.target.value;
+			}
+			if (e.target.dataset.tableSearch) {
+				this.filterTable(e.target.dataset.tableSearch);
 			}
 		});
 		this.root.addEventListener("keydown", (e) => {
@@ -517,18 +522,21 @@ frappe.SarathiIndustrialDashboard = class {
 		)}. Totals include only records you may read.`;
 		this.el("[data-live-projects]").innerHTML = this.liveCards();
 		this.el("[data-kpis]").innerHTML = d.kpis
-			.map(
-				(k, i) =>
-					`<button class="sd-kpi sd-tone-${i % 6}" data-kpi-label="${this.esc(
-						k.label
-					)}" data-report="${k.report}" data-subset="${
-						k.subset || ""
-					}"><span class="sd-metric-label">${this.workspaceIcon(k.label)}${this.esc(
-						k.label
-					)}</span><strong>${
-						typeof k.value === "number" ? this.num(k.value) : this.esc(k.value)
-					}</strong><small>View records ↗</small></button>`
-			)
+			.map((k, i) => {
+				const isDate = typeof k.value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(k.value);
+				const isText =
+					isDate || (typeof k.value === "string" && (k.value.length > 3 || isNaN(k.value)));
+				const formatted = typeof k.value === "number" ? this.num(k.value) : this.esc(k.value);
+				return `<button class="sd-kpi sd-tone-${i % 6}" data-kpi-label="${this.esc(
+					k.label
+				)}" data-report="${k.report}" data-subset="${
+					k.subset || ""
+				}"><span class="sd-metric-label">${this.workspaceIcon(k.label)}${this.esc(
+					k.label
+				)}</span><strong class="${
+					isText ? "sd-kpi-val-text" : ""
+				}">${formatted}</strong><small>View records ↗</small></button>`;
+			})
 			.join("");
 		this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
 		this.el("[data-project-panel]").hidden = !!this.filters.project;
@@ -596,55 +604,380 @@ frappe.SarathiIndustrialDashboard = class {
 			  }>Next</button></div>`
 			: "";
 	}
+	renderCustomerTable(customers) {
+		const perPage = this.customerViewMode === "table" ? 10 : 12;
+		const pageItems = customers.slice(this.customerPage * perPage, (this.customerPage + 1) * perPage);
+		if (!pageItems.length) {
+			return this.empty(
+				"No customers linked yet. Create a customer or link an existing customer to this organization."
+			);
+		}
+		return `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="customers" placeholder="Search customers..." autocomplete="off" spellcheck="false" aria-label="Search customers">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="customers">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${customers.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="active">Active Ops</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="orders">Open Orders</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="delayed">Delayed</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="customers">${
+					pageItems.length
+				}</strong> records</span>
+			</div>
+		</div>
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" data-table-id="customers" aria-label="Customers Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏢</span>
+								<span class="sd-pin-text">Customer / Organization</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛡️</span>
+								<span class="sd-pin-text">Projects Total</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⭐</span>
+								<span class="sd-pin-text">Active Ops</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">👍</span>
+								<span class="sd-pin-text">Open Orders</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⏱️</span>
+								<span class="sd-pin-text">Delivery Track</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-lime">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">💎</span>
+								<span class="sd-pin-text">System Health</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Direct Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${pageItems
+						.map((c, i) => {
+							const isEven = i % 2 === 0;
+							const initials = (c.customer_name || c.name || "CU").slice(0, 2).toUpperCase();
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-customer="${this.esc(
+								c.name
+							)}" data-active="${c.active > 0 ? "yes" : "no"}" data-orders="${
+								c.open_orders > 0 ? "yes" : "no"
+							}" data-delayed="${c.delayed > 0 ? "yes" : "no"}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-initials">${this.esc(initials)}</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(c.customer_name)}">${this.esc(c.customer_name)}</strong>
+										<span class="sd-ribbon-sub">${this.esc(c.name)}</span>
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-blue">
+									<strong>${c.project_count}</strong> ${c.project_count === 1 ? "Project" : "Projects"}
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-azure">
+									<span class="sd-dot-pulse ${c.active > 0 ? "live-green" : "live-gray"}"></span>
+									<strong>${c.active}</strong> Active
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-teal">
+									<span class="sd-order-icon">📦</span>
+									<strong>${c.open_orders}</strong> Orders
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								${
+									c.delayed > 0
+										? `<span class="sd-status-tag sd-tag-delayed"><span class="sd-tag-icon">✕</span> ${c.delayed} Delayed</span>`
+										: `<span class="sd-status-tag sd-tag-ontrack"><span class="sd-tag-icon">✓</span> On Track</span>`
+								}
+							</td>
+							<td class="sd-td-cell">
+								<div class="sd-traffic-capsule" title="${
+									c.delayed > 0
+										? "Requires attention (" + c.delayed + " delayed)"
+										: "Healthy operational flow"
+								}">
+									<span class="sd-cap-dot ${c.delayed === 0 ? "dot-green-active" : ""}"></span>
+									<span class="sd-cap-dot ${c.delayed === 1 ? "dot-amber-active" : ""}"></span>
+									<span class="sd-cap-dot ${c.delayed > 1 ? "dot-red-active" : ""}"></span>
+								</div>
+							</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-customer="${this.esc(c.name)}">
+									Focus Customer ➔
+								</button>
+							</td>
+						</tr>
+						`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>
+		`;
+	}
+
+	renderProjectTable(projects) {
+		const perPage = this.projectViewMode === "table" ? 10 : 12;
+		const pageItems = projects.slice(this.projectPage * perPage, (this.projectPage + 1) * perPage);
+		if (!pageItems.length) {
+			return this.empty("No projects match this selection.");
+		}
+		return `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="projects" placeholder="Search projects..." autocomplete="off" spellcheck="false" aria-label="Search projects">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="projects">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${projects.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="in_progress">In Progress</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="completed">Completed</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="delayed">Delayed</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="projects">${
+					pageItems.length
+				}</strong> records</span>
+			</div>
+		</div>
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" data-table-id="projects" aria-label="Projects Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📦</span>
+								<span class="sd-pin-text">Project & ID</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛡️</span>
+								<span class="sd-pin-text">Customer Entity</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⭐</span>
+								<span class="sd-pin-text">Lifecycle Status</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">👍</span>
+								<span class="sd-pin-text">Progress Completion</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⏱️</span>
+								<span class="sd-pin-text">Timeline Health</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-lime">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">💎</span>
+								<span class="sd-pin-text">Main BOM</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Project Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${pageItems
+						.map((p, i) => {
+							const isEven = i % 2 === 0;
+							const pct = Math.max(0, Math.min(100, Number(p.percent_complete || 0)));
+							const statusSlug = (p.status || "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
+								p.name
+							)}" data-project-status="${this.esc(p.status)}" data-delayed="${
+								p.delayed ? "yes" : "no"
+							}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-symbol">⚙</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(p.project_name)}">${this.esc(p.project_name)}</strong>
+										<span class="sd-ribbon-sub">${this.esc(p.name)}</span>
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-customer-chip" title="${this.esc(p.customer_name)}">
+									<span class="sd-chip-icon">🏢</span>
+									<strong>${this.esc(p.customer_name || "Unassigned")}</strong>
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-status-pill sd-pill-${statusSlug}">
+									${this.esc(p.status || "Open")}
+								</span>
+							</td>
+							<td class="sd-td-cell sd-td-progress">
+								<div class="sd-table-progress-box">
+									<div class="sd-table-progress-bar">
+										<div class="sd-table-progress-fill" style="width: ${pct}%;"></div>
+									</div>
+									<div class="sd-table-progress-meta">
+										<span class="sd-prog-pct">${this.num(p.percent_complete)}%</span>
+										<span class="sd-prog-wo">${p.work_order_count || 0} WOs</span>
+									</div>
+								</div>
+							</td>
+							<td class="sd-td-cell">
+								<div class="sd-traffic-capsule" title="${p.delayed ? "Project Delayed" : "Project On Track"}">
+									<span class="sd-cap-dot ${!p.delayed ? "dot-green-active" : ""}"></span>
+									<span class="sd-cap-dot ${p.delayed ? "dot-amber-active" : ""}"></span>
+									<span class="sd-cap-dot ${p.status === "Cancelled" ? "dot-red-active" : ""}"></span>
+								</div>
+								<span class="sd-sub-track ${p.delayed ? "track-delayed" : "track-ontrack"}">
+									${p.delayed ? "Delayed" : "On Track"}
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-bom-badge ${p.custom_sarathi_bom ? "has-bom" : "no-bom"}" title="${this.esc(
+								p.custom_sarathi_bom || ""
+							)}">
+									${p.custom_sarathi_bom ? "✓ " + this.esc(p.custom_sarathi_bom) : "Main BOM pending"}
+								</span>
+							</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-project="${this.esc(p.name)}">
+									Inspect Project ➔
+								</button>
+							</td>
+						</tr>
+						`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>
+		`;
+	}
+
+	updateViewToggleButtons() {
+		this.root.querySelectorAll("[data-action='toggle-customer-view']").forEach((btn) => {
+			btn.classList.toggle("active", btn.dataset.mode === this.customerViewMode);
+		});
+		this.root.querySelectorAll("[data-action='toggle-project-view']").forEach((btn) => {
+			btn.classList.toggle("active", btn.dataset.mode === this.projectViewMode);
+		});
+	}
+
 	renderCards() {
 		if (!this.data) return;
 		const matches = (r) => Object.values(r).join(" ").toLowerCase().includes(this.search);
 		const customers = this.data.customers.filter(matches),
 			projects = this.data.projects.filter(matches);
-		this.el("[data-customers]").innerHTML =
-			customers
-				.slice(this.customerPage * 12, (this.customerPage + 1) * 12)
-				.map(
-					(c) =>
-						`<button class="sd-card" data-customer="${this.esc(
-							c.name
-						)}"><span class="sd-card-icon">${this.esc(
-							c.customer_name.slice(0, 2).toUpperCase()
-						)}</span><h3>${this.esc(c.customer_name)}</h3><div>${this.badge(
-							`${c.project_count} projects`
-						)} ${c.delayed ? this.badge(`${c.delayed} delayed`) : ""}</div><p>${
-							c.active
-						} active · ${c.open_orders} open orders</p><small>${
-							c.project_count ? "View customer →" : "No projects yet →"
-						}</small></button>`
-				)
-				.join("") ||
-			this.empty(
-				"No customers linked yet. Create a customer or link an existing customer to this organization."
-			);
-		this.el("[data-projects]").innerHTML =
-			projects
-				.slice(this.projectPage * 12, (this.projectPage + 1) * 12)
-				.map(
-					(p) =>
-						`<button class="sd-card" data-project="${this.esc(
-							p.name
-						)}" data-project-status="${this.esc(p.status)}"><small>${this.esc(
-							p.name
-						)}</small><h3>${this.esc(p.project_name)}</h3><p>${this.esc(
-							p.customer_name
-						)}</p><div>${this.badge(p.status)} ${
-							p.delayed ? this.badge("Delayed") : ""
-						}</div><div class="sd-progress"><i style="width:${Math.max(
-							0,
-							Math.min(100, Number(p.percent_complete || 0))
-						)}%"></i></div><p>${this.num(p.percent_complete)}% project progress · ${
-							p.work_order_count
-						} WOs</p><small>${
-							p.custom_sarathi_bom ? this.esc(p.custom_sarathi_bom) : "Main BOM pending"
-						}</small></button>`
-				)
-				.join("") || this.empty("No projects match this selection.");
+		const custPerPage = this.customerViewMode === "table" ? 10 : 12;
+		const projPerPage = this.projectViewMode === "table" ? 10 : 12;
+
+		if (this.customerViewMode === "cards") {
+			this.el("[data-customers]").innerHTML =
+				`<div class="sd-cards">${customers
+					.slice(this.customerPage * custPerPage, (this.customerPage + 1) * custPerPage)
+					.map(
+						(c) =>
+							`<button class="sd-card" data-customer="${this.esc(
+								c.name
+							)}"><span class="sd-card-icon">${this.esc(
+								c.customer_name.slice(0, 2).toUpperCase()
+							)}</span><h3>${this.esc(c.customer_name)}</h3><div>${this.badge(
+								`${c.project_count} projects`
+							)} ${c.delayed ? this.badge(`${c.delayed} delayed`) : ""}</div><p>${
+								c.active
+							} active · ${c.open_orders} open orders</p><small>${
+								c.project_count ? "View customer →" : "No projects yet →"
+							}</small></button>`
+					)
+					.join("")}</div>` ||
+				this.empty(
+					"No customers linked yet. Create a customer or link an existing customer to this organization."
+				);
+		} else {
+			this.el("[data-customers]").innerHTML = this.renderCustomerTable(customers);
+		}
+
+		if (this.projectViewMode === "cards") {
+			this.el("[data-projects]").innerHTML =
+				`<div class="sd-cards">${projects
+					.slice(this.projectPage * projPerPage, (this.projectPage + 1) * projPerPage)
+					.map(
+						(p) =>
+							`<button class="sd-card" data-project="${this.esc(
+								p.name
+							)}" data-project-status="${this.esc(p.status)}"><small>${this.esc(
+								p.name
+							)}</small><h3>${this.esc(p.project_name)}</h3><p>${this.esc(
+								p.customer_name
+							)}</p><div>${this.badge(p.status)} ${
+								p.delayed ? this.badge("Delayed") : ""
+							}</div><div class="sd-progress"><i style="width:${Math.max(
+								0,
+								Math.min(100, Number(p.percent_complete || 0))
+							)}%"></i></div><p>${this.num(p.percent_complete)}% project progress · ${
+								p.work_order_count
+							} WOs</p><small>${
+								p.custom_sarathi_bom ? this.esc(p.custom_sarathi_bom) : "Main BOM pending"
+							}</small></button>`
+					)
+					.join("")}</div>` || this.empty("No projects match this selection.");
+		} else {
+			this.el("[data-projects]").innerHTML = this.renderProjectTable(projects);
+		}
+
 		this.el("[data-project-count]").textContent = `${projects.length} projects`;
 		this.el("[data-customer-pagination]").innerHTML = this.pagination(
 			"customer",
@@ -656,6 +989,7 @@ frappe.SarathiIndustrialDashboard = class {
 			this.projectPage,
 			projects.length
 		);
+		this.updateViewToggleButtons();
 	}
 	renderTabs() {
 		this.el(".sd-tabs").innerHTML = Object.entries(this.tabs)
@@ -840,40 +1174,7 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 	pipelineOverview() {
 		const selected = !!this.filters.project;
-		const steps = {
-			requests: "Material requests",
-			purchases: "Purchase orders",
-			receipts: "Purchase receipts",
-			work_orders: "Work Orders",
-			inspections: "Inspections",
-			deliveries: "Delivery notes",
-			sales_invoices: "Sales invoices",
-		};
-		const cards = this.data.pipeline_summary
-			.map(
-				(p) =>
-					`<article class="sd-pipeline-project"><strong>${this.esc(
-						p.project
-					)}</strong><div class="sd-pipeline-steps">${Object.entries(steps)
-						.map(
-							([key, label]) =>
-								`<button class="sd-pipeline-step ${
-									p[key] === null ? "sd-step-restricted" : p[key] ? "sd-step-recorded" : ""
-								}" data-report-project="${this.esc(p.project)}" data-report="${
-									key === "inspections" ? "quality" : key
-								}"><small>${label}</small><strong>${
-									p[key] === null ? "Access restricted" : p[key]
-								}</strong><span>${
-									p[key] === null
-										? "Read access required"
-										: p[key]
-										? "Recorded documents"
-										: "No submitted records"
-								}</span></button>`
-						)
-						.join("")}</div></article>`
-			)
-			.join("");
+		const projects = this.data.pipeline_summary || [];
 		const setup = this.data.tracking_setup
 			.map(
 				(p) =>
@@ -886,11 +1187,146 @@ frappe.SarathiIndustrialDashboard = class {
 					)}${p.main_bom ? this.link("BOM", p.main_bom, "Open main BOM") : ""}</div>`
 			)
 			.join("");
+
+		const tableContent = projects.length
+			? `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="pipelines" placeholder="Search pipeline projects..." autocomplete="off" spellcheck="false" aria-label="Search pipeline projects">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="pipelines">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${projects.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="active">With Work Orders</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="inspections">With Inspections</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="deliveries">With Deliveries</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="pipelines">${
+					projects.length
+				}</strong> records</span>
+			</div>
+		</div>
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" data-table-id="pipelines" aria-label="Project Pipelines Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📦</span>
+								<span class="sd-pin-text">Project</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📋</span>
+								<span class="sd-pin-text">Material Requests</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛒</span>
+								<span class="sd-pin-text">Purchase Orders</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📥</span>
+								<span class="sd-pin-text">Purchase Receipts</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⚙️</span>
+								<span class="sd-pin-text">Work Orders</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-amber">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🔍</span>
+								<span class="sd-pin-text">Inspections</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-rose">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🚚</span>
+								<span class="sd-pin-text">Delivery Notes</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-violet">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🧾</span>
+								<span class="sd-pin-text">Sales Invoices</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${projects
+						.map((p, i) => {
+							const isEven = i % 2 === 0;
+							const pipeBtn = (key, reportName, label) => {
+								const val = p[key];
+								const isRestricted = val === null;
+								const cls = isRestricted
+									? "step-restricted"
+									: val
+									? "step-recorded"
+									: "step-zero";
+								const text = isRestricted ? "Restricted" : val ?? 0;
+								return `<button type="button" class="sd-pipeline-step-pill ${cls}" data-report-project="${this.esc(
+									p.project
+								)}" data-report="${reportName}" title="${label}: ${text}"><strong>${text}</strong></button>`;
+							};
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
+								p.project
+							)}" data-wo="${p.work_orders > 0 ? "yes" : "no"}" data-insp="${
+								p.inspections > 0 ? "yes" : "no"
+							}" data-del="${p.deliveries > 0 ? "yes" : "no"}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-symbol">⚙</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(p.project)}">${this.esc(p.project)}</strong>
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">${pipeBtn("requests", "requests", "Material Requests")}</td>
+							<td class="sd-td-cell">${pipeBtn("purchases", "purchases", "Purchase Orders")}</td>
+							<td class="sd-td-cell">${pipeBtn("receipts", "receipts", "Purchase Receipts")}</td>
+							<td class="sd-td-cell">${pipeBtn("work_orders", "work_orders", "Work Orders")}</td>
+							<td class="sd-td-cell">${pipeBtn("inspections", "quality", "Inspections")}</td>
+							<td class="sd-td-cell">${pipeBtn("deliveries", "deliveries", "Delivery Notes")}</td>
+							<td class="sd-td-cell">${pipeBtn("sales_invoices", "sales_invoices", "Sales Invoices")}</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-project="${this.esc(p.project)}">
+									Inspect ➔
+								</button>
+							</td>
+						</tr>`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>`
+			: this.empty();
+
 		return `<section class="sd-panel"><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project working pipeline" : "Project pipelines"
-		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${
-			cards || this.empty()
-		}<div class="sd-production-links"><button class="sd-button" data-report="part_production">Recorded cutting / welding / grinding outputs</button><button class="sd-button" data-report="material_history">Lifetime materials</button><button class="sd-button" data-report="tracking_setup">Part tracking setup</button></div><details class="sd-setup-details"><summary>Project attribution & physical part setup</summary>${setup}</details>${
+		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${tableContent}<div class="sd-production-links"><button class="sd-button" data-report="part_production">Recorded cutting / welding / grinding outputs</button><button class="sd-button" data-report="material_history">Lifetime materials</button><button class="sd-button" data-report="tracking_setup">Part tracking setup</button></div><details class="sd-setup-details"><summary>Project attribution & physical part setup</summary>${setup}</details>${
 			this.data.procurement_exception_count
 				? `<div class="sd-alert"><span>${this.data.procurement_exception_count} procurement item rows have missing or conflicting project links.</span><button class="sd-text-button" data-report="procurement_exceptions">Review records ↗</button></div>`
 				: ""
@@ -902,93 +1338,175 @@ frappe.SarathiIndustrialDashboard = class {
 		const visible = selected
 			? entries
 			: entries.filter((p) => !["Completed", "Cancelled"].includes(p.live_status));
-		const metric = (project, label, value, report) =>
-			`<button class="sd-health-metric" data-report="${report}" data-report-project="${this.esc(
-				project
-			)}"><strong>${value == null ? "—" : this.num(value)}</strong><span>${label}</span></button>`;
+
+		const tableContent = visible.length
+			? `
+		<div class="sd-table-web-toolbar">
+			<div class="sd-table-search-wrap">
+				<svg class="sd-table-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" class="sd-table-search-input" data-table-search="health" placeholder="Search project health..." autocomplete="off" spellcheck="false" aria-label="Search project health">
+			</div>
+			<div class="sd-table-filter-pills" data-table-filters="health">
+				<button type="button" class="sd-filter-pill active" data-table-filter="all">All (${visible.length})</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="in_progress">In Progress</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="shortages">Shortages</button>
+				<button type="button" class="sd-filter-pill" data-table-filter="delayed">Delayed</button>
+			</div>
+			<div class="sd-table-count-badge">
+				<span class="sd-pill sd-tone-blue"><strong data-table-count="health">${visible.length}</strong> records</span>
+			</div>
+		</div>
+		<div class="sd-color-table-wrapper">
+			<table class="sd-color-table" data-table-id="health" aria-label="Project Health Table">
+				<thead>
+					<tr class="sd-color-table-header-row">
+						<th class="sd-th-pin sd-th-purple">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">📦</span>
+								<span class="sd-pin-text">Project</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-blue">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⭐</span>
+								<span class="sd-pin-text">Live Status</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-azure">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏭</span>
+								<span class="sd-pin-text">Working Now</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-teal">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⏱️</span>
+								<span class="sd-pin-text">Next Operation</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-forest">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⚙️</span>
+								<span class="sd-pin-text">Ops Finished/Total</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-amber">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">⚠️</span>
+								<span class="sd-pin-text">Shortages</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-rose">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🛒</span>
+								<span class="sd-pin-text">PO & Receipts</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-violet">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🔍</span>
+								<span class="sd-pin-text">Quality Pass/Fail</span>
+							</div>
+						</th>
+						<th class="sd-th-pin sd-th-olive">
+							<div class="sd-pin-badge">
+								<span class="sd-pin-icon">🏷️</span>
+								<span class="sd-pin-text">Action</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					${visible
+						.map((p, i) => {
+							const isEven = i % 2 === 0;
+							const curOps = p.current_operations.length
+								? `<span class="sd-cell-badge sd-badge-azure"><span class="sd-dot-pulse live-green"></span> <strong>${this.esc(
+										p.current_operations.map((op) => op.operation || "Unnamed").join(", ")
+								  )}</strong></span>`
+								: `<span class="sd-cell-text" style="color:var(--sd-muted)">No Job Card open</span>`;
+							const nextOp = p.next_operation
+								? `<span class="sd-cell-text"><strong>${this.esc(
+										p.next_operation.operation || "Unnamed"
+								  )}</strong> · ${this.link(
+										"Work Order",
+										p.next_operation.work_order
+								  )}</span>`
+								: `<span class="sd-cell-text" style="color:var(--sd-muted)">None</span>`;
+							return `
+						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
+								p.project
+							)}" data-health-status="${this.esc(p.live_status)}" data-shortages="${
+								p.material_shortages > 0 ? "yes" : "no"
+							}" data-delayed="${p.delayed ? "yes" : "no"}" role="button" tabindex="0">
+							<td class="sd-td-ribbon">
+								<div class="sd-row-ribbon sd-ribbon-purple">
+									<div class="sd-ribbon-box">
+										<span class="sd-ribbon-symbol">⚙</span>
+									</div>
+									<div class="sd-ribbon-content">
+										<strong class="sd-ribbon-name" title="${this.esc(p.project)}">${this.esc(p.project)}</strong>
+										${
+											p.last_activity
+												? `<span class="sd-ribbon-sub">Active ${this.esc(
+														frappe.datetime.str_to_user(p.last_activity)
+												  )}</span>`
+												: `<span class="sd-ribbon-sub">No recent activity</span>`
+										}
+									</div>
+									<div class="sd-ribbon-chevron"></div>
+								</div>
+							</td>
+							<td class="sd-td-cell">${this.badge(p.live_status)}</td>
+							<td class="sd-td-cell">${curOps}</td>
+							<td class="sd-td-cell">${nextOp}</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-blue">
+									<strong>${this.num(p.operations_finished)}</strong> / ${this.num(p.operations_total)}
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								${
+									p.material_shortages > 0
+										? `<span class="sd-status-tag sd-tag-delayed"><strong>${this.num(
+												p.material_shortages
+										  )}</strong> Shortages</span>`
+										: `<span class="sd-status-tag sd-tag-ontrack">0 Shortages</span>`
+								}
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-teal">
+									PO: <strong>${this.num(p.purchase_orders)}</strong> · PR: <strong>${this.num(p.receipts)}</strong>
+								</span>
+							</td>
+							<td class="sd-td-cell">
+								<span class="sd-cell-badge sd-badge-violet">
+									Pass: <strong>${this.num(p.inspection_passed)}</strong> · Fail: <strong>${this.num(
+								p.inspection_rejected
+							)}</strong>
+								</span>
+							</td>
+							<td class="sd-td-cell sd-td-action">
+								<button type="button" class="sd-row-action-btn" data-project="${this.esc(p.project)}">
+									Analysis ➔
+								</button>
+							</td>
+						</tr>`;
+						})
+						.join("")}
+				</tbody>
+			</table>
+		</div>`
+			: this.empty(
+					"No open projects in this selection. Select a completed project to see its full health summary."
+			  );
+
 		return `<section class="sd-panel sd-health"><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project health at a glance" : "Open project health"
-		}</h2><p>Current recorded operation, next outstanding step, materials, quality and fulfillment · lifetime project records</p></div></div>${
-			visible
-				.map(
-					(p) =>
-						`<article class="sd-health-project"><div class="sd-health-head"><div><strong>${this.esc(
-							p.project
-						)}</strong> ${this.badge(p.live_status)}</div>${
-							p.last_activity
-								? `<small>Last recorded activity ${this.esc(
-										frappe.datetime.str_to_user(p.last_activity)
-								  )}</small>`
-								: `<small>No recorded production activity</small>`
-						}</div><div class="sd-health-work"><div><small>Working now</small><strong>${
-							p.current_operations.length
-								? p.current_operations
-										.map((op) => this.esc(op.operation || "Operation unnamed"))
-										.join(", ")
-								: "No Job Card time log open"
-						}</strong>${
-							p.current_operations.length
-								? `<small>${p.current_operations
-										.map((op) => this.esc(op.workstation || "Workstation unassigned"))
-										.join(" · ")}</small>`
-								: ""
-						}</div><div><small>Next outstanding operation</small><strong>${
-							p.next_operation
-								? `${this.esc(
-										p.next_operation.operation || "Operation unnamed"
-								  )} · ${this.link("Work Order", p.next_operation.work_order)}`
-								: "No outstanding recorded operation"
-						}</strong>${
-							p.next_operation
-								? `<small>${this.num(p.next_operation.remaining)} ${this.esc(
-										p.next_operation.unit || "units"
-								  )} remaining · ${this.esc(
-										p.next_operation.workstation || "Workstation unassigned"
-								  )}</small>`
-								: ""
-						}</div></div><div class="sd-health-metrics">${metric(
-							p.project,
-							"Operations finished",
-							p.operations_finished,
-							"operation_balance"
-						)}${metric(
-							p.project,
-							"Operations total",
-							p.operations_total,
-							"operation_balance"
-						)}${metric(
-							p.project,
-							"Material shortages",
-							p.material_shortages,
-							"materials"
-						)}${metric(p.project, "Purchase orders", p.purchase_orders, "purchases")}${metric(
-							p.project,
-							"Receipts",
-							p.receipts,
-							"receipts"
-						)}${metric(p.project, "Quality passed", p.inspection_passed, "quality")}${metric(
-							p.project,
-							"Quality rejected",
-							p.inspection_rejected,
-							"quality"
-						)}${metric(p.project, "Delivery notes", p.deliveries, "deliveries")}${metric(
-							p.project,
-							"Sales invoices",
-							p.sales_invoices,
-							"sales_invoices"
-						)}</div>${
-							p.material_shortages === null && !selected
-								? `<p class="sd-scope-note">Select this project for its material readiness; warehouse availability is scoped to the project’s Work Orders.</p>`
-								: ""
-						}<button class="sd-text-button" data-project="${this.esc(
-							p.project
-						)}">Open project analysis ↗</button></article>`
-				)
-				.join("") ||
-			this.empty(
-				"No open projects in this selection. Select a completed project to see its full health summary."
-			)
-		}<p class="sd-scope-note">An open Job Card time log is recorded activity, not proof of machine telemetry. A blank metric means read access or stock availability is unavailable. Inspection counts are submitted results, not part quantities.</p></section>`;
+		}</h2><p>Current recorded operation, next outstanding step, materials, quality and fulfillment · lifetime project records</p></div></div>${tableContent}<p class="sd-scope-note">An open Job Card time log is recorded activity, not proof of machine telemetry. A blank metric means read access or stock availability is unavailable. Inspection counts are submitted results, not part quantities.</p></section>`;
 	}
 	productionOverview() {
 		const selected = !!this.filters.project;
@@ -1434,21 +1952,63 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 
 	formatCellValue(c, val) {
-		if (val === null || val === undefined || val === "") return "—";
-		if (c.fieldtype === "Currency") return "₹" + this.num(val);
-		if (["Float", "Int", "Percent"].includes(c.fieldtype))
-			return this.num(val) + (c.fieldtype === "Percent" ? "%" : "");
-		if (c.fieldtype === "Date") return frappe.datetime.str_to_user(val);
-		if (
-			String(c.fieldname).toLowerCase().includes("status") ||
-			String(c.label).toLowerCase().includes("status")
-		) {
-			return this.badge(val);
+		if (val === null || val === undefined || val === "" || val === "—") {
+			return '<span style="color:#94a3b8; font-weight:500;">—</span>';
+		}
+		if (c.fieldtype === "Currency") {
+			return `<span class="sd-cell-badge sd-badge-azure" style="white-space:nowrap;"><strong>₹${this.num(
+				val
+			)}</strong></span>`;
+		}
+		if (c.fieldtype === "Percent") {
+			const pct = Math.min(100, Math.max(0, Number(val) || 0));
+			return `<div class="sd-table-progress-box" style="margin: 0 auto; min-width: 100px;"><div class="sd-table-progress-bar"><div class="sd-table-progress-fill" style="width: ${pct}%;"></div></div><div class="sd-table-progress-meta" style="justify-content: center;"><span class="sd-prog-pct">${this.num(
+				val
+			)}%</span></div></div>`;
+		}
+		if (["Float", "Int"].includes(c.fieldtype)) {
+			return `<span class="sd-cell-badge sd-badge-teal" style="white-space:nowrap;"><strong>${this.num(
+				val
+			)}</strong></span>`;
+		}
+		if (c.fieldtype === "Date" || c.fieldtype === "Datetime") {
+			const formatted = frappe.datetime?.str_to_user ? frappe.datetime.str_to_user(val) : String(val);
+			return `<span class="sd-cell-badge sd-badge-blue" style="white-space:nowrap;"><span style="font-size:12px;">📅</span> ${this.esc(
+				formatted
+			)}</span>`;
+		}
+		const strVal = String(val);
+		const fieldName = String(c.fieldname || "").toLowerCase();
+		const colLabel = String(c.label || "").toLowerCase();
+		if (fieldName.includes("status") || colLabel.includes("status") || fieldName.includes("state")) {
+			const lower = strVal.toLowerCase();
+			if (/completed|finished|delivered|closed|submitted/.test(lower)) {
+				return `<span class="sd-status-tag sd-tag-ontrack" style="white-space:nowrap;"><span class="sd-tag-icon">✓</span> ${this.esc(
+					val
+				)}</span>`;
+			}
+			if (/delayed|overdue|shortage|cancelled|failed|rejected/.test(lower)) {
+				return `<span class="sd-status-tag sd-tag-delayed" style="white-space:nowrap;"><span class="sd-tag-icon">✕</span> ${this.esc(
+					val
+				)}</span>`;
+			}
+			if (/in progress|working|active|running/.test(lower)) {
+				return `<span class="sd-cell-badge sd-badge-blue" style="white-space:nowrap;"><span class="sd-dot-pulse live-green"></span> ${this.esc(
+					val
+				)}</span>`;
+			}
+			return `<span class="sd-status-pill sd-pill-${this.statusColor(
+				val
+			)}" style="white-space:nowrap;">${this.esc(val)}</span>`;
 		}
 		if (c.fieldtype === "Link" && c.options && val) {
-			return this.link(c.options, val);
+			return `<a href="javascript:void(0)" class="sd-record-link sd-cell-link" data-inspect="${this.esc(
+				val
+			)}" data-doctype="${this.esc(
+				c.options
+			)}" style="white-space:nowrap; font-weight:600; color:#2563eb;">${this.esc(val)} ↗</a>`;
 		}
-		return this.esc(val);
+		return `<span class="sd-cell-text" style="white-space:nowrap;">${this.esc(val)}</span>`;
 	}
 
 	async showCardDetailsModal(reportKey, subset = "", label = "", projectContext = "") {
@@ -1501,30 +2061,99 @@ frappe.SarathiIndustrialDashboard = class {
 
 		const defaultDt = this.getDocTypeForReport(reportKey);
 
+		const PIN_THEMES = [
+			{ cls: "sd-th-purple", defaultIcon: "🏢" },
+			{ cls: "sd-th-blue", defaultIcon: "🛡️" },
+			{ cls: "sd-th-azure", defaultIcon: "⭐" },
+			{ cls: "sd-th-teal", defaultIcon: "👍" },
+			{ cls: "sd-th-forest", defaultIcon: "⏱️" },
+			{ cls: "sd-th-lime", defaultIcon: "💎" },
+			{ cls: "sd-th-olive", defaultIcon: "🏷️" },
+		];
+
+		const getColumnIcon = (col, idx) => {
+			const s = `${col.label || ""} ${col.fieldname || ""}`.toLowerCase();
+			if (/customer|client|organization|party/.test(s)) return "🏢";
+			if (/project|task|operation|work_order|wo/.test(s)) return "📋";
+			if (/item|part|product|material|bom/.test(s)) return "📦";
+			if (/status|state|workflow/.test(s)) return "🛡️";
+			if (/date|time|schedule|due/.test(s)) return "📅";
+			if (/qty|quantity|count|delivered|produced/.test(s)) return "⏱️";
+			if (/amount|cost|price|total|value|rate|curr|balance|tax/.test(s)) return "💰";
+			if (/percent|pct|progress|compl/.test(s)) return "⭐";
+			if (/warehouse|location/.test(s)) return "🏬";
+			if (/supplier|vendor/.test(s)) return "🤝";
+			if (/user|manager|assign|owner/.test(s)) return "👤";
+			return PIN_THEMES[idx % PIN_THEMES.length].defaultIcon;
+		};
+
 		const renderTableBody = (filteredRows) => {
 			if (!filteredRows.length) {
 				return `<tr><td colspan="${
 					columns.length + 1
-				}" style="text-align: center; padding: 36px; color: #64748b;">No matching records found.</td></tr>`;
+				}" style="text-align: center; padding: 48px; color: #64748b; font-size: 14px; font-weight: 600;">No matching records found.</td></tr>`;
 			}
 			return filteredRows
-				.map((row) => {
+				.map((row, rIdx) => {
 					const docName = row.name || row.parent || row.project || row.item_code || "";
 					const doctype = row.doctype || defaultDt;
+					const isEven = rIdx % 2 === 0;
+
+					const firstCol = columns[0];
+					const firstVal = firstCol ? row[firstCol.fieldname] ?? docName : docName;
+					const primaryName =
+						row.customer_name ||
+						row.project_name ||
+						row.item_name ||
+						row.title ||
+						firstVal ||
+						docName ||
+						"—";
+					const subName =
+						primaryName !== docName && docName ? docName : row.doctype || defaultDt || "";
+					const initials =
+						String(primaryName)
+							.replace(/[^a-zA-Z0-9]/g, "")
+							.slice(0, 2)
+							.toUpperCase() || "ID";
+
 					return `
-          <tr class="sd-modal-row" data-name="${this.esc(docName)}" data-doctype="${this.esc(doctype)}">
+          <tr class="sd-color-tr sd-modal-row ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-name="${this.esc(
+						docName
+					)}" data-doctype="${this.esc(doctype)}">
+            <td class="sd-td-ribbon">
+              <div class="sd-row-ribbon ${rIdx % 2 === 0 ? "sd-ribbon-purple" : "sd-ribbon-plum"}">
+                <div class="sd-ribbon-box">
+                  <span class="sd-ribbon-initials">${this.esc(initials)}</span>
+                </div>
+                <div class="sd-ribbon-content">
+                  <strong class="sd-ribbon-name" title="${this.esc(primaryName)}">${this.esc(
+						primaryName
+					)}</strong>
+                  ${
+						subName
+							? `<span class="sd-ribbon-sub" title="${this.esc(subName)}">${this.esc(
+									subName
+							  )}</span>`
+							: ""
+					}
+                </div>
+                <div class="sd-ribbon-chevron"></div>
+              </div>
+            </td>
             ${columns
+				.slice(1)
 				.map((c) => {
 					const val = row[c.fieldname];
-					return `<td>${this.formatCellValue(c, val)}</td>`;
+					return `<td class="sd-td-cell">${this.formatCellValue(c, val)}</td>`;
 				})
 				.join("")}
-            <td style="text-align: right; white-space: nowrap;">
+            <td class="sd-td-cell sd-td-action" style="text-align: center; white-space: nowrap;">
               ${
 					docName
-						? `<button type="button" class="sd-button sd-modal-btn-view" data-action="view-row-form" data-name="${this.esc(
+						? `<button type="button" class="sd-row-action-btn sd-modal-btn-view" data-action="view-row-form" data-name="${this.esc(
 								docName
-						  )}" data-doctype="${this.esc(doctype)}">View Form 📄</button>`
+						  )}" data-doctype="${this.esc(doctype)}">View Form ➔</button>`
 						: "—"
 				}
             </td>
@@ -1562,12 +2191,30 @@ frappe.SarathiIndustrialDashboard = class {
         </div>
 
         <!-- Table Scroll Container -->
-        <div class="sd-modal-table-scroll">
-          <table class="sd-modal-table">
+        <div class="sd-color-table-wrapper sd-modal-table-scroll">
+          <table class="sd-color-table sd-modal-table" aria-label="${this.esc(title)} Table">
             <thead>
-              <tr>
-                ${columns.map((c) => `<th>${this.esc(c.label)}</th>`).join("")}
-                <th style="text-align: right; width: 110px;">Action</th>
+              <tr class="sd-color-table-header-row">
+                ${columns
+					.map((c, i) => {
+						const theme = PIN_THEMES[i % PIN_THEMES.length];
+						const pinIcon = getColumnIcon(c, i);
+						return `
+                  <th class="sd-th-pin ${theme.cls}">
+                    <div class="sd-pin-badge">
+                      <span class="sd-pin-icon">${pinIcon}</span>
+                      <span class="sd-pin-text">${this.esc(c.label)}</span>
+                    </div>
+                  </th>
+                `;
+					})
+					.join("")}
+                <th class="sd-th-pin sd-th-olive" style="text-align: center; width: 130px;">
+                  <div class="sd-pin-badge">
+                    <span class="sd-pin-icon">⚡</span>
+                    <span class="sd-pin-text">Action</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody class="sd-modal-tbody">
@@ -1591,6 +2238,9 @@ frappe.SarathiIndustrialDashboard = class {
 		// Wire row click / View Form button
 		$container.off("click", ".sd-modal-btn-view, .sd-modal-row td:not(:last-child)");
 		$container.on("click", ".sd-modal-btn-view, .sd-modal-row td:not(:last-child)", (e) => {
+			if ($(e.target).closest("a, button:not(.sd-modal-btn-view)").length) {
+				return;
+			}
 			const $target = $(e.target).closest("tr");
 			const name = $target.attr("data-name");
 			let dt = $target.attr("data-doctype");
@@ -1599,6 +2249,27 @@ frappe.SarathiIndustrialDashboard = class {
 			}
 			if (name && dt) {
 				this.showRecordFormModal(dialog, dt, name, () => {
+					this.renderCardDetailsTable(
+						dialog,
+						data,
+						reportKey,
+						subset,
+						title,
+						project,
+						currentSearch
+					);
+				});
+			}
+		});
+
+		$container.off("click", ".sd-record-link");
+		$container.on("click", ".sd-record-link", (e) => {
+			e.stopPropagation();
+			const targetName =
+				$(e.target).attr("data-inspect") || $(e.target).text().trim().replace(/ ↗$/, "");
+			const targetDt = $(e.target).attr("data-doctype") || defaultDt;
+			if (targetName && targetDt) {
+				this.showRecordFormModal(dialog, targetDt, targetName, () => {
 					this.renderCardDetailsTable(
 						dialog,
 						data,
@@ -1643,6 +2314,32 @@ frappe.SarathiIndustrialDashboard = class {
 			const columns = data.columns || [];
 			const related = data.related || [];
 			const status = row.status || row.workflow_state || row.docstatus_name || "";
+
+			const PIN_THEMES = [
+				{ cls: "sd-th-purple", defaultIcon: "🏢" },
+				{ cls: "sd-th-blue", defaultIcon: "🛡️" },
+				{ cls: "sd-th-azure", defaultIcon: "⭐" },
+				{ cls: "sd-th-teal", defaultIcon: "👍" },
+				{ cls: "sd-th-forest", defaultIcon: "⏱️" },
+				{ cls: "sd-th-lime", defaultIcon: "💎" },
+				{ cls: "sd-th-olive", defaultIcon: "🏷️" },
+			];
+
+			const getColumnIcon = (col, idx) => {
+				const s = `${col.label || ""} ${col.fieldname || ""}`.toLowerCase();
+				if (/customer|client|organization|party/.test(s)) return "🏢";
+				if (/project|task|operation|work_order|wo/.test(s)) return "📋";
+				if (/item|part|product|material|bom/.test(s)) return "📦";
+				if (/status|state|workflow/.test(s)) return "🛡️";
+				if (/date|time|schedule|due/.test(s)) return "📅";
+				if (/qty|quantity|count|delivered|produced/.test(s)) return "⏱️";
+				if (/amount|cost|price|total|value|rate|curr|balance|tax/.test(s)) return "💰";
+				if (/percent|pct|progress|compl/.test(s)) return "⭐";
+				if (/warehouse|location/.test(s)) return "🏬";
+				if (/supplier|vendor/.test(s)) return "🤝";
+				if (/user|manager|assign|owner/.test(s)) return "👤";
+				return PIN_THEMES[idx % PIN_THEMES.length].defaultIcon;
+			};
 
 			let formHtml = `
         <div class="sd-modal-form-view">
@@ -1708,30 +2405,99 @@ frappe.SarathiIndustrialDashboard = class {
               ${
 					rel.total
 						? `
-                <div class="sd-modal-table-scroll sd-modal-nested-table-wrap">
-                  <table class="sd-modal-table sd-modal-nested-table">
+                <div class="sd-color-table-wrapper sd-modal-table-scroll sd-modal-nested-table-wrap">
+                  <table class="sd-color-table sd-modal-table sd-modal-nested-table" aria-label="${this.esc(
+						rel.title
+					)} Table">
                     <thead>
-                      <tr>
-                        ${rel.columns.map((rc) => `<th>${this.esc(rc.label)}</th>`).join("")}
-                        <th style="width: 80px; text-align: right;">Action</th>
+                      <tr class="sd-color-table-header-row">
+                        ${rel.columns
+							.map((rc, ci) => {
+								const theme = PIN_THEMES[ci % PIN_THEMES.length];
+								const pinIcon = getColumnIcon(rc, ci);
+								return `
+                          <th class="sd-th-pin ${theme.cls}">
+                            <div class="sd-pin-badge">
+                              <span class="sd-pin-icon">${pinIcon}</span>
+                              <span class="sd-pin-text">${this.esc(rc.label)}</span>
+                            </div>
+                          </th>
+                        `;
+							})
+							.join("")}
+                        <th class="sd-th-pin sd-th-olive" style="width: 120px; text-align: center;">
+                          <div class="sd-pin-badge">
+                            <span class="sd-pin-icon">⚡</span>
+                            <span class="sd-pin-text">Action</span>
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       ${rel.rows
-							.map((rrow) => {
-								const rname = rrow.name || rrow.parent;
+							.map((rrow, ri) => {
+								const rname = rrow.name || rrow.parent || "";
 								const rdt = rrow.doctype || rel.doctype || "";
+								const isEvenRow = ri % 2 === 0;
+								const firstRelCol = rel.columns[0];
+								const firstRelVal = firstRelCol
+									? rrow[firstRelCol.fieldname] ?? rname
+									: rname;
+								const rPrimary =
+									rrow.project_name ||
+									rrow.customer_name ||
+									rrow.item_name ||
+									firstRelVal ||
+									rname ||
+									"—";
+								const rSub = rPrimary !== rname && rname ? rname : rdt || "";
+								const rInitials =
+									String(rPrimary)
+										.replace(/[^a-zA-Z0-9]/g, "")
+										.slice(0, 2)
+										.toUpperCase() || "ID";
 								return `
-                          <tr>
+                          <tr class="sd-color-tr ${
+								isEvenRow ? "sd-tr-even" : "sd-tr-odd"
+							}" data-name="${this.esc(rname)}" data-doctype="${this.esc(rdt)}">
+                            <td class="sd-td-ribbon">
+                              <div class="sd-row-ribbon ${
+									ri % 2 === 0 ? "sd-ribbon-purple" : "sd-ribbon-plum"
+								}">
+                                <div class="sd-ribbon-box">
+                                  <span class="sd-ribbon-initials">${this.esc(rInitials)}</span>
+                                </div>
+                                <div class="sd-ribbon-content">
+                                  <strong class="sd-ribbon-name" title="${this.esc(rPrimary)}">${this.esc(
+									rPrimary
+								)}</strong>
+                                  ${
+										rSub
+											? `<span class="sd-ribbon-sub" title="${this.esc(
+													rSub
+											  )}">${this.esc(rSub)}</span>`
+											: ""
+									}
+                                </div>
+                                <div class="sd-ribbon-chevron"></div>
+                              </div>
+                            </td>
                             ${rel.columns
-								.map((rc) => `<td>${this.formatCellValue(rc, rrow[rc.fieldname])}</td>`)
+								.slice(1)
+								.map(
+									(rc) =>
+										`<td class="sd-td-cell">${this.formatCellValue(
+											rc,
+											rrow[rc.fieldname]
+										)}</td>`
+								)
 								.join("")}
-                            <td style="text-align: right;">
+                            <td class="sd-td-cell sd-td-action" style="text-align: center; white-space: nowrap;">
                               ${
 									rname
-										? `<button type="button" class="sd-button sd-btn-xs sd-modal-nested-btn" data-doctype="${this.esc(
+										? `<button type="button" class="sd-row-action-btn sd-btn-xs sd-modal-nested-btn" data-doctype="${this.esc(
 												rdt
-										  )}" data-name="${this.esc(rname)}">Inspect</button>`
+										  )}" data-name="${this.esc(rname)}">Inspect ➔</button>`
 										: "—"
 								}
                             </td>
@@ -1784,15 +2550,82 @@ frappe.SarathiIndustrialDashboard = class {
 		}
 	}
 
+	filterTable(tableId) {
+		const table = this.root.querySelector(`table[data-table-id="${tableId}"]`);
+		if (!table) return;
+		const searchInput = this.root.querySelector(`input[data-table-search="${tableId}"]`);
+		const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+		const activePill = this.root.querySelector(
+			`[data-table-filters="${tableId}"] .sd-filter-pill.active`
+		);
+		const filter = activePill ? activePill.dataset.tableFilter : "all";
+
+		const rows = table.querySelectorAll("tbody tr");
+		let visibleCount = 0;
+		rows.forEach((row) => {
+			const textMatch = !query || row.textContent.toLowerCase().includes(query);
+			let filterMatch = true;
+
+			if (filter !== "all") {
+				if (tableId === "customers") {
+					if (filter === "active") filterMatch = row.dataset.active === "yes";
+					else if (filter === "orders") filterMatch = row.dataset.orders === "yes";
+					else if (filter === "delayed") filterMatch = row.dataset.delayed === "yes";
+				} else if (tableId === "projects") {
+					if (filter === "in_progress")
+						filterMatch = (row.dataset.projectStatus || "").toLowerCase() === "in progress";
+					else if (filter === "completed")
+						filterMatch = (row.dataset.projectStatus || "").toLowerCase() === "completed";
+					else if (filter === "delayed") filterMatch = row.dataset.delayed === "yes";
+				} else if (tableId === "health") {
+					if (filter === "in_progress")
+						filterMatch = (row.dataset.healthStatus || "").toLowerCase() === "in progress";
+					else if (filter === "shortages") filterMatch = row.dataset.shortages === "yes";
+					else if (filter === "delayed") filterMatch = row.dataset.delayed === "yes";
+				} else if (tableId === "pipelines") {
+					if (filter === "active") filterMatch = row.dataset.wo === "yes";
+					else if (filter === "inspections") filterMatch = row.dataset.insp === "yes";
+					else if (filter === "deliveries") filterMatch = row.dataset.del === "yes";
+				}
+			}
+
+			const visible = textMatch && filterMatch;
+			row.style.display = visible ? "" : "none";
+			if (visible) visibleCount++;
+		});
+
+		const countBadge = this.root.querySelector(`[data-table-count="${tableId}"]`);
+		if (countBadge) countBadge.textContent = visibleCount;
+	}
+
 	click(event) {
+		const pill = event.target.closest(".sd-filter-pill");
+		if (pill) {
+			const group = pill.closest("[data-table-filters]");
+			if (group) {
+				group.querySelectorAll(".sd-filter-pill").forEach((p) => p.classList.remove("active"));
+				pill.classList.add("active");
+				const tableId = group.dataset.tableFilters;
+				this.filterTable(tableId);
+			}
+			return;
+		}
 		const b = event.target.closest(
-			"button, .sd-setup-card, .sd-card, a.sd-record-link, a[data-inspect], .sd-health-metric, .sd-pipeline-step"
+			"button, .sd-setup-card, .sd-card, .sd-color-tr, a.sd-record-link, a[data-inspect], .sd-health-metric, .sd-pipeline-step, [data-customer], [data-project], [data-action]"
 		);
 		if (!b || b.disabled) return;
 		const d = b.dataset;
 		if (d.inspect) {
 			event.preventDefault();
 			this.showRecordFormModal(null, d.doctype, d.inspect);
+		} else if (d.action === "toggle-customer-view") {
+			this.customerViewMode = d.mode || (this.customerViewMode === "table" ? "cards" : "table");
+			this.customerPage = 0;
+			this.renderCards();
+		} else if (d.action === "toggle-project-view") {
+			this.projectViewMode = d.mode || (this.projectViewMode === "table" ? "cards" : "table");
+			this.projectPage = 0;
+			this.renderCards();
 		} else if (d.action === "toggle-ai") this.toggleAiChat();
 		else if (d.action === "switch-owner") frappe.set_route("sarathiownertower");
 		else if (d.action === "apply-dates") this.applyDateFilter();

@@ -1,3 +1,5 @@
+name: frappe_docker
+
 services:
   backend:
     image: sarathi/erpnext-sarathi:v16.33.0

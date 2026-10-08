@@ -26,6 +26,8 @@ jobs:
 
       - name: Install and Run Pre-commit
         uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --skip no-commit-to-branch
 
   js-unit-tests:
     name: js unit tests
