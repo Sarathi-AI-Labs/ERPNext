@@ -1324,7 +1324,7 @@ frappe.SarathiIndustrialDashboard = class {
 		</div>`
 			: this.empty();
 
-		return `<section class="sd-panel"><div class="sd-panel-heading"><div><h2>${
+		return `<section class="sd-panel" data-pipeline-panel><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project working pipeline" : "Project pipelines"
 		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${tableContent}<div class="sd-production-links"><button class="sd-button" data-report="part_production">Recorded cutting / welding / grinding outputs</button><button class="sd-button" data-report="material_history">Lifetime materials</button><button class="sd-button" data-report="tracking_setup">Part tracking setup</button></div><details class="sd-setup-details"><summary>Project attribution & physical part setup</summary>${setup}</details>${
 			this.data.procurement_exception_count
@@ -1504,7 +1504,7 @@ frappe.SarathiIndustrialDashboard = class {
 					"No open projects in this selection. Select a completed project to see its full health summary."
 			  );
 
-		return `<section class="sd-panel sd-health"><div class="sd-panel-heading"><div><h2>${
+		return `<section class="sd-panel sd-health" data-health-panel><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project health at a glance" : "Open project health"
 		}</h2><p>Current recorded operation, next outstanding step, materials, quality and fulfillment · lifetime project records</p></div></div>${tableContent}<p class="sd-scope-note">An open Job Card time log is recorded activity, not proof of machine telemetry. A blank metric means read access or stock availability is unavailable. Inspection counts are submitted results, not part quantities.</p></section>`;
 	}

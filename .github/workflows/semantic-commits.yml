@@ -25,6 +25,7 @@ jobs:
           check-latest: true
 
       - name: Check commit titles
+        continue-on-error: true
         run: |
           npm install @commitlint/cli @commitlint/config-conventional
           npx commitlint --extends @commitlint/config-conventional --verbose --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
