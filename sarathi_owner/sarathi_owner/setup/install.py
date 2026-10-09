@@ -11,6 +11,7 @@ def after_install():
 	remove_manufacturing_sidebar_links()
 	try:
 		from sarathi_visibility.setup.install import ensure_desk_icons
+
 		ensure_desk_icons()
 	except Exception:
 		pass
@@ -22,6 +23,7 @@ def after_migrate():
 	remove_manufacturing_sidebar_links()
 	try:
 		from sarathi_visibility.setup.install import ensure_desk_icons
+
 		ensure_desk_icons()
 	except Exception:
 		pass

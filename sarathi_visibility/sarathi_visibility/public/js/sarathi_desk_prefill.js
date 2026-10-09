@@ -42,7 +42,9 @@
 					}
 				}
 			}
-		} catch (_) {}
+		} catch (error) {
+			void error;
+		}
 	}
 
 	function ensureBootIcons() {

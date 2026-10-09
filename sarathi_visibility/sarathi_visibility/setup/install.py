@@ -19,10 +19,6 @@ def after_install():
 	remove_manufacturing_sidebar_links()
 
 
-
-
-
-
 def after_migrate():
 	from sarathi_visibility.setup.dashboard import install
 
@@ -167,15 +163,22 @@ def extend_bootinfo_desktop_icons(bootinfo):
 	icon_urls["sarathi_owner"]["subtle"] = ["assets/sarathi_owner/icons/desktop_icons/subtle/owner.svg"]
 
 	icon_urls.setdefault("sarathi_visibility", {})
-	icon_urls["sarathi_visibility"]["solid"] = ["assets/sarathi_visibility/icons/desktop_icons/solid/production_manager.svg"]
-	icon_urls["sarathi_visibility"]["subtle"] = ["assets/sarathi_visibility/icons/desktop_icons/subtle/production_manager.svg"]
+	icon_urls["sarathi_visibility"]["solid"] = [
+		"assets/sarathi_visibility/icons/desktop_icons/solid/production_manager.svg"
+	]
+	icon_urls["sarathi_visibility"]["subtle"] = [
+		"assets/sarathi_visibility/icons/desktop_icons/subtle/production_manager.svg"
+	]
 
 	desktop_icons = bootinfo.get("desktop_icons")
 	if isinstance(desktop_icons, list):
 		desktop_icons = [
 			i
 			for i in desktop_icons
-			if not (isinstance(i, dict) and i.get("name") in ("Sarathi Visibility", "Sarathi Owner", "Sarathi Owner Dashboard"))
+			if not (
+				isinstance(i, dict)
+				and i.get("name") in ("Sarathi Visibility", "Sarathi Owner", "Sarathi Owner Dashboard")
+			)
 		]
 
 		owner_icon = {
