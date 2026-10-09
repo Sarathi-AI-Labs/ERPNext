@@ -3147,7 +3147,6 @@ def _get_accounts_setup_page(filters, perm) -> dict:
 				a.root_type or "Ledger Root",
 				a.account_currency or "INR",
 				a.company or "—",
-				f'<a href="/app/account/{a.name}" target="_blank" class="sod-link">Open Account ↗</a>',
 			]
 		)
 
@@ -3205,7 +3204,6 @@ def _get_accounts_setup_page(filters, perm) -> dict:
 				"ROOT TYPE",
 				"CURRENCY",
 				"COMPANY",
-				"ACTIONS",
 			],
 			"rows": rows,
 		},

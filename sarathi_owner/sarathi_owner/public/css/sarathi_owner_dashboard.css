@@ -2214,8 +2214,8 @@
 	background: white;
 	border-radius: 20px;
 	padding: 24px 28px;
-	max-width: 640px;
-	width: 94%;
+	max-width: 860px;
+	width: 95%;
 	max-height: 90vh;
 	display: flex;
 	flex-direction: column;
@@ -2357,6 +2357,17 @@
 	border-radius: 10px;
 	border: 1px solid #e2e8f0;
 	margin-top: 12px;
+	max-height: 380px;
+	overflow-y: auto;
+	background: #ffffff;
+}
+
+.sod-modal-table-wrap table.sod-table th {
+	position: sticky;
+	top: 0;
+	background: #f8fafc;
+	z-index: 2;
+	box-shadow: 0 1px 0 #e2e8f0;
 }
 
 .sod-modal-foot {
