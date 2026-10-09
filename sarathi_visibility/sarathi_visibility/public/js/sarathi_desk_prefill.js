@@ -1,10 +1,205 @@
+/* Sarathi Visibility & Owner - Global Desk & Form Enhancements */
+
+// 1. Desk Icons Management (Guaranteed delivery for Owner & Production Manager)
+(function () {
+	const OWNER_ICON = {
+		name: "Owner",
+		label: "Owner",
+		link: "/desk/sarathiownertower",
+		link_type: "External",
+		icon_type: "App",
+		app: "sarathi_owner",
+		logo_url: "/assets/sarathi_owner/icons/owner.png",
+		hidden: 0,
+		standard: 1,
+		restrict_removal: 1,
+		idx: 0,
+	};
+
+	const PM_ICON = {
+		name: "Production Manager",
+		label: "Production Manager",
+		link: "/desk/sarathicontroltower",
+		link_type: "External",
+		icon_type: "App",
+		app: "sarathi_visibility",
+		logo_url: "/assets/sarathi_visibility/icons/production_manager.png",
+		hidden: 0,
+		standard: 1,
+		restrict_removal: 1,
+		idx: 1,
+	};
+
+	function purgeStaleDesktopCache() {
+		try {
+			const user = window.frappe?.session?.user;
+			if (user) {
+				const cacheKey = `${user}:desktop`;
+				const cached = localStorage.getItem(cacheKey);
+				if (cached) {
+					if (!cached.includes("Owner") || !cached.includes("Production Manager")) {
+						localStorage.removeItem(cacheKey);
+					}
+				}
+			}
+		} catch (_) {}
+	}
+
+	function ensureBootIcons() {
+		if (Array.isArray(window.frappe?.boot?.desktop_icons)) {
+			const bootIcons = window.frappe.boot.desktop_icons;
+			if (!bootIcons.some((i) => i && (i.name === "Owner" || i.label === "Owner"))) {
+				bootIcons.push(OWNER_ICON);
+			}
+			if (
+				!bootIcons.some(
+					(i) => i && (i.name === "Production Manager" || i.label === "Production Manager")
+				)
+			) {
+				bootIcons.push(PM_ICON);
+			}
+		}
+		if (Array.isArray(window.frappe?.desktop_icons)) {
+			const dIcons = window.frappe.desktop_icons;
+			if (!dIcons.some((i) => i && (i.name === "Owner" || i.label === "Owner"))) {
+				dIcons.push(OWNER_ICON);
+			}
+			if (
+				!dIcons.some(
+					(i) => i && (i.name === "Production Manager" || i.label === "Production Manager")
+				)
+			) {
+				dIcons.push(PM_ICON);
+			}
+		}
+	}
+
+	function ensureDomIcons() {
+		const $container = $(".desktop-container .icons").first();
+		if (!$container.length) return;
+
+		if (!$container.find('.desktop-icon[data-id="Owner"]').length) {
+			const ownerHtml = `
+				<a class="desktop-icon sarathi-desk-icon" data-id="Owner" href="/desk/sarathiownertower" style="text-decoration:none">
+					<div class="icon-container" style="padding:0;background:transparent;">
+						<img class="app-icon" src="/assets/sarathi_owner/icons/owner.png" alt="Owner" style="width:54px;height:54px;object-fit:contain;border-radius:14px;" />
+					</div>
+					<div class="icon-caption">
+						<div class="icon-title" data-toggle="tooltip" data-original-title="Owner">Owner</div>
+					</div>
+				</a>`;
+			$container.append(ownerHtml);
+		}
+
+		if (!$container.find('.desktop-icon[data-id="Production Manager"]').length) {
+			const pmHtml = `
+				<a class="desktop-icon sarathi-desk-icon" data-id="Production Manager" href="/desk/sarathicontroltower" style="text-decoration:none">
+					<div class="icon-container" style="padding:0;background:transparent;">
+						<img class="app-icon" src="/assets/sarathi_visibility/icons/production_manager.png" alt="Production Manager" style="width:54px;height:54px;object-fit:contain;border-radius:14px;" />
+					</div>
+					<div class="icon-caption">
+						<div class="icon-title" data-toggle="tooltip" data-original-title="Production Manager">Production Manager</div>
+					</div>
+				</a>`;
+			$container.append(pmHtml);
+		}
+	}
+
+	function runDesktopCheck() {
+		purgeStaleDesktopCache();
+		ensureBootIcons();
+		ensureDomIcons();
+	}
+
+	// Route bindings
+	$(document).on("click", '.desktop-icon[data-id="Owner"], .desktop-icon[data-id="owner"]', function (e) {
+		e.preventDefault();
+		if (window.frappe?.set_route) {
+			window.frappe.set_route("sarathiownertower");
+		} else {
+			window.location.href = "/desk/sarathiownertower";
+		}
+	});
+
+	$(document).on(
+		"click",
+		'.desktop-icon[data-id="Production Manager"], .desktop-icon[data-id="production-manager"], .desktop-icon[data-id="production_manager"]',
+		function (e) {
+			e.preventDefault();
+			if (window.frappe?.set_route) {
+				window.frappe.set_route("sarathicontroltower");
+			} else {
+				window.location.href = "/desk/sarathicontroltower";
+			}
+		}
+	);
+
+	runDesktopCheck();
+	$(document).ready(runDesktopCheck);
+	$(document).on("desktop_screen", runDesktopCheck);
+	$(document).on("page-change", runDesktopCheck);
+	setTimeout(runDesktopCheck, 50);
+	setTimeout(runDesktopCheck, 150);
+	setTimeout(runDesktopCheck, 350);
+	setTimeout(runDesktopCheck, 800);
+	setTimeout(runDesktopCheck, 1500);
+})();
+
+// 2. Job Card List Filter Handler
+(function () {
+	function checkJobCardListFilter() {
+		const params = new URLSearchParams(window.location.search || "");
+		const wo = params.get("work_order") || window.frappe?.route_options?.work_order;
+		if (!wo) {
+			return;
+		}
+
+		const route = window.frappe?.get_route ? window.frappe.get_route() : [];
+		if (
+			route &&
+			(route[0] === "List" || route[0] === "list") &&
+			(route[1] === "Job Card" || route[1] === "job-card")
+		) {
+			if (window.frappe) {
+				window.frappe.route_options = window.frappe.route_options || {};
+				window.frappe.route_options.work_order = wo;
+			}
+
+			const applyFilterToList = () => {
+				if (
+					window.cur_list &&
+					(window.cur_list.doctype === "Job Card" || window.cur_list.doctype === "job-card")
+				) {
+					const filterArea = window.cur_list.filter_area;
+					if (filterArea) {
+						const currentFilters = filterArea.get() || [];
+						const hasWoFilter = currentFilters.some((f) => f[1] === "work_order" && f[3] === wo);
+						if (!hasWoFilter) {
+							filterArea.remove("work_order");
+							filterArea.add([["Job Card", "work_order", "=", wo]]);
+						}
+					}
+				}
+			};
+
+			setTimeout(applyFilterToList, 50);
+			setTimeout(applyFilterToList, 300);
+			setTimeout(applyFilterToList, 800);
+		}
+	}
+
+	$(document).on("page-change", checkJobCardListFilter);
+	if (window.frappe?.router?.on) {
+		window.frappe.router.on("change", checkJobCardListFilter);
+	}
+	$(document).ready(checkJobCardListFilter);
+})();
+
+// 3. Form Handlers & Prefill
 (function () {
 	const PREFIX = "sarathi_prefill_";
 	const PENDING_PROJECT_KEY = "sarathi_pending_project_after_company";
-
-	if (!window.frappe?.ui?.form) {
-		return;
-	}
+	let formsRegistered = false;
 
 	function routeSlug(doctype) {
 		return String(doctype || "")
@@ -117,224 +312,174 @@
 		setTimeout(() => openDeskForm("Project", pending), 400);
 	}
 
-	frappe.ui.form.on("Project", {
-		onload(frm) {
-			applyOptions(frm);
-		},
-		refresh(frm) {
-			applyOptions(frm);
-		},
-	});
-
-	frappe.ui.form.on("Company", {
-		onload(frm) {
-			applyOptions(frm);
-		},
-		refresh(frm) {
-			applyOptions(frm);
-		},
-		after_save(frm) {
-			continueToPendingProject(frm);
-		},
-	});
-
-	frappe.ui.form.on("BOM", {
-		onload(frm) {
-			applyOptions(frm, [
-				"custom_sarathi_project",
-				"project",
-				"custom_project",
-				"sarathi_project",
-				"project_name",
-				"company",
-				"item",
-			]);
-		},
-		refresh(frm) {
-			applyOptions(frm, [
-				"custom_sarathi_project",
-				"project",
-				"custom_project",
-				"sarathi_project",
-				"project_name",
-				"company",
-				"item",
-			]);
-		},
-	});
-
-	frappe.ui.form.on("Customer", {
-		onload(frm) {
-			let pending;
-			try {
-				pending = JSON.parse(sessionStorage.getItem("sarathi_new_customer_company") || "null");
-			} catch (e) {
-				pending = null;
-			}
-			if (frm.is_new() && pending?.docname === frm.doc.name) {
-				frm.__sarathi_company = pending.company;
-				sessionStorage.removeItem("sarathi_new_customer_company");
-			}
-		},
-		async after_save(frm) {
-			if (!frm.__sarathi_company) return;
-			await frappe.call({
-				method: "sarathi_visibility.api.dashboard.associate_customer",
-				args: { company: frm.__sarathi_company, customer: frm.doc.name },
-			});
-			sessionStorage.removeItem("sarathi_new_customer_company");
-			frm.__sarathi_company = null;
-			frappe.show_alert({
-				message: "Customer linked to the selected organization.",
-				indicator: "green",
-			});
-		},
-	});
-
-	frappe.ui.form.on("Project", {
-		setup(frm) {
-			frm.set_query("custom_sarathi_bom", () => ({
-				filters: {
-					custom_sarathi_project: frm.doc.name,
-					company: frm.doc.company,
-					docstatus: 1,
-					is_active: 1,
-				},
-			}));
-		},
-	});
-
-	function checkJobCardListFilter() {
-		const params = new URLSearchParams(window.location.search || "");
-		const wo = params.get("work_order") || window.frappe?.route_options?.work_order;
-		if (!wo) {
+	function initFormPrefill() {
+		if (!window.frappe?.ui?.form?.on || formsRegistered) {
 			return;
 		}
+		formsRegistered = true;
 
-		const route = window.frappe?.get_route ? window.frappe.get_route() : [];
-		if (
-			route &&
-			(route[0] === "List" || route[0] === "list") &&
-			(route[1] === "Job Card" || route[1] === "job-card")
-		) {
-			if (window.frappe) {
-				window.frappe.route_options = window.frappe.route_options || {};
-				window.frappe.route_options.work_order = wo;
-			}
+		frappe.ui.form.on("Project", {
+			onload(frm) {
+				applyOptions(frm);
+			},
+			refresh(frm) {
+				applyOptions(frm);
+			},
+			setup(frm) {
+				frm.set_query("custom_sarathi_bom", () => ({
+					filters: {
+						custom_sarathi_project: frm.doc.name,
+						company: frm.doc.company,
+						docstatus: 1,
+						is_active: 1,
+					},
+				}));
+			},
+		});
 
-			const applyFilterToList = () => {
-				if (
-					window.cur_list &&
-					(window.cur_list.doctype === "Job Card" || window.cur_list.doctype === "job-card")
-				) {
-					const filterArea = window.cur_list.filter_area;
-					if (filterArea) {
-						const currentFilters = filterArea.get() || [];
-						const hasWoFilter = currentFilters.some((f) => f[1] === "work_order" && f[3] === wo);
-						if (!hasWoFilter) {
-							filterArea.remove("work_order");
-							filterArea.add([["Job Card", "work_order", "=", wo]]);
-						}
-					}
+		frappe.ui.form.on("Company", {
+			onload(frm) {
+				applyOptions(frm);
+			},
+			refresh(frm) {
+				applyOptions(frm);
+			},
+			after_save(frm) {
+				continueToPendingProject(frm);
+			},
+		});
+
+		frappe.ui.form.on("BOM", {
+			onload(frm) {
+				applyOptions(frm, [
+					"custom_sarathi_project",
+					"project",
+					"custom_project",
+					"sarathi_project",
+					"project_name",
+					"company",
+					"item",
+				]);
+			},
+			refresh(frm) {
+				applyOptions(frm, [
+					"custom_sarathi_project",
+					"project",
+					"custom_project",
+					"sarathi_project",
+					"project_name",
+					"company",
+					"item",
+				]);
+			},
+		});
+
+		frappe.ui.form.on("Customer", {
+			onload(frm) {
+				let pending;
+				try {
+					pending = JSON.parse(sessionStorage.getItem("sarathi_new_customer_company") || "null");
+				} catch (e) {
+					pending = null;
 				}
-			};
+				if (frm.is_new() && pending?.docname === frm.doc.name) {
+					frm.__sarathi_company = pending.company;
+					sessionStorage.removeItem("sarathi_new_customer_company");
+				}
+			},
+			async after_save(frm) {
+				if (!frm.__sarathi_company) return;
+				await frappe.call({
+					method: "sarathi_visibility.api.dashboard.associate_customer",
+					args: { company: frm.__sarathi_company, customer: frm.doc.name },
+				});
+				sessionStorage.removeItem("sarathi_new_customer_company");
+				frm.__sarathi_company = null;
+				frappe.show_alert({
+					message: "Customer linked to the selected organization.",
+					indicator: "green",
+				});
+			},
+		});
 
-			setTimeout(applyFilterToList, 50);
-			setTimeout(applyFilterToList, 300);
-			setTimeout(applyFilterToList, 800);
-		}
-	}
+		frappe.ui.form.on("Material Request", {
+			onload(frm) {
+				if (!frm.is_new()) return;
+				let context;
+				try {
+					context = JSON.parse(
+						sessionStorage.getItem("sarathi_material_request_project") || "null"
+					);
+				} catch (_) {
+					return;
+				}
+				if (context?.docname !== frm.doc.name) return;
+				frm.__sarathi_project = context.project;
+				sessionStorage.removeItem("sarathi_material_request_project");
+			},
+			before_save(frm) {
+				if (frm.__sarathi_project)
+					(frm.doc.items || []).forEach((r) => {
+						if (!r.project) r.project = frm.__sarathi_project;
+					});
+			},
+		});
 
-	$(document).on("page-change", checkJobCardListFilter);
-	if (window.frappe?.router?.on) {
-		window.frappe.router.on("change", checkJobCardListFilter);
-	}
-	$(document).ready(checkJobCardListFilter);
-})();
+		frappe.ui.form.on("Material Request Item", {
+			items_add(frm, cdt, cdn) {
+				if (frm.__sarathi_project) frappe.model.set_value(cdt, cdn, "project", frm.__sarathi_project);
+			},
+		});
 
-frappe.ui.form.on("Material Request", {
-	onload(frm) {
-		if (!frm.is_new()) return;
-		let context;
-		try {
-			context = JSON.parse(sessionStorage.getItem("sarathi_material_request_project") || "null");
-		} catch (_) {
-			return;
-		}
-		if (context?.docname !== frm.doc.name) return;
-		frm.__sarathi_project = context.project;
-		sessionStorage.removeItem("sarathi_material_request_project");
-	},
-	before_save(frm) {
-		if (frm.__sarathi_project)
-			(frm.doc.items || []).forEach((r) => {
-				if (!r.project) r.project = frm.__sarathi_project;
+		[
+			"Sales Order",
+			"Purchase Order",
+			"Purchase Receipt",
+			"Delivery Note",
+			"Sales Invoice",
+			"Stock Entry",
+		].forEach((doctype) => {
+			frappe.ui.form.on(doctype, {
+				project(frm) {
+					if (frm.doc.project && frm.doc.items) {
+						frm.doc.items.forEach((row) => {
+							if (!row.project) {
+								frappe.model.set_value(row.doctype, row.name, "project", frm.doc.project);
+							}
+						});
+					}
+				},
+				before_save(frm) {
+					if (frm.doc.project && frm.doc.items) {
+						frm.doc.items.forEach((row) => {
+							if (!row.project) {
+								frappe.model.set_value(row.doctype, row.name, "project", frm.doc.project);
+							}
+						});
+					}
+				},
 			});
-	},
-});
-frappe.ui.form.on("Material Request Item", {
-	items_add(frm, cdt, cdn) {
-		if (frm.__sarathi_project) frappe.model.set_value(cdt, cdn, "project", frm.__sarathi_project);
-	},
-});
+		});
 
-[
-	"Sales Order",
-	"Purchase Order",
-	"Purchase Receipt",
-	"Delivery Note",
-	"Sales Invoice",
-	"Stock Entry",
-].forEach((doctype) => {
-	frappe.ui.form.on(doctype, {
-		project(frm) {
-			if (frm.doc.project && frm.doc.items) {
-				frm.doc.items.forEach((row) => {
-					if (!row.project) {
-						frappe.model.set_value(row.doctype, row.name, "project", frm.doc.project);
+		[
+			"Sales Order Item",
+			"Purchase Order Item",
+			"Purchase Receipt Item",
+			"Delivery Note Item",
+			"Sales Invoice Item",
+			"Stock Entry Detail",
+		].forEach((childtype) => {
+			frappe.ui.form.on(childtype, {
+				items_add(frm, cdt, cdn) {
+					if (frm?.doc?.project) {
+						frappe.model.set_value(cdt, cdn, "project", frm.doc.project);
 					}
-				});
-			}
-		},
-		before_save(frm) {
-			if (frm.doc.project && frm.doc.items) {
-				frm.doc.items.forEach((row) => {
-					if (!row.project) {
-						frappe.model.set_value(row.doctype, row.name, "project", frm.doc.project);
-					}
-				});
-			}
-		},
-	});
-});
-
-[
-	"Sales Order Item",
-	"Purchase Order Item",
-	"Purchase Receipt Item",
-	"Delivery Note Item",
-	"Sales Invoice Item",
-	"Stock Entry Detail",
-].forEach((childtype) => {
-	frappe.ui.form.on(childtype, {
-		items_add(frm, cdt, cdn) {
-			if (frm?.doc?.project) {
-				frappe.model.set_value(cdt, cdn, "project", frm.doc.project);
-			}
-		},
-	});
-});
-
-// Seamless routing for Owner & Production Manager Desk Icons
-$(document).on("click", 'a.desktop-icon[data-id="Owner"], a.desktop-icon[data-id="owner"]', function (e) {
-	e.preventDefault();
-	frappe.set_route("sarathiownertower");
-});
-$(document).on(
-	"click",
-	'a.desktop-icon[data-id="Production Manager"], a.desktop-icon[data-id="production-manager"], a.desktop-icon[data-id="production_manager"]',
-	function (e) {
-		e.preventDefault();
-		frappe.set_route("sarathicontroltower");
+				},
+			});
+		});
 	}
-);
+
+	initFormPrefill();
+	$(document).ready(initFormPrefill);
+	$(document).on("page-change", initFormPrefill);
+})();

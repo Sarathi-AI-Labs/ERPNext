@@ -14,6 +14,15 @@ after_migrate = [
 app_include_css = "/assets/sarathi_owner/css/sarathi_owner_dashboard.css"
 app_include_js = "/assets/sarathi_owner/js/sarathi_owner_dashboard.js"
 
+add_to_apps_screen = [
+	{
+		"name": "Owner",
+		"title": "Owner",
+		"logo": "/assets/sarathi_owner/icons/owner.png",
+		"route": "/desk/sarathiownertower",
+	}
+]
+
 DOC_WATCH_LIST = [
 	"Project",
 	"Company",

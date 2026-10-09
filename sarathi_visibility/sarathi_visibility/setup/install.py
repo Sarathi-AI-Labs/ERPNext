@@ -19,6 +19,10 @@ def after_install():
 	ensure_manufacturing_sidebar_link()
 
 
+
+
+
+
 def after_migrate():
 	from sarathi_visibility.setup.dashboard import install
 
@@ -80,12 +84,13 @@ def ensure_desk_icons():
 		doc.link = "/desk/sarathiownertower"
 		doc.link_type = "External"
 		doc.icon_type = "App"
-		doc.app = ""
+		doc.app = "sarathi_owner"
 		doc.logo_url = "/assets/sarathi_owner/icons/owner.png"
 		doc.hidden = 0
 		doc.standard = 1
 		doc.restrict_removal = 1
 		doc.flags.do_not_update_json = True
+		doc.flags.in_import = True
 		doc.save(ignore_permissions=True)
 	else:
 		frappe.db.set_value(
@@ -96,7 +101,7 @@ def ensure_desk_icons():
 				"link": "/desk/sarathiownertower",
 				"link_type": "External",
 				"icon_type": "App",
-				"app": "",
+				"app": "sarathi_owner",
 				"logo_url": "/assets/sarathi_owner/icons/owner.png",
 				"hidden": 0,
 				"standard": 1,
@@ -112,12 +117,13 @@ def ensure_desk_icons():
 		doc.link = "/desk/sarathicontroltower"
 		doc.link_type = "External"
 		doc.icon_type = "App"
-		doc.app = ""
+		doc.app = "sarathi_visibility"
 		doc.logo_url = "/assets/sarathi_visibility/icons/production_manager.png"
 		doc.hidden = 0
 		doc.standard = 1
 		doc.restrict_removal = 1
 		doc.flags.do_not_update_json = True
+		doc.flags.in_import = True
 		doc.save(ignore_permissions=True)
 	else:
 		frappe.db.set_value(
@@ -128,7 +134,7 @@ def ensure_desk_icons():
 				"link": "/desk/sarathicontroltower",
 				"link_type": "External",
 				"icon_type": "App",
-				"app": "",
+				"app": "sarathi_visibility",
 				"logo_url": "/assets/sarathi_visibility/icons/production_manager.png",
 				"hidden": 0,
 				"standard": 1,

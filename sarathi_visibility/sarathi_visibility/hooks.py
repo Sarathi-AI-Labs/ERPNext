@@ -15,6 +15,15 @@ app_include_css = "/assets/sarathi_visibility/css/sarathi_control_tower.css"
 before_migrate = "sarathi_visibility.setup.rename_legacy.execute"
 extend_bootinfo = ["sarathi_visibility.setup.install.extend_bootinfo_desktop_icons"]
 
+add_to_apps_screen = [
+	{
+		"name": "Production Manager",
+		"title": "Production Manager",
+		"logo": "/assets/sarathi_visibility/icons/production_manager.png",
+		"route": "/desk/sarathicontroltower",
+	}
+]
+
 
 doc_events = {
 	"Project": {"validate": "sarathi_visibility.setup.dashboard.validate_project"},
