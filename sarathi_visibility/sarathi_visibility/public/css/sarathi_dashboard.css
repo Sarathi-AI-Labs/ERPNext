@@ -6577,21 +6577,134 @@ th.sd-th-plum {
 [data-project-panel] .sd-color-table-wrapper,
 [data-pipeline-panel],
 [data-pipeline-panel] .sd-color-table-wrapper,
-[data-health-panel],
-[data-health-panel] .sd-color-table-wrapper {
+[data-health-panel] {
 	overflow-x: hidden !important;
 	max-width: 100% !important;
 	width: 100% !important;
 	box-sizing: border-box !important;
 }
 
+[data-health-panel] .sd-color-table-wrapper {
+	overflow-x: auto !important;
+	max-width: 100% !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+	border-radius: 14px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #ffffff !important;
+	box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+	-webkit-overflow-scrolling: touch !important;
+}
+
+[data-health-panel] .sd-color-table-wrapper::-webkit-scrollbar {
+	height: 7px !important;
+}
+
+[data-health-panel] .sd-color-table-wrapper::-webkit-scrollbar-track {
+	background: #f1f5f9 !important;
+	border-radius: 4px !important;
+}
+
+[data-health-panel] .sd-color-table-wrapper::-webkit-scrollbar-thumb {
+	background: #cbd5e1 !important;
+	border-radius: 4px !important;
+}
+
+[data-health-panel] .sd-color-table-wrapper::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8 !important;
+}
+
 /* Eliminate forced min-width so tables adapt smoothly within panel width */
 [data-project-panel] .sd-color-table,
-[data-pipeline-panel] .sd-color-table,
-[data-health-panel] .sd-color-table {
+[data-pipeline-panel] .sd-color-table {
 	min-width: 0 !important;
 	width: 100% !important;
 	table-layout: auto !important;
+}
+
+[data-health-panel] .sd-color-table {
+	min-width: 900px !important;
+	width: 100% !important;
+	table-layout: auto !important;
+}
+
+/* Project Health Table: Compact, Well-Proportioned 9-Column Layout */
+[data-health-panel] .sd-color-table thead tr th.sd-th-pin {
+	padding: 10px 6px !important;
+	font-size: 11.5px !important;
+	white-space: nowrap !important;
+}
+
+[data-health-panel] .sd-pin-badge {
+	gap: 4px !important;
+	justify-content: center !important;
+}
+
+[data-health-panel] .sd-pin-text {
+	font-size: 11.5px !important;
+	letter-spacing: 0.2px !important;
+}
+
+[data-health-panel] .sd-pin-icon {
+	font-size: 14px !important;
+}
+
+[data-health-panel] .sd-td-ribbon {
+	width: 18% !important;
+	min-width: 150px !important;
+	max-width: 220px !important;
+	padding: 8px 10px !important;
+}
+
+[data-health-panel] .sd-row-ribbon {
+	padding: 6px 14px 6px 8px !important;
+	gap: 8px !important;
+	clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%) !important;
+}
+
+[data-health-panel] .sd-ribbon-box {
+	width: 26px !important;
+	height: 26px !important;
+	font-size: 11.5px !important;
+}
+
+[data-health-panel] .sd-ribbon-name {
+	font-size: 12.5px !important;
+}
+
+[data-health-panel] .sd-ribbon-sub {
+	font-size: 10.5px !important;
+}
+
+[data-health-panel] .sd-td-cell {
+	padding: 8px 6px !important;
+	font-size: 12.5px !important;
+	text-align: center !important;
+	vertical-align: middle !important;
+}
+
+[data-health-panel] .sd-cell-badge {
+	padding: 4px 8px !important;
+	font-size: 11.5px !important;
+	gap: 4px !important;
+	white-space: nowrap !important;
+}
+
+[data-health-panel] .sd-status-tag {
+	padding: 4px 8px !important;
+	font-size: 11px !important;
+	white-space: nowrap !important;
+}
+
+[data-health-panel] .sd-td-action {
+	width: 85px !important;
+	padding: 8px 6px !important;
+}
+
+[data-health-panel] .sd-row-action-btn {
+	padding: 4px 8px !important;
+	font-size: 11px !important;
+	white-space: nowrap !important;
 }
 
 /* Project Pipelines Table: Compact and Responsive 9-Column Layout */

@@ -3911,13 +3911,15 @@
 
 /* Column Dimensions */
 .sod-matrix-col-customer {
-	min-width: 260px;
-	max-width: 320px;
+	width: 185px !important;
+	min-width: 170px !important;
+	max-width: 200px !important;
 	position: sticky;
 	left: 0;
 	z-index: 12 !important;
 	background: #f1f5f9 !important;
 	border-right: 2px solid #cbd5e1 !important;
+	box-sizing: border-box !important;
 }
 
 .sod-matrix-col-customer .sod-matrix-th-inner {
@@ -3952,12 +3954,17 @@
 
 /* Sticky Customer Cell */
 .sod-matrix-cell-customer {
+	width: 185px !important;
+	min-width: 170px !important;
+	max-width: 200px !important;
 	position: sticky;
 	left: 0;
 	z-index: 6;
 	background: #ffffff;
 	border-right: 2px solid #cbd5e1 !important;
 	box-shadow: 2px 0 6px rgba(0, 0, 0, 0.03);
+	padding: 8px 10px !important;
+	box-sizing: border-box !important;
 }
 
 .sod-matrix-row:nth-child(even) .sod-matrix-cell-customer {
@@ -3971,7 +3978,17 @@
 .sod-matrix-customer-wrap {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
+	width: 100%;
+	min-width: 0;
+}
+
+.sod-matrix-avatar {
+	width: 26px !important;
+	height: 26px !important;
+	font-size: 11px !important;
+	flex-shrink: 0 !important;
+	border-radius: 6px !important;
 }
 
 .sod-matrix-row-num {
@@ -3988,15 +4005,18 @@
 	flex-direction: column;
 	gap: 2px;
 	overflow: hidden;
+	min-width: 0;
+	flex: 1;
 }
 
 .sod-matrix-customer-title {
-	font-size: 12.5px;
+	font-size: 12px !important;
 	font-weight: 800;
 	color: #0f172a;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	display: block;
 }
 
 .sod-matrix-cust-link {
@@ -4013,8 +4033,8 @@
 .sod-matrix-project-meta {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	font-size: 11px;
+	gap: 4px;
+	font-size: 10.5px !important;
 	color: #64748b;
 	white-space: nowrap;
 	overflow: hidden;
@@ -4022,12 +4042,9 @@
 }
 
 .sod-matrix-proj-code {
-	font-weight: 750;
-	color: #2563eb;
-	background: #eff6ff;
-	padding: 1px 5px;
-	border-radius: 4px;
-	text-decoration: none;
+	font-size: 10px !important;
+	padding: 1px 4px !important;
+	flex-shrink: 0;
 }
 
 .sod-matrix-proj-title {
