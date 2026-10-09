@@ -324,3 +324,17 @@ frappe.ui.form.on("Material Request Item", {
 		},
 	});
 });
+
+// Seamless routing for Owner & Production Manager Desk Icons
+$(document).on("click", 'a.desktop-icon[data-id="Owner"], a.desktop-icon[data-id="owner"]', function (e) {
+	e.preventDefault();
+	frappe.set_route("sarathiownertower");
+});
+$(document).on(
+	"click",
+	'a.desktop-icon[data-id="Production Manager"], a.desktop-icon[data-id="production-manager"], a.desktop-icon[data-id="production_manager"]',
+	function (e) {
+		e.preventDefault();
+		frappe.set_route("sarathicontroltower");
+	}
+);

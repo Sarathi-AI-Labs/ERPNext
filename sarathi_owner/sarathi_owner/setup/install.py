@@ -9,12 +9,22 @@ def after_install():
 	ensure_role("Sarathi Owner")
 	_ensure_owner_page("sarathiownertower")
 	ensure_manufacturing_sidebar_link()
+	try:
+		from sarathi_visibility.setup.install import ensure_desk_icons
+		ensure_desk_icons()
+	except Exception:
+		pass
 
 
 def after_migrate():
 	ensure_role("Sarathi Owner")
 	_ensure_owner_page("sarathiownertower")
 	ensure_manufacturing_sidebar_link()
+	try:
+		from sarathi_visibility.setup.install import ensure_desk_icons
+		ensure_desk_icons()
+	except Exception:
+		pass
 
 
 def ensure_role(role_name: str):

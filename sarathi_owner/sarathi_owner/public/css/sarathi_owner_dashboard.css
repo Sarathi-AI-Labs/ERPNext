@@ -4787,3 +4787,35 @@
 	min-width: 1000px;
 	table-layout: auto;
 }
+
+/* Desk Icons: Owner & Production Manager */
+.desktop-icon[data-id="Owner"] .icon-container,
+.desktop-icon[data-id="owner"] .icon-container,
+.desktop-icon[data-id="Production Manager"] .icon-container,
+.desktop-icon[data-id="production-manager"] .icon-container,
+.desktop-icon[data-id="production_manager"] .icon-container {
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+.desktop-icon[data-id="Owner"] .icon-container img,
+.desktop-icon[data-id="owner"] .icon-container img,
+.desktop-icon[data-id="Production Manager"] .icon-container img,
+.desktop-icon[data-id="production-manager"] .icon-container img,
+.desktop-icon[data-id="production_manager"] .icon-container img {
+	width: 54px !important;
+	height: 54px !important;
+	object-fit: contain !important;
+	border-radius: 14px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.desktop-icon[data-id="Owner"]:hover .icon-container img,
+.desktop-icon[data-id="owner"]:hover .icon-container img,
+.desktop-icon[data-id="Production Manager"]:hover .icon-container img,
+.desktop-icon[data-id="production-manager"]:hover .icon-container img,
+.desktop-icon[data-id="production_manager"]:hover .icon-container img {
+	transform: scale(1.06);
+	box-shadow: 0 4px 14px rgba(2, 137, 247, 0.3);
+}

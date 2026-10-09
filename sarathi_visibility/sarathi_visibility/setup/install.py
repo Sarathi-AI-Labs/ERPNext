@@ -14,7 +14,7 @@ def after_install():
 	ensure_role("Sarathi Super Admin")
 	ensure_module_profile_page()
 	ensure_workspace_shortcuts()
-	ensure_no_desk_icon()
+	ensure_desk_icons()
 	ensure_frappe_framework_icon()
 	ensure_manufacturing_sidebar_link()
 
@@ -25,7 +25,7 @@ def after_migrate():
 	install()
 	ensure_module_profile_page()
 	ensure_workspace_shortcuts()
-	ensure_no_desk_icon()
+	ensure_desk_icons()
 	ensure_frappe_framework_icon()
 	ensure_manufacturing_sidebar_link()
 
@@ -68,23 +68,78 @@ def ensure_frappe_framework_icon():
 		pass
 
 
-def ensure_no_desk_icon():
-	if frappe.db.exists("Desktop Icon", "Sarathi Visibility"):
-		frappe.delete_doc("Desktop Icon", "Sarathi Visibility", ignore_permissions=True, force=True)
-	elif frappe.db.table_exists("Desktop Icon"):
-		for icon in frappe.get_all("Desktop Icon", filters={"label": "Sarathi Visibility"}, pluck="name"):
-			frappe.delete_doc("Desktop Icon", icon, ignore_permissions=True, force=True)
+def ensure_desk_icons():
+	if not frappe.db.table_exists("Desktop Icon"):
+		return
 
-	if frappe.db.exists("Workspace Sidebar", "Sarathi Visibility"):
-		frappe.delete_doc(
-			"Workspace Sidebar",
-			"Sarathi Visibility",
-			ignore_permissions=True,
-			force=True,
+	# 1. Owner icon
+	if not frappe.db.exists("Desktop Icon", "Owner"):
+		doc = frappe.new_doc("Desktop Icon")
+		doc.name = "Owner"
+		doc.label = "Owner"
+		doc.link = "/desk/sarathiownertower"
+		doc.link_type = "External"
+		doc.icon_type = "App"
+		doc.app = ""
+		doc.logo_url = "/assets/sarathi_owner/icons/owner.png"
+		doc.hidden = 0
+		doc.standard = 1
+		doc.restrict_removal = 1
+		doc.flags.do_not_update_json = True
+		doc.save(ignore_permissions=True)
+	else:
+		frappe.db.set_value(
+			"Desktop Icon",
+			"Owner",
+			{
+				"label": "Owner",
+				"link": "/desk/sarathiownertower",
+				"link_type": "External",
+				"icon_type": "App",
+				"app": "",
+				"logo_url": "/assets/sarathi_owner/icons/owner.png",
+				"hidden": 0,
+				"standard": 1,
+				"restrict_removal": 1,
+			},
 		)
-	elif frappe.db.table_exists("Workspace Sidebar"):
-		for sb in frappe.get_all("Workspace Sidebar", filters={"title": "Sarathi Visibility"}, pluck="name"):
-			frappe.delete_doc("Workspace Sidebar", sb, ignore_permissions=True, force=True)
+
+	# 2. Production Manager icon
+	if not frappe.db.exists("Desktop Icon", "Production Manager"):
+		doc = frappe.new_doc("Desktop Icon")
+		doc.name = "Production Manager"
+		doc.label = "Production Manager"
+		doc.link = "/desk/sarathicontroltower"
+		doc.link_type = "External"
+		doc.icon_type = "App"
+		doc.app = ""
+		doc.logo_url = "/assets/sarathi_visibility/icons/production_manager.png"
+		doc.hidden = 0
+		doc.standard = 1
+		doc.restrict_removal = 1
+		doc.flags.do_not_update_json = True
+		doc.save(ignore_permissions=True)
+	else:
+		frappe.db.set_value(
+			"Desktop Icon",
+			"Production Manager",
+			{
+				"label": "Production Manager",
+				"link": "/desk/sarathicontroltower",
+				"link_type": "External",
+				"icon_type": "App",
+				"app": "",
+				"logo_url": "/assets/sarathi_visibility/icons/production_manager.png",
+				"hidden": 0,
+				"standard": 1,
+				"restrict_removal": 1,
+			},
+		)
+
+	# Clean obsolete desktop icons if present
+	for obsolete in ("Sarathi Visibility", "Sarathi Owner", "Sarathi Owner Dashboard"):
+		if frappe.db.exists("Desktop Icon", obsolete):
+			frappe.delete_doc("Desktop Icon", obsolete, ignore_permissions=True, force=True)
 
 	try:
 		from frappe.desk.doctype.desktop_icon.desktop_icon import (
@@ -96,23 +151,70 @@ def ensure_no_desk_icon():
 		pass
 
 
-def filter_bootinfo_desktop_icons(bootinfo):
+def extend_bootinfo_desktop_icons(bootinfo):
 	if not bootinfo:
 		return
+
+	icon_urls = bootinfo.setdefault("desktop_icon_urls", {})
+	icon_urls.setdefault("sarathi_owner", {})
+	icon_urls["sarathi_owner"]["solid"] = ["assets/sarathi_owner/icons/desktop_icons/solid/owner.svg"]
+	icon_urls["sarathi_owner"]["subtle"] = ["assets/sarathi_owner/icons/desktop_icons/subtle/owner.svg"]
+
+	icon_urls.setdefault("sarathi_visibility", {})
+	icon_urls["sarathi_visibility"]["solid"] = ["assets/sarathi_visibility/icons/desktop_icons/solid/production_manager.svg"]
+	icon_urls["sarathi_visibility"]["subtle"] = ["assets/sarathi_visibility/icons/desktop_icons/subtle/production_manager.svg"]
+
 	desktop_icons = bootinfo.get("desktop_icons")
 	if isinstance(desktop_icons, list):
-		bootinfo["desktop_icons"] = [
-			icon
-			for icon in desktop_icons
-			if not (
-				isinstance(icon, dict)
-				and (
-					icon.get("name") == "Sarathi Visibility"
-					or icon.get("label") == "Sarathi Visibility"
-					or icon.get("link_to") == "Sarathi Visibility"
-				)
-			)
+		desktop_icons = [
+			i
+			for i in desktop_icons
+			if not (isinstance(i, dict) and i.get("name") in ("Sarathi Visibility", "Sarathi Owner", "Sarathi Owner Dashboard"))
 		]
+
+		owner_icon = {
+			"name": "Owner",
+			"label": "Owner",
+			"link": "/desk/sarathiownertower",
+			"link_type": "External",
+			"icon_type": "App",
+			"app": "sarathi_owner",
+			"logo_url": "/assets/sarathi_owner/icons/owner.png",
+			"hidden": 0,
+			"standard": 1,
+			"restrict_removal": 1,
+			"idx": 0,
+		}
+
+		pm_icon = {
+			"name": "Production Manager",
+			"label": "Production Manager",
+			"link": "/desk/sarathicontroltower",
+			"link_type": "External",
+			"icon_type": "App",
+			"app": "sarathi_visibility",
+			"logo_url": "/assets/sarathi_visibility/icons/production_manager.png",
+			"hidden": 0,
+			"standard": 1,
+			"restrict_removal": 1,
+			"idx": 1,
+		}
+
+		if not any(isinstance(i, dict) and i.get("name") == "Owner" for i in desktop_icons):
+			desktop_icons.append(owner_icon)
+		else:
+			for i in desktop_icons:
+				if isinstance(i, dict) and i.get("name") == "Owner":
+					i.update(owner_icon)
+
+		if not any(isinstance(i, dict) and i.get("name") == "Production Manager" for i in desktop_icons):
+			desktop_icons.append(pm_icon)
+		else:
+			for i in desktop_icons:
+				if isinstance(i, dict) and i.get("name") == "Production Manager":
+					i.update(pm_icon)
+
+		bootinfo["desktop_icons"] = desktop_icons
 
 
 def ensure_role(role_name: str):
