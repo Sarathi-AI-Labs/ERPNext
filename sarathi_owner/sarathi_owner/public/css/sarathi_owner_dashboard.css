@@ -35,7 +35,14 @@
 }
 
 .sod-wrapper {
-	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+	font-family:
+		Inter,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Arial,
+		sans-serif;
 	color: var(--sod-ink);
 	background: #f5f6fc;
 	min-height: 100vh;
@@ -710,7 +717,9 @@
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
 	border-radius: 10px;
-	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+	box-shadow:
+		0 10px 25px -5px rgba(0, 0, 0, 0.12),
+		0 8px 10px -6px rgba(0, 0, 0, 0.08);
 	max-height: 240px;
 	overflow-y: auto;
 	z-index: 1050;
@@ -775,7 +784,9 @@
 	background: #ffffff;
 	border: 1.5px solid #dce2f0;
 	border-radius: 12px;
-	box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16), 0 4px 10px rgba(0, 0, 0, 0.05);
+	box-shadow:
+		0 14px 34px rgba(15, 23, 42, 0.16),
+		0 4px 10px rgba(0, 0, 0, 0.05);
 	padding: 14px 16px;
 	z-index: 1250;
 	display: none;
@@ -942,7 +953,10 @@
 	overflow: hidden;
 	position: relative;
 	cursor: pointer;
-	transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+	transition:
+		transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
 	user-select: none;
 }
 
@@ -959,7 +973,10 @@
 	font-size: 13px;
 	opacity: 0.45;
 	color: #6e7b98;
-	transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		color 0.15s ease;
 }
 
 .sod-card:hover .sod-card-arrow {
@@ -1344,7 +1361,9 @@
 	display: grid;
 	place-items: center;
 	font-size: 13.5px;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
 }
 
 .sod-card-step:hover .sod-card-step-circle,
@@ -1469,13 +1488,19 @@
 /* --- 2. ACTIVE (Current Working with Live Animated Pulsing Aura) --- */
 @keyframes sod-active-pulsing-aura {
 	0% {
-		box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7), 0 4px 14px rgba(99, 102, 241, 0.35);
+		box-shadow:
+			0 0 0 0 rgba(99, 102, 241, 0.7),
+			0 4px 14px rgba(99, 102, 241, 0.35);
 	}
 	50% {
-		box-shadow: 0 0 0 8px rgba(99, 102, 241, 0), 0 8px 24px rgba(99, 102, 241, 0.55);
+		box-shadow:
+			0 0 0 8px rgba(99, 102, 241, 0),
+			0 8px 24px rgba(99, 102, 241, 0.55);
 	}
 	100% {
-		box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7), 0 4px 14px rgba(99, 102, 241, 0.35);
+		box-shadow:
+			0 0 0 0 rgba(99, 102, 241, 0.7),
+			0 4px 14px rgba(99, 102, 241, 0.35);
 	}
 }
 
@@ -3135,7 +3160,9 @@
 	padding: 11px 12px;
 	margin: 2px 0;
 	color: #c4cfe5;
-	transition: background 0.18s, box-shadow 0.18s;
+	transition:
+		background 0.18s,
+		box-shadow 0.18s;
 }
 .sod-nav button .sod-icon {
 	display: inline-grid;
@@ -3158,7 +3185,9 @@
 .sod-nav button.active,
 .sod-nav-dropdown-menu button.active {
 	background: linear-gradient(110deg, #4658d6, #6a4acf);
-	box-shadow: 0 5px 16px #060e2938, inset 3px 0 #b6c8ff;
+	box-shadow:
+		0 5px 16px #060e2938,
+		inset 3px 0 #b6c8ff;
 	color: white;
 }
 .sod-nav button.active .sod-icon {
@@ -3210,7 +3239,9 @@
 	top: -180px;
 	border: 55px solid #ffffff09;
 	border-radius: 50%;
-	box-shadow: 0 0 0 45px #ffffff05, 0 0 0 90px #ffffff04;
+	box-shadow:
+		0 0 0 45px #ffffff05,
+		0 0 0 90px #ffffff04;
 }
 .sod-hero h1 {
 	font-size: clamp(26px, 2.5vw, 36px);
@@ -3316,8 +3347,10 @@
 	color: #61718b;
 }
 .sod-content
-	:is(.sod-panel, .sod-chart-card, .sod-report-runner, .sod-accounts-overview):not(.sod-pipeline-preserved, .sod-pipeline-preserved
-		*) {
+	:is(.sod-panel, .sod-chart-card, .sod-report-runner, .sod-accounts-overview):not(
+		.sod-pipeline-preserved,
+		.sod-pipeline-preserved *
+	) {
 	border: 1px solid #dee5f0;
 	border-radius: 18px;
 	background: #fff;
@@ -4077,7 +4110,9 @@
 	justify-content: center;
 	font-size: 15px;
 	font-weight: 900;
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .sod-matrix-icon.done {
@@ -4506,7 +4541,9 @@
 	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
 	display: flex;
 	flex-direction: column;
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .sod-section-box:hover {
