@@ -1,0 +1,43 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sarathi_visibility/**"
+      - "sarathi_owner/**"
+      - "compose.yaml"
+      - "pwd.yml"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Hostinger VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME || 'root' }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT || 22 }}
+          script: |
+            echo "=== Locating project directory ==="
+            if [ -n "${{ secrets.HOSTINGER_PROJECT_PATH }}" ] && [ -d "${{ secrets.HOSTINGER_PROJECT_PATH }}" ]; then
+              cd "${{ secrets.HOSTINGER_PROJECT_PATH }}"
+            else
+              cd /opt/frappe_docker 2>/dev/null || cd /root/frappe_docker 2>/dev/null || cd /root/ERPNext 2>/dev/null || cd $(dirname $(find / -name "compose.yaml" 2>/dev/null | grep -v "/var/lib/docker" | head -n 1))
+            fi
+            echo "Working directory: $(pwd)"
+
+            echo "=== Pulling latest changes from main ==="
+            git fetch origin main
+            git pull origin main
+
+            echo "=== Restarting application services ==="
+            docker compose restart frontend backend
+
+            echo "=== Deployment successfully completed! ==="
