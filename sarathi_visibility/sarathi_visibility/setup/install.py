@@ -16,7 +16,7 @@ def after_install():
 	ensure_workspace_shortcuts()
 	ensure_desk_icons()
 	ensure_frappe_framework_icon()
-	ensure_manufacturing_sidebar_link()
+	remove_manufacturing_sidebar_links()
 
 
 
@@ -31,7 +31,7 @@ def after_migrate():
 	ensure_workspace_shortcuts()
 	ensure_desk_icons()
 	ensure_frappe_framework_icon()
-	ensure_manufacturing_sidebar_link()
+	remove_manufacturing_sidebar_links()
 
 
 def ensure_frappe_framework_icon():
@@ -358,59 +358,30 @@ def _remove_content_shortcut(workspace, shortcut_name: str):
 		workspace.content = json.dumps(cleaned, separators=(",", ":"))
 
 
-def ensure_manufacturing_sidebar_link():
+def remove_manufacturing_sidebar_links():
 	_remove_manufacturing_workspace_card_link()
 
 	if not frappe.db.exists("Workspace Sidebar", "Manufacturing"):
 		return
 
 	sidebar = frappe.get_doc("Workspace Sidebar", "Manufacturing")
-	label = "Sarathi Industrial Dashboard"
-	new_item = {
-		"type": "Link",
-		"label": label,
-		"link_type": "Page",
-		"link_to": "sarathicontroltower",
-		"icon": "chart",
-		"indent": 0,
-		"child": 0,
-		"collapsible": 1,
-		"keep_closed": 0,
-		"show_arrow": 0,
+	labels_to_remove = {
+		"Sarathi Industrial Dashboard",
+		"Sarathi Owner Dashboard",
 	}
 
 	item_rows = []
-	existing_row = None
+	changed = False
 	for row in sidebar.items:
-		if row.label == label:
-			existing_row = row
+		if row.label in labels_to_remove or row.link_to in ("sarathicontroltower", "sarathiownertower"):
+			changed = True
 			continue
 		item_rows.append(row.as_dict())
 
-	settings_index = next(
-		(
-			index
-			for index, row in enumerate(item_rows)
-			if row.get("type") == "Link" and row.get("label") == "Settings"
-		),
-		None,
-	)
-	insert_index = settings_index + 1 if settings_index is not None else len(item_rows)
-
-	if existing_row:
-		new_item.update(
-			{
-				"name": existing_row.name,
-				"parent": existing_row.parent,
-				"parentfield": existing_row.parentfield,
-				"parenttype": existing_row.parenttype,
-			}
-		)
-
-	item_rows.insert(insert_index, new_item)
-	_reindex_rows(item_rows)
-	sidebar.set("items", item_rows)
-	sidebar.save(ignore_permissions=True)
+	if changed:
+		_reindex_rows(item_rows)
+		sidebar.set("items", item_rows)
+		sidebar.save(ignore_permissions=True)
 
 
 def _remove_manufacturing_workspace_card_link():

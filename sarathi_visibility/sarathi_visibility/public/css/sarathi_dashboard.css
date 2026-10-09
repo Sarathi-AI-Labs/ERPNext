@@ -1,3 +1,23 @@
+.page-container[data-page-route="sarathicontroltower"] .layout-side-section,
+.page-container[data-page-route="sarathicontroltower"] .desk-sidebar,
+.page-container[data-page-route="sarathicontroltower"] .body-sidebar,
+.page-container[data-page-route="sarathicontroltower"] .layout-side-section-wrapper {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+.page-container[data-page-route="sarathicontroltower"] .layout-main-section-wrapper,
+.page-container[data-page-route="sarathicontroltower"] .layout-main {
+	width: 100% !important;
+	max-width: 100% !important;
+	flex: 1 1 100% !important;
+}
+
 .sd-dashboard {
 	--sd-ink: #183449;
 	--sd-muted: #61788a;

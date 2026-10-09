@@ -134,15 +134,32 @@
 		}
 	);
 
+	function enforceSidebarState() {
+		const route = window.frappe?.get_route ? window.frappe.get_route() : [];
+		const current = route[0] || "";
+		if (current === "sarathiownertower" || current === "sarathicontroltower") {
+			window.frappe?.app?.sidebar?.toggle?.(true);
+			window.frappe?.app?.sidebar?.hide?.();
+			$(".layout-side-section, .desk-sidebar, .body-sidebar").addClass("hidden").hide();
+		}
+	}
+
 	runDesktopCheck();
 	$(document).ready(runDesktopCheck);
+	$(document).ready(enforceSidebarState);
 	$(document).on("desktop_screen", runDesktopCheck);
 	$(document).on("page-change", runDesktopCheck);
+	$(document).on("page-change", enforceSidebarState);
+	if (window.frappe?.router?.on) {
+		window.frappe.router.on("change", enforceSidebarState);
+	}
 	setTimeout(runDesktopCheck, 50);
 	setTimeout(runDesktopCheck, 150);
 	setTimeout(runDesktopCheck, 350);
 	setTimeout(runDesktopCheck, 800);
 	setTimeout(runDesktopCheck, 1500);
+	setTimeout(enforceSidebarState, 100);
+	setTimeout(enforceSidebarState, 500);
 })();
 
 // 2. Job Card List Filter Handler

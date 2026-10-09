@@ -8,7 +8,7 @@ def before_install():
 def after_install():
 	ensure_role("Sarathi Owner")
 	_ensure_owner_page("sarathiownertower")
-	ensure_manufacturing_sidebar_link()
+	remove_manufacturing_sidebar_links()
 	try:
 		from sarathi_visibility.setup.install import ensure_desk_icons
 		ensure_desk_icons()
@@ -19,7 +19,7 @@ def after_install():
 def after_migrate():
 	ensure_role("Sarathi Owner")
 	_ensure_owner_page("sarathiownertower")
-	ensure_manufacturing_sidebar_link()
+	remove_manufacturing_sidebar_links()
 	try:
 		from sarathi_visibility.setup.install import ensure_desk_icons
 		ensure_desk_icons()
@@ -65,57 +65,26 @@ def _ensure_owner_page(page_name: str):
 		frappe.conf.developer_mode = developer_mode
 
 
-def ensure_manufacturing_sidebar_link():
+def remove_manufacturing_sidebar_links():
 	if not frappe.db.exists("Workspace Sidebar", "Manufacturing"):
 		return
 
 	sidebar = frappe.get_doc("Workspace Sidebar", "Manufacturing")
-	label = "Sarathi Owner Dashboard"
-	new_item = {
-		"type": "Link",
-		"label": label,
-		"link_type": "Page",
-		"link_to": "sarathiownertower",
-		"icon": "dashboard",
-		"indent": 0,
-		"child": 0,
-		"collapsible": 1,
-		"keep_closed": 0,
-		"show_arrow": 0,
+	labels_to_remove = {
+		"Sarathi Industrial Dashboard",
+		"Sarathi Owner Dashboard",
 	}
 
 	item_rows = []
-	existing_row = None
+	changed = False
 	for row in sidebar.items:
-		if row.label == label:
-			existing_row = row
+		if row.label in labels_to_remove or row.link_to in ("sarathicontroltower", "sarathiownertower"):
+			changed = True
 			continue
 		item_rows.append(row.as_dict())
 
-	# Find Sarathi Industrial Dashboard position to put Owner Dashboard right above or next to it
-	sarathi_index = next(
-		(
-			index
-			for index, row in enumerate(item_rows)
-			if row.get("type") == "Link" and "Sarathi Industrial Dashboard" in (row.get("label") or "")
-		),
-		None,
-	)
-	insert_index = sarathi_index if sarathi_index is not None else len(item_rows)
-
-	if existing_row:
-		new_item.update(
-			{
-				"name": existing_row.name,
-				"parent": existing_row.parent,
-				"parentfield": existing_row.parentfield,
-				"parenttype": existing_row.parenttype,
-			}
-		)
-
-	item_rows.insert(insert_index, new_item)
-	for index, row in enumerate(item_rows, start=1):
-		row["idx"] = index
-
-	sidebar.set("items", item_rows)
-	sidebar.save(ignore_permissions=True)
+	if changed:
+		for index, row in enumerate(item_rows, start=1):
+			row["idx"] = index
+		sidebar.set("items", item_rows)
+		sidebar.save(ignore_permissions=True)

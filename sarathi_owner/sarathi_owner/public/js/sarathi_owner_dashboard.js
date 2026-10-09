@@ -58,6 +58,7 @@ frappe.SarathiOwnerDashboard = class {
 			parent: wrapper,
 			title: "Sarathi Owner Dashboard",
 			single_column: true,
+			hide_sidebar: true,
 		});
 
 		this.page.main.empty();

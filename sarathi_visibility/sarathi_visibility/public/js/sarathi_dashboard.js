@@ -48,6 +48,7 @@ frappe.SarathiIndustrialDashboard = class {
 			parent: wrapper,
 			title: "Sarathi Industrial Dashboard",
 			single_column: true,
+			hide_sidebar: true,
 		});
 		this.root = $(frappe.render_template("sarathicontroltower", {})).appendTo(this.page.main)[0];
 		this.filters = {};
