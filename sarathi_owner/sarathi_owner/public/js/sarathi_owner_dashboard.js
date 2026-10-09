@@ -927,13 +927,13 @@ frappe.SarathiOwnerDashboard = class {
 					? options.filter(
 							(o) =>
 								(o.label || "").toLowerCase().includes(query.toLowerCase()) ||
-								(o.value || "").toLowerCase().includes(query.toLowerCase()),
-						)
+								(o.value || "").toLowerCase().includes(query.toLowerCase())
+					  )
 					: options;
 
 				if (!filtered.length) {
 					$dropdown.html(
-						'<div style="padding:8px 12px; font-size:12px; color:#94a3b8;">No matching options</div>',
+						'<div style="padding:8px 12px; font-size:12px; color:#94a3b8;">No matching options</div>'
 					);
 				} else {
 					let html = "";
@@ -943,7 +943,7 @@ frappe.SarathiOwnerDashboard = class {
 						if (query && opt.value) {
 							const regex = new RegExp(
 								`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-								"gi",
+								"gi"
 							);
 							displayLabel = displayLabel.replace(regex, "<mark>$1</mark>");
 						}
@@ -1172,8 +1172,8 @@ frappe.SarathiOwnerDashboard = class {
         <button class="${
 			idx === this.currentPage ? "active" : ""
 		}" data-page="${idx}" data-key="${frappe.utils.escape_html(
-			pageKey || "",
-		)}" title="${frappe.utils.escape_html(title)}">
+				pageKey || ""
+			)}" title="${frappe.utils.escape_html(title)}">
           <span class="sod-icon">${this.workspaceIcon(title)}</span>
           <span class="sod-nav-label">${frappe.utils.escape_html(title)}</span>
         </button>
@@ -1216,8 +1216,8 @@ frappe.SarathiOwnerDashboard = class {
 			this.companyOptions.push({ value: c.name, label });
 			$co.append(
 				`<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(
-					label,
-				)}</option>`,
+					label
+				)}</option>`
 			);
 		});
 		if (currentCo) {
@@ -1236,8 +1236,8 @@ frappe.SarathiOwnerDashboard = class {
 			this.customerOptions.push({ value: c.name, label });
 			$cust.append(
 				`<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(
-					label,
-				)}</option>`,
+					label
+				)}</option>`
 			);
 		});
 		if (currentCust) {
@@ -1258,8 +1258,8 @@ frappe.SarathiOwnerDashboard = class {
 				this.projectOptions.push({ value: p.name, label });
 				$proj.append(
 					`<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(
-						label,
-					)}</option>`,
+						label
+					)}</option>`
 				);
 			});
 		if (currentProj && $proj.find(`option[value="${currentProj}"]`).length) {
@@ -1318,11 +1318,11 @@ frappe.SarathiOwnerDashboard = class {
 		this.$el
 			.find("#sod-live-status-text")
 			.text(
-				ok ? `Updated ${new Date().toLocaleTimeString()}` : "Refresh failed · values may be outdated",
+				ok ? `Updated ${new Date().toLocaleTimeString()}` : "Refresh failed · values may be outdated"
 			);
 		if (!ok)
 			this.$content.html(
-				'<div class="sod-empty" role="alert">Live data could not be loaded. Click Refresh to retry.</div>',
+				'<div class="sod-empty" role="alert">Live data could not be loaded. Click Refresh to retry.</div>'
 			);
 	}
 
@@ -1442,10 +1442,10 @@ frappe.SarathiOwnerDashboard = class {
 		cards.forEach((c) => {
 			html += `
         <div class="sod-card ${c.color}" data-action="${frappe.utils.escape_html(
-			c.action || "",
-		)}" role="button" tabindex="0" title="Click to drill down">
+				c.action || ""
+			)}" role="button" tabindex="0" title="Click to drill down">
           <div class="sod-label"><span class="sod-metric-icon">${this.workspaceIcon(
-				c.label,
+				c.label
 			)}</span>${frappe.utils.escape_html(c.label)}</div>
           <strong class="sod-kpi-val">${frappe.utils.escape_html(c.value)}</strong>
           <small>${frappe.utils.escape_html(c.desc || "ERPNext records")}</small>
@@ -1548,8 +1548,8 @@ frappe.SarathiOwnerDashboard = class {
                 <span style="font-size:11px; color:#4f46e5; font-weight:700;">👤 In-Charge: Pooja Chougule</span>
               </div>
               <span class="sod-pill ${adv.pending_count > 0 ? "purple" : "green"}">${
-					adv.pending_count > 0 ? "● ACTION REQUIRED" : "✓ ALL CLEARED"
-				}</span>
+			adv.pending_count > 0 ? "● ACTION REQUIRED" : "✓ ALL CLEARED"
+		}</span>
             </div>
             <div class="sod-accounts-card-body">
               <div class="sod-accounts-metric-row">
@@ -1580,8 +1580,8 @@ frappe.SarathiOwnerDashboard = class {
                 <span style="font-size:11px; color:#4f46e5; font-weight:700;">👤 In-Charge: Pooja Chougule</span>
               </div>
               <span class="sod-pill ${fin.overdue && fin.overdue !== "₹0" ? "red" : "green"}">${
-					fin.overdue && fin.overdue !== "₹0" ? "⚠ OVERDUE RISK" : "✓ HEALTHY"
-				}</span>
+			fin.overdue && fin.overdue !== "₹0" ? "⚠ OVERDUE RISK" : "✓ HEALTHY"
+		}</span>
             </div>
             <div class="sod-accounts-card-body">
               <div class="sod-accounts-metric-row">
@@ -1659,33 +1659,33 @@ frappe.SarathiOwnerDashboard = class {
 				const pillColor = isDone
 					? "green"
 					: isHold
-						? "amber"
-						: isCancel
-							? "red"
-							: row.schedule_status === "Delayed"
-								? "amber"
-								: "blue";
+					? "amber"
+					: isCancel
+					? "red"
+					: row.schedule_status === "Delayed"
+					? "amber"
+					: "blue";
 				html += `
           <tr class="sod-clickable-row" data-project-drill="${frappe.utils.escape_html(row.project)}">
             <td><a href="/app/project/${encodeURIComponent(
-				row.project,
+				row.project
 			)}" target="_blank" class="sod-link">${frappe.utils.escape_html(row.project_name)}</a></td>
             <td><a href="/app/customer/${encodeURIComponent(
-				row.customer,
+				row.customer
 			)}" target="_blank" class="sod-link">${frappe.utils.escape_html(row.customer)}</a></td>
             <td><b>${row.percent_complete}%</b> <small style="color:#778899;">(${frappe.utils.escape_html(
-				row.wo_output,
-			)})</small></td>
+					row.wo_output
+				)})</small></td>
             <td>${frappe.utils.escape_html(row.budget)}</td>
             <td>${frappe.utils.escape_html(row.actual_cost)}</td>
             <td>${frappe.utils.escape_html(row.expected_end_date)}</td>
             <td><span class="sod-pill ${pillColor}">${frappe.utils.escape_html(statusVal)}</span>${
-				row.schedule_status === "Delayed"
-					? ' <small style="color:#ef4444;font-weight:700;">(Delayed)</small>'
-					: ""
-			}</td>
+					row.schedule_status === "Delayed"
+						? ' <small style="color:#ef4444;font-weight:700;">(Delayed)</small>'
+						: ""
+				}</td>
             <td><button class="sod-btn-sm" data-project-drill="${frappe.utils.escape_html(
-				row.project,
+				row.project
 			)}" title="Drill into Project Details">View ▤</button></td>
           </tr>
         `;
@@ -1719,7 +1719,7 @@ frappe.SarathiOwnerDashboard = class {
 			liveActivity.forEach((act) => {
 				html += `
           <div class="sod-activity-item" data-route="${frappe.utils.escape_html(
-				act.route || "",
+				act.route || ""
 			)}" title="Click to view document in Desk">
             <div class="sod-activity-icon ${act.badge_color || "blue"}">${act.icon || "✦"}</div>
             <div class="sod-activity-info">
@@ -1919,9 +1919,9 @@ frappe.SarathiOwnerDashboard = class {
 		reportOptions.forEach(([name, desc, type, icon]) => {
 			const selected = name === this.currentReportName ? "selected" : "";
 			html += `<option value="${frappe.utils.escape_html(
-				name,
+				name
 			)}" data-icon="${icon}" data-desc="${frappe.utils.escape_html(
-				desc,
+				desc
 			)}" ${selected}>${icon} ${frappe.utils.escape_html(name)} (${type})</option>`;
 		});
 
@@ -2125,7 +2125,7 @@ frappe.SarathiOwnerDashboard = class {
 					} else if (colDef.fieldtype === "Link" && val && colDef.options) {
 						const dtSlug = (colDef.options + "").toLowerCase().replace(/ /g, "-");
 						formatted = `<a href="/app/${dtSlug}/${encodeURIComponent(
-							val,
+							val
 						)}" target="_blank" class="sod-link">${frappe.utils.escape_html(String(val))}</a>`;
 					} else {
 						formatted = frappe.utils.escape_html(String(val));
@@ -2166,7 +2166,7 @@ frappe.SarathiOwnerDashboard = class {
 		this.$content
 			.find("#sod-report-row-count")
 			.text(
-				q ? `Showing ${matched} matching rows` : `Total Rows: ${this.activeReportRows?.length || 0}`,
+				q ? `Showing ${matched} matching rows` : `Total Rows: ${this.activeReportRows?.length || 0}`
 			);
 	}
 
@@ -2180,7 +2180,7 @@ frappe.SarathiOwnerDashboard = class {
 		}
 
 		const cols = this.activeReportData.columns.map(
-			(c) => `"${(c.label || c.fieldname).replace(/"/g, '""')}"`,
+			(c) => `"${(c.label || c.fieldname).replace(/"/g, '""')}"`
 		);
 		const csvRows = [cols.join(",")];
 
@@ -2197,7 +2197,7 @@ frappe.SarathiOwnerDashboard = class {
 		downloadAnchor.setAttribute("href", csvContent);
 		downloadAnchor.setAttribute(
 			"download",
-			`${this.currentReportName.toLowerCase().replace(/ /g, "_")}_${frappe.datetime.now_date()}.csv`,
+			`${this.currentReportName.toLowerCase().replace(/ /g, "_")}_${frappe.datetime.now_date()}.csv`
 		);
 		document.body.appendChild(downloadAnchor);
 		downloadAnchor.click();
@@ -2232,10 +2232,10 @@ frappe.SarathiOwnerDashboard = class {
 			data.cards.forEach(([label, value, color, desc, route]) => {
 				html += `
           <div class="sod-card ${color}" data-action="open-desk" data-route="${frappe.utils.escape_html(
-				route || "",
-			)}" role="button" tabindex="0" title="Click to view in Desk">
+					route || ""
+				)}" role="button" tabindex="0" title="Click to view in Desk">
             <div class="sod-label"><span class="sod-metric-icon">${this.workspaceIcon(
-				label,
+				label
 			)}</span>${frappe.utils.escape_html(label)}</div>
             <strong class="sod-kpi-val">${frappe.utils.escape_html(value)}</strong>
             <small>${frappe.utils.escape_html(desc || "Open ERPNext list ↗")}</small>
@@ -2259,11 +2259,11 @@ frappe.SarathiOwnerDashboard = class {
 			data.shortcuts.forEach((sc, index) => {
 				html += `
           <button type="button" data-quick-detail="${index}" class="sod-shortcut-pill" title="View ${frappe.utils.escape_html(
-				sc.label.replace(/\s*\(\+ New\)/i, ""),
-			)} details here">
+					sc.label.replace(/\s*\(\+ New\)/i, "")
+				)} details here">
             <span class="sod-sc-icon">${this.workspaceIcon(sc.label)}</span>
             <span class="sod-sc-text">${frappe.utils.escape_html(
-				sc.label.replace(/\s*\(\+ New\)/i, "").replace(/^New /, ""),
+				sc.label.replace(/\s*\(\+ New\)/i, "").replace(/^New /, "")
 			)}</span>
             <span class="sod-sc-arrow">→</span>
           </button>
@@ -2307,7 +2307,7 @@ frappe.SarathiOwnerDashboard = class {
             <p style="color: #7583a0; max-width: 540px; margin: 0 auto 24px; font-size: 13px; line-height: 1.6;">
               ${frappe.utils.escape_html(
 					data.description ||
-						"There are no projects matching your filter in ERPNext. Create a new Project in ERPNext Desk to view its real-time 5-stage manufacturing pipeline, budget vs actual financials, and milestone deliverables.",
+						"There are no projects matching your filter in ERPNext. Create a new Project in ERPNext Desk to view its real-time 5-stage manufacturing pipeline, budget vs actual financials, and milestone deliverables."
 				)}
             </p>
             <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
@@ -2338,21 +2338,21 @@ frappe.SarathiOwnerDashboard = class {
             <div>
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                 <span style="font-size: 18px; font-weight: 700; color: #17233f;">${frappe.utils.escape_html(
-					pf.project_name || pf.name,
+					pf.project_name || pf.name
 				)}</span>
                 <span class="sod-pill ${
 					pf.status === "Completed"
 						? "green"
 						: (pf.status || "").toLowerCase().includes("hold")
-							? "amber"
-							: pf.status === "Cancelled"
-								? "red"
-								: "blue"
+						? "amber"
+						: pf.status === "Cancelled"
+						? "red"
+						: "blue"
 				}">${frappe.utils.escape_html(pf.status || "Open")}</span>
               </div>
               <p style="margin: 0; color: #7583a0; font-size: 12px;">
                 ID: <a href="/app/project/${encodeURIComponent(
-					pf.name,
+					pf.name
 				)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(pf.name)}</b></a> ·
                 Customer: <b>${frappe.utils.escape_html(pf.customer || "Unassigned")}</b> ·
                 Company: <b>${frappe.utils.escape_html(pf.company || "—")}</b> ·
@@ -2370,11 +2370,11 @@ frappe.SarathiOwnerDashboard = class {
 						.map(
 							(p) => `
                       <option value="${frappe.utils.escape_html(p.name)}" ${
-							p.name === data.selected_project ? "selected" : ""
-						}>
+								p.name === data.selected_project ? "selected" : ""
+							}>
                         ${frappe.utils.escape_html(p.project_name || p.name)}
                       </option>
-                    `,
+                    `
 						)
 						.join("")}
                   </select>
@@ -2421,9 +2421,7 @@ frappe.SarathiOwnerDashboard = class {
             <div class="sod-feed"><b>Actual Cost Incurred:</b> <span>${pf.actual_cost}</span></div>
             <div class="sod-feed"><b>Cost Variance:</b> <span>${pf.cost_variance}</span></div>
             <div class="sod-feed"><b>Total Billed:</b> <span>${pf.total_billed}</span></div>
-            <div class="sod-feed"><b>Net Margin Realized:</b> <span style="color:#12b886; font-weight:700;">${
-				pf.margin
-			}</span></div>
+            <div class="sod-feed"><b>Net Margin Realized:</b> <span style="color:#12b886; font-weight:700;">${pf.margin}</span></div>
           </div>
           <div class="sod-panel">
             <div class="sod-panel-head">
@@ -2442,9 +2440,9 @@ frappe.SarathiOwnerDashboard = class {
 			} else {
 				(data.tasks || []).forEach((t) => {
 					html += `<tr><td><a href="/app/task/${encodeURIComponent(
-						t.task_id || t.task,
+						t.task_id || t.task
 					)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-						t.task,
+						t.task
 					)}</a></td><td><span class="sod-pill ${t.status === "Completed" ? "green" : "blue"}">${
 						t.status
 					}</span></td><td>${frappe.utils.escape_html(t.date || "—")}</td></tr>`;
@@ -2475,17 +2473,17 @@ frappe.SarathiOwnerDashboard = class {
         `;
 				data.sales_orders.forEach((r) => {
 					html += `<tr><td><a href="/app/sales-order/${encodeURIComponent(
-						r[0],
+						r[0]
 					)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-						r[0],
+						r[0]
 					)}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(
-						r[2],
+						r[2]
 					)}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(
-						r[4],
+						r[4]
 					)}</td><td>${frappe.utils.escape_html(
-						r[5],
+						r[5]
 					)}</td><td><span class="sod-pill blue">${frappe.utils.escape_html(
-						r[6],
+						r[6]
 					)}</span></td></tr>`;
 				});
 				html += `</tbody></table></div></div>`;
@@ -2508,13 +2506,13 @@ frappe.SarathiOwnerDashboard = class {
         `;
 				data.work_orders.forEach((r) => {
 					html += `<tr><td><a href="/app/work-order/${encodeURIComponent(
-						r[0],
+						r[0]
 					)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-						r[0],
+						r[0]
 					)}</a></td><td>${frappe.utils.escape_html(r[1])}</td><td>${frappe.utils.escape_html(
-						r[2],
+						r[2]
 					)}</td><td>${frappe.utils.escape_html(r[3])}</td><td>${frappe.utils.escape_html(
-						r[4],
+						r[4]
 					)}</td><td>${frappe.utils.escape_html(r[5])}</td><td><span class="sod-pill ${
 						r[6] === "Completed" ? "green" : "purple"
 					}">${frappe.utils.escape_html(r[6])}</span></td></tr>`;
@@ -2543,13 +2541,13 @@ frappe.SarathiOwnerDashboard = class {
             <div class="sod-sections-header-left">
               <span class="sod-sections-kicker" style="font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #4f46e5; display: block; margin-bottom: 4px;">MODULE SECTIONS & WORKSPACES</span>
               <h3 class="sod-sections-title" style="font-size: 19px; font-weight: 700; color: #0f172a; margin: 0;">${frappe.utils.escape_html(
-					pageConfig[0] || "Module",
+					pageConfig[0] || "Module"
 				)} Nested Sections & Records</h3>
             </div>
             <div class="sod-sections-header-right">
               <span class="sod-sections-count-pill" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: #475569; box-shadow: 0 1px 3px rgba(0,0,0,0.04); white-space: nowrap;">${totalSectionItems} items · ${
-					data.sections.length
-				} sections</span>
+				data.sections.length
+			} sections</span>
             </div>
           </div>
           <div class="sod-sections-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 18px;">
@@ -2563,10 +2561,10 @@ frappe.SarathiOwnerDashboard = class {
             <div class="sod-section-box-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
               <div class="sod-section-box-title-wrap" style="display: flex; align-items: center; gap: 10px;">
                 <span class="sod-section-box-icon" style="width: 28px; height: 28px; border-radius: 7px; background: #eef2ff; color: #4f46e5; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">${this.workspaceIcon(
-					sec.title,
+					sec.title
 				)}</span>
                 <h4 class="sod-section-box-title" style="font-size: 15px; font-weight: 700; color: #0f172a; margin: 0;">${frappe.utils.escape_html(
-					sec.title,
+					sec.title
 				)}</h4>
               </div>
               <span class="sod-section-box-badge" style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 12px; border: 1px solid #e2e8f0;">${
@@ -2589,18 +2587,18 @@ frappe.SarathiOwnerDashboard = class {
 
 					html += `
             <div class="sod-module-item-card" data-section-quick="${sIdx}_${iIdx}" role="button" tabindex="0" title="Click to view live calculations, graphs & details for ${frappe.utils.escape_html(
-				item.label,
-			)}" style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 9px; padding: 11px 14px; gap: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
+						item.label
+					)}" style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 9px; padding: 11px 14px; gap: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
               <div class="sod-module-item-main" style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
                 <span class="sod-module-item-icon" style="width: 28px; height: 28px; border-radius: 7px; background: #f8fafc; border: 1px solid #e2e8f0; color: #4f46e5; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">${this.workspaceIcon(
-					item.label,
+					item.label
 				)}</span>
                 <div class="sod-module-item-text" style="display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap;">
                   <span class="sod-module-item-name" style="font-size: 13.5px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${frappe.utils.escape_html(
-						item.label,
+						item.label
 					)}</span>
                   <span class="sod-module-item-kind-tag ${kindLower}" style="font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 4px; display: inline-block; line-height: 1.2; ${kStyle}">${frappe.utils.escape_html(
-						kind,
+						kind
 					)}</span>
                 </div>
               </div>
@@ -2652,58 +2650,58 @@ frappe.SarathiOwnerDashboard = class {
 						// Linkify based on pageKey
 						if (pageKey === "projects" && ci === 0) {
 							html += `<td><a href="/app/project/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "projects" && ci === 1) {
 							const projId = r[0];
 							html += `<td><a href="javascript:void(0)" data-project-drill="${encodeURIComponent(
-								projId,
+								projId
 							)}" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
 						} else if (pageKey === "projects" && ci === 2 && strCell !== "Unassigned") {
 							html += `<td><a href="/app/customer/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "projects" && ci === 3 && strCell !== "—") {
 							html += `<td><a href="/app/sales-order/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "customers" && (ci === 0 || ci === 1)) {
 							const custId = r[0];
 							html += `<td><a href="/app/customer/${encodeURIComponent(
-								custId,
+								custId
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "sales_orders" && ci === 0) {
 							html += `<td><a href="/app/sales-order/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "sales_orders" && ci === 1) {
 							html += `<td><a href="/app/customer/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "manufacturing" && ci === 0) {
 							html += `<td><a href="/app/work-order/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "stock_quality" && (ci === 0 || ci === 1)) {
 							const whId = r[0];
 							html += `<td><a href="/app/warehouse/${encodeURIComponent(
-								whId,
+								whId
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 0) {
 							const isPurchase =
@@ -2711,51 +2709,51 @@ frappe.SarathiOwnerDashboard = class {
 								strCell.toUpperCase().startsWith("PUR-");
 							const dt = isPurchase ? "purchase-invoice" : "sales-invoice";
 							html += `<td><a href="/app/${dt}/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 1) {
 							html += `<td><a href="/app/customer/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "payments" && ci === 0) {
 							html += `<td><a href="/app/payment-entry/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "taxes" && ci === 0) {
 							html += `<td><a href="/app/sales-taxes-and-charges-template/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "banking" && ci === 0) {
 							html += `<td><a href="/app/bank-account/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "budget" && ci === 0) {
 							html += `<td><a href="/app/budget/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "share_management" && ci === 0) {
 							html += `<td><a href="/app/shareholder/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (pageKey === "subscription" && ci === 0) {
 							html += `<td><a href="/app/subscription/${encodeURIComponent(
-								strCell,
+								strCell
 							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</a></td>`;
 						} else if (
 							strCell === "Delayed" ||
@@ -2764,7 +2762,7 @@ frappe.SarathiOwnerDashboard = class {
 							strCell.startsWith("Critical")
 						) {
 							html += `<td><span class="sod-pill red">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</span></td>`;
 						} else if (
 							strCell === "On Track" ||
@@ -2779,7 +2777,7 @@ frappe.SarathiOwnerDashboard = class {
 							html += `<td style="color:#0d825f; font-weight:700;"><span class="sod-pill green">${strCell}</span></td>`;
 						} else if (strCell.startsWith("Overdue >30d")) {
 							html += `<td><span class="sod-pill red">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</span></td>`;
 						} else if (
 							strCell.startsWith("Overdue 1-30d") ||
@@ -2787,7 +2785,7 @@ frappe.SarathiOwnerDashboard = class {
 							strCell === "Warn"
 						) {
 							html += `<td><span class="sod-pill amber">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</span></td>`;
 						} else if (
 							strCell === "Current (Not Due)" ||
@@ -2797,7 +2795,7 @@ frappe.SarathiOwnerDashboard = class {
 							strCell === "Pay"
 						) {
 							html += `<td><span class="sod-pill blue">${frappe.utils.escape_html(
-								strCell,
+								strCell
 							)}</span></td>`;
 						} else {
 							html += `<td>${frappe.utils.escape_html(strCell)}</td>`;
@@ -3244,7 +3242,7 @@ frappe.SarathiOwnerDashboard = class {
 				lines.length > 1
 					? `<button class="sod-pipeline-tab active" data-line="all">All ${totalCount} Steps (${
 							visibleStages[0].step_no
-						}–${visibleStages[totalCount - 1].step_no})</button>`
+					  }–${visibleStages[totalCount - 1].step_no})</button>`
 					: ""
 			}
             ${lines
@@ -3252,7 +3250,7 @@ frappe.SarathiOwnerDashboard = class {
 					(line) =>
 						`<button class="sod-pipeline-tab${lines.length === 1 ? " active" : ""}" data-line="${
 							line.lineNo
-						}">${line.shortTitle}</button>`,
+						}">${line.shortTitle}</button>`
 				)
 				.join("")}
           </div>
@@ -3260,7 +3258,7 @@ frappe.SarathiOwnerDashboard = class {
             <div class="sod-pipeline-current-pill">
               <span class="sod-pulse-dot"></span>
               <span>⚡ Live Step: <b>${frappe.utils.escape_html(
-					currentStep.label || "",
+					currentStep.label || ""
 				)}</b> · <i>${frappe.utils.escape_html(currentStep.in_charge || "Operations")}</i></span>
             </div>
             <div class="sod-pipeline-progress-badge">
@@ -3276,7 +3274,7 @@ frappe.SarathiOwnerDashboard = class {
 
         <!-- 3-Line Matrix Track -->
         <div class="sod-pipeline-flow-matrix" id="sod-pipe-track-${frappe.utils.escape_html(
-			p.project || "",
+			p.project || ""
 		)}">
     `;
 
@@ -3307,19 +3305,19 @@ frappe.SarathiOwnerDashboard = class {
 					st.status === "done"
 						? "✓"
 						: st.status === "current"
-							? "⚡"
-							: st.status === "fail"
-								? "⚠"
-								: st.icon || "○";
+						? "⚡"
+						: st.status === "fail"
+						? "⚠"
+						: st.icon || "○";
 
 				const statusLabel =
 					st.status === "done"
 						? "DONE"
 						: st.status === "current"
-							? "ACTIVE"
-							: st.status === "fail"
-								? "REWORK"
-								: "WAITING";
+						? "ACTIVE"
+						: st.status === "fail"
+						? "REWORK"
+						: "WAITING";
 
 				html += `
           <div class="sod-card-step ${st.status} line-${ln.lineNo}" role="button" tabindex="0"
@@ -3328,8 +3326,8 @@ frappe.SarathiOwnerDashboard = class {
             data-step-no="${stepNum}"
             data-line-no="${ln.lineNo}"
             title="Step ${stepNumStr}: ${frappe.utils.escape_html(
-				st.label,
-			)} (${statusLabel}) — Click to inspect live ERPNext records">
+					st.label
+				)} (${statusLabel}) — Click to inspect live ERPNext records">
 
             <div class="sod-card-step-top">
               <span class="sod-card-step-num">#${stepNumStr}</span>
@@ -3345,10 +3343,10 @@ frappe.SarathiOwnerDashboard = class {
             <strong class="sod-card-step-name">${frappe.utils.escape_html(st.label)}</strong>
 
             <div class="sod-card-step-incharge" title="In-Charge: ${frappe.utils.escape_html(
-				st.in_charge || "",
+				st.in_charge || ""
 			)}">
               <span class="sod-incharge-badge">👤 ${frappe.utils.escape_html(
-					st.in_charge || "Operations",
+					st.in_charge || "Operations"
 				)}</span>
             </div>
 
@@ -3403,11 +3401,11 @@ frappe.SarathiOwnerDashboard = class {
 
 				html += `
           <div class="sod-pipeline-turn-container ${bridgeClass}" data-turn-from="${
-				ln.lineNo
-			}" data-turn-to="${nextLine.lineNo}">
+					ln.lineNo
+				}" data-turn-to="${nextLine.lineNo}">
             <div class="sod-turn-drop-connector-right" title="Connecting Line ${ln.lineNo} (Card #${
-				ln.lineNo * 8
-			}) to Handover Bridge"></div>
+					ln.lineNo * 8
+				}) to Handover Bridge"></div>
             <div class="sod-turn-track">
               <div class="sod-turn-wire-left">
                 <span class="sod-turn-wire-dir left">◀</span>
@@ -3563,11 +3561,11 @@ frappe.SarathiOwnerDashboard = class {
                       <span class="sod-matrix-th-num ${st.colorTheme}">${st.numStr}</span>
                       ${st.waitPrefix ? `<span class="sod-matrix-wait-badge">WAITING</span>` : ""}
                       <span class="sod-matrix-th-title">${frappe.utils.escape_html(
-							st.cleanTitle || st.title,
+							st.cleanTitle || st.title
 						)}</span>
                     </div>
                   </th>
-                `,
+                `
 					)
 					.join("")}
                 <th class="sod-matrix-th sod-matrix-col-status">
@@ -3593,7 +3591,7 @@ frappe.SarathiOwnerDashboard = class {
 
 			html += `
         <tr class="sod-matrix-row" data-project="${frappe.utils.escape_html(
-			p.project,
+			p.project
 		)}" data-customer="${frappe.utils.escape_html(p.customer || "")}">
           <!-- Sticky 1st Column: Customer Name & Project ID -->
           <td class="sod-matrix-td sod-matrix-cell-customer">
@@ -3601,22 +3599,22 @@ frappe.SarathiOwnerDashboard = class {
               <span class="sod-matrix-avatar" style="background:${avatarBg};">${custLetter}</span>
               <div class="sod-matrix-customer-info">
                 <strong class="sod-matrix-customer-title" title="${frappe.utils.escape_html(
-					p.customer || "Customer Unassigned",
+					p.customer || "Customer Unassigned"
 				)}">
                   <a href="/app/customer/${encodeURIComponent(
-						p.customer || "",
+						p.customer || ""
 					)}" target="_blank" class="sod-matrix-cust-link" onclick="event.stopPropagation()">
                     ${frappe.utils.escape_html(p.customer || "Customer Unassigned")}
                   </a>
                 </strong>
                 <div class="sod-matrix-project-meta">
                   <a href="/app/project/${encodeURIComponent(
-						p.project,
+						p.project
 					)}" target="_blank" class="sod-matrix-proj-code" onclick="event.stopPropagation()">${frappe.utils.escape_html(
-						p.project,
-					)}</a>
+				p.project
+			)}</a>
                   <span class="sod-matrix-proj-title" title="${frappe.utils.escape_html(
-						p.project_name,
+						p.project_name
 					)}">${frappe.utils.escape_html(p.project_name)}</span>
                 </div>
               </div>
@@ -3648,10 +3646,10 @@ frappe.SarathiOwnerDashboard = class {
 				const subtitle = isDone
 					? st.info || "Verified"
 					: isWaiting
-						? st.in_charge
-							? `👤 ${st.in_charge}`
-							: "In Progress"
-						: "Pending";
+					? st.in_charge
+						? `👤 ${st.in_charge}`
+						: "In Progress"
+					: "Pending";
 
 				html += `
           <td class="sod-matrix-td sod-matrix-step-cell ${statusKey}"
@@ -3659,12 +3657,12 @@ frappe.SarathiOwnerDashboard = class {
               data-stage-id="${frappe.utils.escape_html(st.id || stepMeta.id)}"
               data-step-no="${stepMeta.step_no}"
               title="Step ${stepMeta.numStr}: ${frappe.utils.escape_html(
-					stepMeta.title,
+					stepMeta.title
 				)} — ${statusBadge}. Click to inspect live records.">
             <div class="sod-matrix-cell-content">
               <span class="sod-matrix-icon ${statusKey}">${statusIcon}</span>
               <span class="sod-matrix-subtext ${statusKey}" title="${frappe.utils.escape_html(
-					subtitle,
+					subtitle
 				)}">${frappe.utils.escape_html(subtitle)}</span>
             </div>
           </td>
@@ -3887,8 +3885,8 @@ frappe.SarathiOwnerDashboard = class {
 					.map(
 						(st) => `
                   <th class="sod-matrix-th sod-matrix-col-step ${st.colorTheme}" data-step-no="${
-						st.step_no
-					}" data-line-no="${st.lineNo}">
+							st.step_no
+						}" data-line-no="${st.lineNo}">
                     <div class="sod-matrix-th-stripe"></div>
                     <div class="sod-matrix-th-inner">
                       <span class="sod-matrix-th-num ${st.colorTheme}">${st.numStr}</span>
@@ -3898,7 +3896,7 @@ frappe.SarathiOwnerDashboard = class {
                       <span class="sod-matrix-th-title">${frappe.utils.escape_html(st.title)}</span>
                     </div>
                   </th>
-                `,
+                `
 					)
 					.join("")}
                 <th class="sod-matrix-th sod-matrix-col-status">
@@ -3924,7 +3922,7 @@ frappe.SarathiOwnerDashboard = class {
 
 			html += `
         <tr class="sod-matrix-row" data-project="${frappe.utils.escape_html(
-			p.project,
+			p.project
 		)}" data-customer="${frappe.utils.escape_html(p.customer || "")}">
           <!-- Sticky 1st Column: Customer Name & Project ID -->
           <td class="sod-matrix-td sod-matrix-cell-customer">
@@ -3932,22 +3930,22 @@ frappe.SarathiOwnerDashboard = class {
               <span class="sod-matrix-avatar" style="background:${avatarBg};">${custLetter}</span>
               <div class="sod-matrix-customer-info">
                 <strong class="sod-matrix-customer-title" title="${frappe.utils.escape_html(
-					p.customer || "Customer Unassigned",
+					p.customer || "Customer Unassigned"
 				)}">
                   <a href="/app/customer/${encodeURIComponent(
-						p.customer || "",
+						p.customer || ""
 					)}" target="_blank" class="sod-matrix-cust-link" onclick="event.stopPropagation()">
                     ${frappe.utils.escape_html(p.customer || "Customer Unassigned")}
                   </a>
                 </strong>
                 <div class="sod-matrix-project-meta">
                   <a href="/app/project/${encodeURIComponent(
-						p.project,
+						p.project
 					)}" target="_blank" class="sod-matrix-proj-code" onclick="event.stopPropagation()">${frappe.utils.escape_html(
-						p.project,
-					)}</a>
+				p.project
+			)}</a>
                   <span class="sod-matrix-proj-title" title="${frappe.utils.escape_html(
-						p.project_name,
+						p.project_name
 					)}">${frappe.utils.escape_html(p.project_name)}</span>
                 </div>
               </div>
@@ -3979,10 +3977,10 @@ frappe.SarathiOwnerDashboard = class {
 				const subtitle = isDone
 					? st.badge || st.info || "Verified"
 					: isWaiting
-						? st.in_charge
-							? `👤 ${st.in_charge}`
-							: "Active Now"
-						: "Pending Prior Step";
+					? st.in_charge
+						? `👤 ${st.in_charge}`
+						: "Active Now"
+					: "Pending Prior Step";
 
 				html += `
           <td class="sod-matrix-td sod-matrix-step-cell ${statusKey}"
@@ -3991,12 +3989,12 @@ frappe.SarathiOwnerDashboard = class {
               data-step-no="${stepMeta.step_no}"
               data-line-no="${stepMeta.lineNo}"
               title="Step ${stepMeta.numStr}: ${frappe.utils.escape_html(
-					stepMeta.title,
+					stepMeta.title
 				)} — ${statusBadge}. Click to inspect live records.">
             <div class="sod-matrix-cell-content">
               <span class="sod-matrix-icon ${statusKey}">${statusIcon}</span>
               <span class="sod-matrix-subtext ${statusKey}" title="${frappe.utils.escape_html(
-					subtitle,
+					subtitle
 				)}">${frappe.utils.escape_html(subtitle)}</span>
             </div>
           </td>
@@ -4042,7 +4040,7 @@ frappe.SarathiOwnerDashboard = class {
 				if (project && stageId) {
 					self.showStageModal(project, stageId);
 				}
-			},
+			}
 		);
 
 		// Real-time matrix search filter for Strategic Pipeline table
@@ -4142,7 +4140,7 @@ frappe.SarathiOwnerDashboard = class {
 			if (["Currency", "Float", "Int", "Percent"].includes(type) && Number.isFinite(Number(value))) {
 				return (
 					new Intl.NumberFormat("en-IN", { maximumFractionDigits: type === "Int" ? 0 : 2 }).format(
-						Number(value),
+						Number(value)
 					) + (type === "Percent" ? "%" : "")
 				);
 			}
@@ -4168,16 +4166,16 @@ frappe.SarathiOwnerDashboard = class {
 				if (request !== sequence) return;
 				const data = response.message || {};
 				const toolbar = `<div class="sod-quick-toolbar"><span class="sod-quick-tag">${esc(
-					data.doctype || "LIVE REPORT",
+					data.doctype || "LIVE REPORT"
 				)}</span><span>Read-only details · Updated ${esc(
-					new Date().toLocaleTimeString(),
+					new Date().toLocaleTimeString()
 				)} · Read-only</span></div>`;
 				if (data.error || data.restricted) {
 					host.html(
 						toolbar +
 							`<div class="sod-quick-empty" role="alert">${esc(
-								data.message || data.error,
-							)}</div>`,
+								data.message || data.error
+							)}</div>`
 					);
 					return;
 				}
@@ -4197,17 +4195,17 @@ frappe.SarathiOwnerDashboard = class {
 													? f.value
 														? "Yes"
 														: "No"
-													: format(f.value, f.fieldtype),
-											)}</strong></div>`,
+													: format(f.value, f.fieldtype)
+											)}</strong></div>`
 									)
 									.join("") || "<p>No saved details are available.</p>"
-							}</div>`,
+							}</div>`
 					);
 					host.find(".sod-quick-back").on("click", () => load());
 					return;
 				}
 				const columns = (data.columns || []).map((col, i) =>
-					typeof col === "string" ? { label: col.split(":")[0], fieldname: i } : col,
+					typeof col === "string" ? { label: col.split(":")[0], fieldname: i } : col
 				);
 				const rows = (data.result || []).map((row) => row || {});
 				const shareholderSelect = data.shareholders?.length
@@ -4216,7 +4214,7 @@ frappe.SarathiOwnerDashboard = class {
 								(item) =>
 									`<option value="${esc(item.name)}" ${
 										data.filters?.shareholder === item.name ? "selected" : ""
-									}>${esc(item.title || item.name)}</option>`,
+									}>${esc(item.title || item.name)}</option>`
 							)
 							.join("")}</select></label>`
 					: "";
@@ -4226,7 +4224,7 @@ frappe.SarathiOwnerDashboard = class {
 						`<label class="sod-quick-search">Search ${
 							data.kind === "report" ? "report results" : "records"
 						}<input type="search" value="${esc(
-							search,
+							search
 						)}" placeholder="Search by name or ID…"></label><div class="sod-quick-table"><table><thead><tr>${columns
 							.map((c) => `<th>${esc(c.label)}</th>`)
 							.join("")}</tr></thead><tbody>${rows
@@ -4238,19 +4236,19 @@ frappe.SarathiOwnerDashboard = class {
 												`<td>${
 													data.kind === "list" && j === 0
 														? `<button type="button" data-record="${i}">${esc(
-																row.name,
-															)}</button>`
+																row.name
+														  )}</button>`
 														: esc(
 																format(
 																	Array.isArray(row)
 																		? row[j]
 																		: row[col.fieldname],
-																	col.fieldtype,
-																),
-															)
-												}</td>`,
+																	col.fieldtype
+																)
+														  )
+												}</td>`
 										)
-										.join("")}</tr>`,
+										.join("")}</tr>`
 							)
 							.join("")}</tbody></table></div><p class="sod-quick-empty" ${
 							rows.length ? "hidden" : ""
@@ -4258,24 +4256,24 @@ frappe.SarathiOwnerDashboard = class {
 							data.kind === "report"
 								? rows.length + " report rows"
 								: rows.length
-									? `${offset + 1}–${offset + rows.length} records`
-									: "0 records"
+								? `${offset + 1}–${offset + rows.length} records`
+								: "0 records"
 						}</span>${
 							data.kind === "list"
 								? `<button type="button" data-previous ${
 										offset ? "" : "disabled"
-									}>← Previous</button><button type="button" data-next ${
+								  }>← Previous</button><button type="button" data-next ${
 										data.has_more ? "" : "disabled"
-									}>Next →</button>`
+								  }>Next →</button>`
 								: ""
-						}</div>`,
+						}</div>`
 				);
 				host.find("[data-shareholder]").on("change", (event) => {
 					filters.shareholder = event.target.value;
 					load();
 				});
 				host.find("[data-record]").on("click", (event) =>
-					load(rows[Number(event.currentTarget.dataset.record)].name),
+					load(rows[Number(event.currentTarget.dataset.record)].name)
 				);
 				host.find("[data-previous]").on("click", () => {
 					offset = Math.max(0, offset - 25);
@@ -4307,7 +4305,7 @@ frappe.SarathiOwnerDashboard = class {
 			} catch (error) {
 				if (request === sequence)
 					host.html(
-						'<div class="sod-quick-empty" role="alert">These details could not be loaded. Check your access or try again.</div><button type="button" class="sod-quick-retry">Retry</button>',
+						'<div class="sod-quick-empty" role="alert">These details could not be loaded. Check your access or try again.</div><button type="button" class="sod-quick-retry">Retry</button>'
 					);
 				host.find(".sod-quick-retry").on("click", () => load(name));
 			} finally {
@@ -4343,7 +4341,7 @@ frappe.SarathiOwnerDashboard = class {
         </div>
         <div style="font-size: 12px; color: #94a3b8; max-width: 260px; text-align: right;">
           ${frappe.utils.escape_html(
-				desc || "Live metric calculated dynamically from ERPNext transactional records",
+				desc || "Live metric calculated dynamically from ERPNext transactional records"
 			)}
         </div>
       </div>
@@ -4406,18 +4404,18 @@ frappe.SarathiOwnerDashboard = class {
 			const rows = data.table.rows;
 
 			const idIdx = headers.findIndex(
-				(h) => /^id$/i.test(h) || /^name$/i.test(h) || /project/i.test(h),
+				(h) => /^id$/i.test(h) || /^name$/i.test(h) || /project/i.test(h)
 			);
 			const projIdx = headers.findIndex((h) => /^project$/i.test(h) || /project_name/i.test(h));
 			const custIdx = headers.findIndex((h) => /customer/i.test(h));
 			const statusIdx = headers.findIndex((h) => /status/i.test(h));
 			const progressIdx = headers.findIndex(
-				(h) => /%/i.test(h) || /complete/i.test(h) || /progress/i.test(h),
+				(h) => /%/i.test(h) || /complete/i.test(h) || /progress/i.test(h)
 			);
 			const budgetIdx = headers.findIndex((h) => /budget/i.test(h));
 			const actualIdx = headers.findIndex((h) => /actual/i.test(h));
 			const marginIdx = headers.findIndex(
-				(h) => /margin/i.test(h) || /variance/i.test(h) || /billed/i.test(h),
+				(h) => /margin/i.test(h) || /variance/i.test(h) || /billed/i.test(h)
 			);
 			const endIdx = headers.findIndex((h) => /end/i.test(h) || /due/i.test(h) || /date/i.test(h));
 
@@ -4462,12 +4460,14 @@ frappe.SarathiOwnerDashboard = class {
 					const prVal = r[progressIdx >= 0 ? progressIdx : 5] || "0%";
 					const prNum = Math.min(
 						100,
-						Math.max(0, parseFloat(String(prVal).replace(/[^0-9.]/g, "")) || 0),
+						Math.max(0, parseFloat(String(prVal).replace(/[^0-9.]/g, "")) || 0)
 					);
 					const bVal = r[budgetIdx >= 0 ? budgetIdx : 6] || "—";
 					const eVal = r[endIdx >= 0 ? endIdx : 9] || "—";
 					return [
-						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(idVal)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
 						`<b>${frappe.utils.escape_html(pVal)}</b>`,
 						frappe.utils.escape_html(cVal),
 						`<span class="sod-pill blue">${frappe.utils.escape_html(sVal)}</span>`,
@@ -4502,20 +4502,24 @@ frappe.SarathiOwnerDashboard = class {
 					const prVal = r[progressIdx >= 0 ? progressIdx : 5] || "100%";
 					const prNum = Math.min(
 						100,
-						Math.max(0, parseFloat(String(prVal).replace(/[^0-9.]/g, "")) || 100),
+						Math.max(0, parseFloat(String(prVal).replace(/[^0-9.]/g, "")) || 100)
 					);
 					const bVal = r[budgetIdx >= 0 ? budgetIdx : 6] || "—";
 					const aVal = r[actualIdx >= 0 ? actualIdx : 7] || "—";
 					const mVal = r[marginIdx >= 0 ? marginIdx : 8] || "—";
 					return [
-						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(idVal)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
 						`<b>${frappe.utils.escape_html(pVal)}</b>`,
 						frappe.utils.escape_html(cVal),
 						`<span class="sod-pill green">${frappe.utils.escape_html(sVal)}</span>`,
 						`<div style="display:flex; align-items:center; gap:6px; min-width:85px;"><div style="flex:1; background:#e2e8f0; border-radius:10px; height:5px; overflow:hidden;"><div style="width:100%; background:#10b981; height:100%;"></div></div><b style="font-size:11px;">${prNum}%</b></div>`,
 						frappe.utils.escape_html(bVal),
 						frappe.utils.escape_html(aVal),
-						`<span style="color:#12b886; font-weight:700;">${frappe.utils.escape_html(mVal)}</span>`,
+						`<span style="color:#12b886; font-weight:700;">${frappe.utils.escape_html(
+							mVal
+						)}</span>`,
 					];
 				};
 			} else if (lblLower.includes("budget")) {
@@ -4541,13 +4545,19 @@ frappe.SarathiOwnerDashboard = class {
 					const aVal = r[actualIdx >= 0 ? actualIdx : 7] || "—";
 					const mVal = r[marginIdx >= 0 ? marginIdx : 8] || "—";
 					return [
-						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(idVal)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
 						`<b>${frappe.utils.escape_html(pVal)}</b>`,
 						frappe.utils.escape_html(cVal),
-						`<span class="sod-pill ${String(sVal).toLowerCase().includes("completed") ? "green" : "blue"}">${frappe.utils.escape_html(sVal)}</span>`,
+						`<span class="sod-pill ${
+							String(sVal).toLowerCase().includes("completed") ? "green" : "blue"
+						}">${frappe.utils.escape_html(sVal)}</span>`,
 						`<b style="color:#7950f2;">${frappe.utils.escape_html(bVal)}</b>`,
 						frappe.utils.escape_html(aVal),
-						`<span style="color:#12b886; font-weight:700;">${frappe.utils.escape_html(mVal)}</span>`,
+						`<span style="color:#12b886; font-weight:700;">${frappe.utils.escape_html(
+							mVal
+						)}</span>`,
 					];
 				};
 			} else if (
@@ -4577,13 +4587,19 @@ frappe.SarathiOwnerDashboard = class {
 					const aVal = r[actualIdx >= 0 ? actualIdx : 7] || "—";
 					const mVal = r[marginIdx >= 0 ? marginIdx : 8] || "—";
 					return [
-						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(idVal)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
 						`<b>${frappe.utils.escape_html(pVal)}</b>`,
 						frappe.utils.escape_html(cVal),
-						`<span class="sod-pill ${String(sVal).toLowerCase().includes("completed") ? "green" : "blue"}">${frappe.utils.escape_html(sVal)}</span>`,
+						`<span class="sod-pill ${
+							String(sVal).toLowerCase().includes("completed") ? "green" : "blue"
+						}">${frappe.utils.escape_html(sVal)}</span>`,
 						frappe.utils.escape_html(bVal),
 						frappe.utils.escape_html(aVal),
-						`<span style="color:#0284c7; font-weight:700;">${frappe.utils.escape_html(mVal)}</span>`,
+						`<span style="color:#0284c7; font-weight:700;">${frappe.utils.escape_html(
+							mVal
+						)}</span>`,
 					];
 				};
 			} else {
@@ -4637,7 +4653,7 @@ frappe.SarathiOwnerDashboard = class {
 													(r) =>
 														`<tr>${rowMapper(r)
 															.map((c) => `<td>${c}</td>`)
-															.join("")}</tr>`,
+															.join("")}</tr>`
 												)
 												.join("")
 										: `<tr><td colspan="${displayHeaders.length}" style="text-align:center; padding: 20px; color:#888;">No matching records found for this metric.</td></tr>`
@@ -4659,7 +4675,7 @@ frappe.SarathiOwnerDashboard = class {
 				projs = projs.filter(
 					(p) =>
 						(p.status || "").toLowerCase() !== "completed" &&
-						(p.status || "").toLowerCase() !== "cancelled",
+						(p.status || "").toLowerCase() !== "cancelled"
 				);
 			}
 			if (projs.length) {
@@ -4679,9 +4695,11 @@ frappe.SarathiOwnerDashboard = class {
 						.map(
 							(p) => `
                     <tr>
-                      <td><a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(p.project)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(
-							p.project_name || p.project,
-						)}</a></td>
+                      <td><a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							p.project
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(
+								p.project_name || p.project
+							)}</a></td>
                       <td>${frappe.utils.escape_html(p.customer || "—")}</td>
                       <td><span class="sod-pill ${
 							p.status === "Completed" ? "green" : "blue"
@@ -4689,7 +4707,7 @@ frappe.SarathiOwnerDashboard = class {
                       <td><b>${flt(p.percent_complete || 0)}%</b></td>
                       <td>${frappe.utils.escape_html(p.budget || "—")}</td>
                     </tr>
-                  `,
+                  `
 						)
 						.join("")}
                 </tbody>
@@ -4725,16 +4743,16 @@ frappe.SarathiOwnerDashboard = class {
 							(s) => `
                     <tr>
                       <td><a href="/app/sales-order/${encodeURIComponent(
-							s[0],
+							s[0]
 						)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(s[0])}</b></a></td>
                       <td>${frappe.utils.escape_html(s[1])}</td>
                       <td>${frappe.utils.escape_html(s[2])}</td>
                       <td>${frappe.utils.escape_html(s[3])}</td>
                       <td><span class="sod-pill blue">${frappe.utils.escape_html(
-							s[6] || s[5] || "Active",
+							s[6] || s[5] || "Active"
 						)}</span></td>
                     </tr>
-                  `,
+                  `
 						)
 						.join("")}
                 </tbody>
@@ -4783,17 +4801,17 @@ frappe.SarathiOwnerDashboard = class {
 						(l) => `
                   <tr>
                     <td><a href="/app/item/${encodeURIComponent(
-						l.item_code,
+						l.item_code
 					)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(
-						l.item_name,
-					)}</b></a></td>
+							l.item_name
+						)}</b></a></td>
                     <td>${frappe.utils.escape_html(l.warehouse)}</td>
                     <td><span style="color:#e11d48; font-weight:700;">${frappe.utils.escape_html(
-						l.available,
+						l.available
 					)}</span></td>
                     <td>${frappe.utils.escape_html(l.reorder)}</td>
                   </tr>
-                `,
+                `
 					)
 					.join("")}
               </tbody>
@@ -4880,12 +4898,12 @@ frappe.SarathiOwnerDashboard = class {
 				.map(
 					(rec) =>
 						`<li><a href="/app/${encodeURIComponent(
-							stage.doctype.toLowerCase().replace(/ /g, "-"),
+							stage.doctype.toLowerCase().replace(/ /g, "-")
 						)}/${encodeURIComponent(
-							rec,
+							rec
 						)}" target="_blank" class="sod-link" style="font-size:12.5px;">${frappe.utils.escape_html(
-							rec,
-						)} ↗</a></li>`,
+							rec
+						)} ↗</a></li>`
 				)
 				.join("");
 		} else {
@@ -4896,16 +4914,16 @@ frappe.SarathiOwnerDashboard = class {
 			stage.status === "done"
 				? "green"
 				: stage.status === "current"
-					? "purple"
-					: stage.status === "fail"
-						? "red"
-						: "blue";
+				? "purple"
+				: stage.status === "fail"
+				? "red"
+				: "blue";
 
 		this.$modalBody.html(`
       <p style="font-size:13px; margin-bottom:10px;">
         <b>DocType:</b> ${stage.doctype} &nbsp;|&nbsp;
         <b>In-Charge:</b> <span style="color:#4f46e5; font-weight:750;">👤 ${frappe.utils.escape_html(
-			stage.in_charge || "Operations",
+			stage.in_charge || "Operations"
 		)}</span> &nbsp;|&nbsp;
         <b>Department:</b> ${frappe.utils.escape_html(stage.department || "Operations")} &nbsp;|&nbsp;
         <b>Customer:</b> ${frappe.utils.escape_html(pipelineData.customer)}
@@ -4924,7 +4942,7 @@ frappe.SarathiOwnerDashboard = class {
 		this.$modalFoot.html(`
       <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 16px; border-radius:7px; font-weight:600; cursor:pointer;" id="sod-modal-stage-close">Close</button>
       <a class="sod-btn-primary" href="/app/${encodeURIComponent(
-			stage.doctype.toLowerCase().replace(/ /g, "-"),
+			stage.doctype.toLowerCase().replace(/ /g, "-")
 		)}?project=${encodeURIComponent(projectName)}" target="_blank">
         View All ${stage.doctype}s ↗
       </a>
@@ -4985,7 +5003,7 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 		if (["Currency", "Float", "Int", "Percent"].includes(type) && Number.isFinite(Number(value))) {
 			return (
 				new Intl.NumberFormat("en-IN", { maximumFractionDigits: type === "Int" ? 0 : 2 }).format(
-					Number(value),
+					Number(value)
 				) + (type === "Percent" ? "%" : "")
 			);
 		}
@@ -5003,17 +5021,17 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 								`<td>${
 									clickable && cell === 0
 										? `<button type="button" data-detail-record="${index}">${esc(
-												row.name,
-											)}</button>`
+												row.name
+										  )}</button>`
 										: esc(
 												format(
 													Array.isArray(row) ? row[cell] : row[c.fieldname],
-													c.fieldtype,
-												),
-											)
-								}</td>`,
+													c.fieldtype
+												)
+										  )
+								}</td>`
 						)
-						.join("")}</tr>`,
+						.join("")}</tr>`
 			)
 			.join("")}</tbody></table></div>`;
 	const load = async (name = null) => {
@@ -5040,12 +5058,12 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 			dialog.set_title(esc(action.label || data.label || data.doctype));
 			host.html(
 				`<div class="sod-quick-toolbar"><span class="sod-quick-tag">${esc(
-					data.doctype || data.label || action.label,
+					data.doctype || data.label || action.label
 				)}</span><span>Updated ${esc(
-					new Date().toLocaleTimeString(),
+					new Date().toLocaleTimeString()
 				)}</span><button type="button" data-detail-refresh>Refresh</button>${
 					name ? '<button type="button" data-detail-back>← Back</button>' : ""
-				}</div>`,
+				}</div>`
 			);
 			host.find("[data-detail-refresh]").on("click", () => load(activeName));
 			host.find("[data-detail-back]").on("click", () => {
@@ -5065,10 +5083,10 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 						.map(
 							(card) =>
 								`<article><small>${esc(card.label)}</small><strong>${esc(
-									format(card.value, card.fieldtype),
-								)}</strong><p>${esc(card.desc || "")}</p></article>`,
+									format(card.value, card.fieldtype)
+								)}</strong><p>${esc(card.desc || "")}</p></article>`
 						)
-						.join("")}</div>`,
+						.join("")}</div>`
 				);
 			const charts = data.charts || [];
 			if (charts.length) {
@@ -5077,10 +5095,10 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 						.map(
 							(chart, index) =>
 								`<section><h4>${esc(
-									chart.title || "Analysis",
-								)}</h4><div data-detail-chart="${index}"></div></section>`,
+									chart.title || "Analysis"
+								)}</h4><div data-detail-chart="${index}"></div></section>`
 						)
-						.join("")}</div>`,
+						.join("")}</div>`
 				);
 				const drawCharts = () =>
 					charts.forEach(
@@ -5099,7 +5117,7 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 									"#ef4444",
 								],
 								truncateLegends: 1,
-							}),
+							})
 					);
 				frappe.Chart ? drawCharts() : frappe.require("frappe-charts.bundle.js", drawCharts);
 			}
@@ -5110,13 +5128,13 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 							.map(
 								(entry, index) =>
 									`<button type="button" data-detail-entry="${index}"><small>${esc(
-										entry.section || entry.kind,
+										entry.section || entry.kind
 									)}</small><strong>${esc(
-										entry.label,
-									)}</strong><span>Open details</span></button>`,
+										entry.label
+									)}</strong><span>Open details</span></button>`
 							)
 							.join("") || "<p>No entries are available for your permissions.</p>"
-					}</div>`,
+					}</div>`
 				);
 				host.find("[data-detail-entry]").on("click", (event) => {
 					Object.assign(action, data.entries[Number(event.currentTarget.dataset.detailEntry)]);
@@ -5132,10 +5150,10 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 						.map(
 							(field) =>
 								`<div><small>${esc(field.label)}</small><strong>${esc(
-									format(field.value, field.fieldtype),
-								)}</strong></div>`,
+									format(field.value, field.fieldtype)
+								)}</strong></div>`
 						)
-						.join("")}</div>`,
+						.join("")}</div>`
 				);
 				(data.tables || []).forEach((table) =>
 					host.append(
@@ -5143,8 +5161,8 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 							table.rows.length
 								? renderTable(table.columns, table.rows, false)
 								: "<p>No saved rows.</p>"
-						}`,
-					),
+						}`
+					)
 				);
 				return;
 			}
@@ -5152,23 +5170,23 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 				rows = data.result || [];
 			host.append(
 				`<label class="sod-quick-search">Search matching records<input type="search" value="${esc(
-					search,
+					search
 				)}" placeholder="Name or ID"></label>${renderTable(
 					columns,
 					rows,
-					true,
+					true
 				)}<div class="sod-quick-footer"><span>${data.total_count || 0} matching records · ${
 					rows.length ? offset + 1 : 0
 				}–${offset + rows.length} shown</span><button data-detail-prev ${
 					offset ? "" : "disabled"
 				}>Previous</button><button data-detail-next ${
 					data.has_more ? "" : "disabled"
-				}>Next</button></div>`,
+				}>Next</button></div>`
 			);
 			if (!rows.length)
 				host.append('<p class="sod-quick-empty">No matching records for these filters.</p>');
 			host.find("[data-detail-record]").on("click", (event) =>
-				load(rows[Number(event.currentTarget.dataset.detailRecord)].name),
+				load(rows[Number(event.currentTarget.dataset.detailRecord)].name)
 			);
 			host.find("[data-detail-prev]").on("click", () => {
 				offset = Math.max(0, offset - 25);
@@ -5189,7 +5207,7 @@ frappe.SarathiOwnerDashboard.prototype.showQuickDetails = function (action) {
 		} catch (_) {
 			if (currentRequest === requestNumber)
 				host.html(
-					'<p class="sod-quick-empty" role="alert">Details could not be loaded. Please retry.</p><button data-detail-retry>Retry</button>',
+					'<p class="sod-quick-empty" role="alert">Details could not be loaded. Please retry.</p><button data-detail-retry>Retry</button>'
 				);
 			host.find("[data-detail-retry]").on("click", () => load(name));
 		}
