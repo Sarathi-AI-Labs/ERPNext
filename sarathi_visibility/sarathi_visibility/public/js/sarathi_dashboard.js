@@ -1285,7 +1285,9 @@ frappe.SarathiIndustrialDashboard = class {
 								const text = isRestricted ? "Restricted" : val ?? 0;
 								return `<button type="button" class="sd-pipeline-step-pill ${cls}" data-report-project="${this.esc(
 									p.project
-								)}" data-report="${reportName}" title="${label}: ${text}"><strong>${text}</strong></button>`;
+								)}" data-report="${reportName}" data-kpi-label="${this.esc(
+									label
+								)}" title="${label}: ${text}"><strong>${text}</strong></button>`;
 							};
 							return `
 						<tr class="sd-color-tr ${isEven ? "sd-tr-even" : "sd-tr-odd"}" data-project="${this.esc(
@@ -2017,7 +2019,16 @@ frappe.SarathiIndustrialDashboard = class {
 		const activeFilters = { ...this.filters };
 		if (project) activeFilters.project = project;
 
-		const dialogTitle = label || this.data?.reports?.find((r) => r.key === reportKey)?.title || reportKey;
+		let dialogTitle = label;
+		if (
+			!dialogTitle ||
+			/^\d+$/.test(String(dialogTitle).trim()) ||
+			String(dialogTitle).trim().length <= 2
+		) {
+			dialogTitle =
+				this.data?.reports?.find((r) => r.key === reportKey)?.title ||
+				frappe.unscrub(this.getDocTypeForReport(reportKey) || reportKey);
+		}
 
 		const dialog = new frappe.ui.Dialog({
 			title: `${this.workspaceIcon(dialogTitle)} ${this.esc(dialogTitle)}`,
@@ -2059,6 +2070,21 @@ frappe.SarathiIndustrialDashboard = class {
 		const total = data.total || rows.length;
 		let currentSearch = initialSearch;
 
+		let resolvedTitle = title;
+		if (
+			!resolvedTitle ||
+			/^\d+$/.test(String(resolvedTitle).trim()) ||
+			String(resolvedTitle).trim().length <= 2
+		) {
+			resolvedTitle =
+				this.data?.reports?.find((r) => r.key === reportKey)?.title ||
+				frappe.unscrub(this.getDocTypeForReport(reportKey) || reportKey);
+		}
+		const baseTitle = String(resolvedTitle)
+			.replace(/\s*\(\d+\)$/, "")
+			.trim();
+		dialog.set_title(`${this.workspaceIcon(baseTitle)} ${this.esc(baseTitle)} (${total})`);
+
 		const defaultDt = this.getDocTypeForReport(reportKey);
 
 		const PIN_THEMES = [
@@ -2067,6 +2093,9 @@ frappe.SarathiIndustrialDashboard = class {
 			{ cls: "sd-th-azure", defaultIcon: "⭐" },
 			{ cls: "sd-th-teal", defaultIcon: "👍" },
 			{ cls: "sd-th-forest", defaultIcon: "⏱️" },
+			{ cls: "sd-th-amber", defaultIcon: "⚠️" },
+			{ cls: "sd-th-rose", defaultIcon: "🛒" },
+			{ cls: "sd-th-violet", defaultIcon: "🔍" },
 			{ cls: "sd-th-lime", defaultIcon: "💎" },
 			{ cls: "sd-th-olive", defaultIcon: "🏷️" },
 		];
@@ -2288,12 +2317,14 @@ frappe.SarathiIndustrialDashboard = class {
 		let targetDialog = dialog;
 		if (!targetDialog) {
 			targetDialog = new frappe.ui.Dialog({
-				title: `${doctype} · ${name}`,
+				title: `${this.workspaceIcon(doctype)} ${this.esc(doctype)}: ${this.esc(name)}`,
 				size: "extra-large",
 				fields: [{ fieldname: "card_content", fieldtype: "HTML" }],
 			});
 			targetDialog.$wrapper.addClass("sd-card-details-dialog");
 			targetDialog.show();
+		} else {
+			targetDialog.set_title(`${this.workspaceIcon(doctype)} ${this.esc(doctype)}: ${this.esc(name)}`);
 		}
 
 		const $container = targetDialog.fields_dict.card_content.$wrapper;
@@ -2321,6 +2352,9 @@ frappe.SarathiIndustrialDashboard = class {
 				{ cls: "sd-th-azure", defaultIcon: "⭐" },
 				{ cls: "sd-th-teal", defaultIcon: "👍" },
 				{ cls: "sd-th-forest", defaultIcon: "⏱️" },
+				{ cls: "sd-th-amber", defaultIcon: "⚠️" },
+				{ cls: "sd-th-rose", defaultIcon: "🛒" },
+				{ cls: "sd-th-violet", defaultIcon: "🔍" },
 				{ cls: "sd-th-lime", defaultIcon: "💎" },
 				{ cls: "sd-th-olive", defaultIcon: "🏷️" },
 			];
@@ -2675,12 +2709,18 @@ frappe.SarathiIndustrialDashboard = class {
 			this.renderTabs();
 			this.renderContent();
 		} else if (d.report) {
-			const cardLabel =
-				d.kpiLabel ||
-				b.querySelector(".sd-metric-label")?.textContent?.trim() ||
-				b.querySelector("small")?.textContent?.trim() ||
-				b.querySelector("h3")?.textContent?.trim() ||
-				b.textContent?.trim();
+			let cardLabel = d.kpiLabel;
+			if (!cardLabel) {
+				const labelText =
+					b.querySelector(".sd-metric-label")?.textContent?.trim() ||
+					b.querySelector("small")?.textContent?.trim() ||
+					b.querySelector("h3")?.textContent?.trim() ||
+					b.textContent?.trim() ||
+					"";
+				if (!/^\d+$/.test(labelText) && labelText.length > 2) {
+					cardLabel = labelText;
+				}
+			}
 			this.showCardDetailsModal(d.report, d.subset || "", cardLabel, d.reportProject);
 		} else if (d.scopeSubset !== undefined) {
 			this.reportState.subset = d.scopeSubset;
