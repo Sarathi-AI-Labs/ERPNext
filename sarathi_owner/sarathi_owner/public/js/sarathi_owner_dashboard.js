@@ -814,6 +814,15 @@ frappe.SarathiOwnerDashboard = class {
 				self.$modal.removeClass("show");
 			}
 		});
+		this.$modal.on("click", "[data-project-drill]", function () {
+			const projectName = $(this).data("project-drill");
+			if (projectName) {
+				self.$modal.removeClass("show");
+				self.selectedProject = projectName;
+				self.$el.find("#sod-filter-project").val(projectName);
+				self.goToPageByKey("project_detail");
+			}
+		});
 
 		// Global Reactive Filters
 		this.$el.find("#sod-filter-company").on("change", function () {
@@ -1921,9 +1930,6 @@ frappe.SarathiOwnerDashboard = class {
             <input type="search" id="sod-report-search" class="sod-input" placeholder="Filter rows in report..." style="width: 160px; max-width: 100%;">
             <button class="sod-btn-sm" id="sod-btn-refresh-report" title="Rerun report query">↻ Run Live</button>
             <button class="sod-btn-sm" id="sod-btn-export-csv" title="Download CSV of current table">⬇ Export CSV</button>
-            <a id="sod-report-desk-link" href="/app/query-report/${encodeURIComponent(
-				this.currentReportName
-			)}" target="_blank" class="sod-btn-sm" style="text-decoration:none;" title="Open in standard Desk">Desk ↗</a>
           </div>
         </div>
 
@@ -1961,9 +1967,6 @@ frappe.SarathiOwnerDashboard = class {
 			const selectedReport = $(this).val();
 			const $opt = $(this).find(":selected");
 			self.currentReportName = selectedReport;
-			self.$content
-				.find("#sod-report-desk-link")
-				.attr("href", `/app/query-report/${encodeURIComponent(selectedReport)}`);
 			self.$content.find("#sod-report-name-text").text(selectedReport);
 			self.$content.find("#sod-report-icon").text($opt.data("icon") || "▥");
 			self.$content.find("#sod-report-desc-text").text($opt.data("desc") || "Official ERPNext report");
@@ -2308,8 +2311,7 @@ frappe.SarathiOwnerDashboard = class {
 				)}
             </p>
             <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-              <a href="/app/project/new-project-1" target="_blank" class="sod-btn-sm" style="background:#5369ef; color:#fff; padding: 9px 20px; font-size: 13px; font-weight: 600; text-decoration:none; border-radius: 6px; box-shadow: 0 2px 6px rgba(83,105,239,0.25);">+ Create Project in Desk ↗</a>
-              <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding: 9px 20px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor:pointer;" onclick="frappe.set_route('sarathiownertower')">Go to Owner Overview</button>
+              <button class="sod-btn-sm" style="background:#5369ef; color:#fff; border:none; padding: 9px 20px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor:pointer;" onclick="frappe.set_route('sarathiownertower')">Go to Owner Overview</button>
             </div>
           </div>
         `;
@@ -2380,12 +2382,6 @@ frappe.SarathiOwnerDashboard = class {
               `
 						: ""
 				}
-              <a href="/app/project/${encodeURIComponent(
-					pf.name
-				)}" target="_blank" class="sod-btn-sm" style="background:#5369ef; color:#fff; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">Open in Desk ↗</a>
-              <a href="/app/task/new-task-1?project=${encodeURIComponent(
-					pf.name
-				)}" target="_blank" class="sod-btn-sm" style="background:#fff; border: 1px solid #cbd5e1; color:#334155; padding: 6px 14px; font-size: 12px; font-weight: 600; text-decoration:none; border-radius: 6px;">+ Add Task ↗</a>
             </div>
           </div>
         </div>
@@ -2420,19 +2416,12 @@ frappe.SarathiOwnerDashboard = class {
                 <h2>Project Financial Margins</h2>
                 <p>Budget vs actual costs and billing realization</p>
               </div>
-              <div>
-                <a href="/app/project/${encodeURIComponent(
-					pf.name || ""
-				)}" target="_blank" class="sod-btn-sm">Open Project ↗</a>
-              </div>
             </div>
             <div class="sod-feed"><b>Estimated Budget:</b> <span>${pf.estimated_cost}</span></div>
             <div class="sod-feed"><b>Actual Cost Incurred:</b> <span>${pf.actual_cost}</span></div>
             <div class="sod-feed"><b>Cost Variance:</b> <span>${pf.cost_variance}</span></div>
             <div class="sod-feed"><b>Total Billed:</b> <span>${pf.total_billed}</span></div>
-            <div class="sod-feed"><b>Net Margin Realized:</b> <span style="color:#12b886; font-weight:700;">${
-				pf.margin
-			}</span></div>
+            <div class="sod-feed"><b>Net Margin Realized:</b> <span style="color:#12b886; font-weight:700;">${pf.margin}</span></div>
           </div>
           <div class="sod-panel">
             <div class="sod-panel-head">
@@ -2440,9 +2429,6 @@ frappe.SarathiOwnerDashboard = class {
                 <h2>Milestone Tasks & Deadlines</h2>
                 <p>Critical path deliverables</p>
               </div>
-              <a href="/app/task/new-task-1?project=${encodeURIComponent(
-					pf.name
-				)}" target="_blank" class="sod-btn-sm">+ New Task ↗</a>
             </div>
             <div class="sod-tablewrap">
               <table class="sod-table">
@@ -2479,9 +2465,6 @@ frappe.SarathiOwnerDashboard = class {
                 <h2>Linked Commercial Sales Orders</h2>
                 <p>Customer orders linked to this project</p>
               </div>
-              <a href="/app/sales-order/new-sales-order-1?project=${encodeURIComponent(
-					pf.name
-				)}" target="_blank" class="sod-btn-sm">+ New Order ↗</a>
             </div>
             <div class="sod-tablewrap">
               <table class="sod-table">
@@ -2515,9 +2498,6 @@ frappe.SarathiOwnerDashboard = class {
                 <h2>Linked Factory Work Orders</h2>
                 <p>Shop-floor production jobs for this project</p>
               </div>
-              <a href="/app/work-order/new-work-order-1?project=${encodeURIComponent(
-					pf.name
-				)}" target="_blank" class="sod-btn-sm">+ New Work Order ↗</a>
             </div>
             <div class="sod-tablewrap">
               <table class="sod-table">
@@ -4415,78 +4395,379 @@ frappe.SarathiOwnerDashboard = class {
     `;
 
 		// Dynamic Related Records Table based on the Card
-		if (action === "view-projects" || label.toLowerCase().includes("project")) {
-			const projs = data.active_projects || [];
+		const lblLower = label.toLowerCase();
+		let hasRenderedCustomTable = false;
+
+		// 1. If data.table exists (e.g. Projects Page, Sales Orders Page, Invoicing Page, etc.)
+		if (data.table && data.table.headers && data.table.rows && data.table.rows.length) {
+			const headers = data.table.headers;
+			const rows = data.table.rows;
+
+			const idIdx = headers.findIndex(
+				(h) => /^id$/i.test(h) || /^name$/i.test(h) || /project/i.test(h)
+			);
+			const projIdx = headers.findIndex((h) => /^project$/i.test(h) || /project_name/i.test(h));
+			const custIdx = headers.findIndex((h) => /customer/i.test(h));
+			const statusIdx = headers.findIndex((h) => /status/i.test(h));
+			const progressIdx = headers.findIndex(
+				(h) => /%/i.test(h) || /complete/i.test(h) || /progress/i.test(h)
+			);
+			const budgetIdx = headers.findIndex((h) => /budget/i.test(h));
+			const actualIdx = headers.findIndex((h) => /actual/i.test(h));
+			const marginIdx = headers.findIndex(
+				(h) => /margin/i.test(h) || /variance/i.test(h) || /billed/i.test(h)
+			);
+			const endIdx = headers.findIndex((h) => /end/i.test(h) || /due/i.test(h) || /date/i.test(h));
+
+			let filteredRows = [];
+			let displayHeaders = [];
+			let rowMapper = null;
+			let tableTitle = "Related Records";
+			let badgeText = label;
+			let badgeClass = "blue";
+
+			if (
+				lblLower.includes("active project") ||
+				lblLower.includes("ongoing project") ||
+				lblLower.includes("open project")
+			) {
+				tableTitle = "Active Projects Portfolio";
+				badgeText = "Active / Ongoing";
+				badgeClass = "blue";
+				filteredRows = rows.filter((r) => {
+					const st = String(statusIdx >= 0 ? r[statusIdx] : "").toLowerCase();
+					return (
+						st.includes("open") ||
+						st.includes("active") ||
+						st.includes("ongoing") ||
+						(!st.includes("completed") && !st.includes("cancelled"))
+					);
+				});
+				displayHeaders = [
+					"PROJECT ID",
+					"PROJECT NAME",
+					"CUSTOMER",
+					"STATUS",
+					"% PROGRESS",
+					"ESTIMATED BUDGET",
+					"EXPECTED END",
+				];
+				rowMapper = (r) => {
+					const idVal = r[idIdx >= 0 ? idIdx : 0];
+					const pVal = r[projIdx >= 0 ? projIdx : 1] || idVal;
+					const cVal = r[custIdx >= 0 ? custIdx : 2] || "—";
+					const sVal = r[statusIdx >= 0 ? statusIdx : 4] || "Open";
+					const prVal = r[progressIdx >= 0 ? progressIdx : 5] || "0%";
+					const prNum = Math.min(
+						100,
+						Math.max(0, parseFloat(String(prVal).replace(/[^0-9.]/g, "")) || 0)
+					);
+					const bVal = r[budgetIdx >= 0 ? budgetIdx : 6] || "—";
+					const eVal = r[endIdx >= 0 ? endIdx : 9] || "—";
+					return [
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<b>${frappe.utils.escape_html(pVal)}</b>`,
+						frappe.utils.escape_html(cVal),
+						`<span class="sod-pill blue">${frappe.utils.escape_html(sVal)}</span>`,
+						`<div style="display:flex; align-items:center; gap:6px; min-width:85px;"><div style="flex:1; background:#e2e8f0; border-radius:10px; height:5px; overflow:hidden;"><div style="width:${prNum}%; background:#3b82f6; height:100%;"></div></div><b style="font-size:11px;">${prNum}%</b></div>`,
+						`<b>${frappe.utils.escape_html(bVal)}</b>`,
+						frappe.utils.escape_html(eVal),
+					];
+				};
+			} else if (lblLower.includes("completed project") || lblLower.includes("delivered project")) {
+				tableTitle = "Completed Projects Portfolio";
+				badgeText = "Completed / Delivered";
+				badgeClass = "green";
+				filteredRows = rows.filter((r) => {
+					const st = String(statusIdx >= 0 ? r[statusIdx] : "").toLowerCase();
+					return st.includes("completed") || st.includes("delivered");
+				});
+				displayHeaders = [
+					"PROJECT ID",
+					"PROJECT NAME",
+					"CUSTOMER",
+					"STATUS",
+					"% PROGRESS",
+					"BUDGET",
+					"ACTUAL COST",
+					"NET MARGIN",
+				];
+				rowMapper = (r) => {
+					const idVal = r[idIdx >= 0 ? idIdx : 0];
+					const pVal = r[projIdx >= 0 ? projIdx : 1] || idVal;
+					const cVal = r[custIdx >= 0 ? custIdx : 2] || "—";
+					const sVal = r[statusIdx >= 0 ? statusIdx : 4] || "Completed";
+					const prVal = r[progressIdx >= 0 ? progressIdx : 5] || "100%";
+					const prNum = Math.min(
+						100,
+						Math.max(0, parseFloat(String(prVal).replace(/[^0-9.]/g, "")) || 100)
+					);
+					const bVal = r[budgetIdx >= 0 ? budgetIdx : 6] || "—";
+					const aVal = r[actualIdx >= 0 ? actualIdx : 7] || "—";
+					const mVal = r[marginIdx >= 0 ? marginIdx : 8] || "—";
+					return [
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<b>${frappe.utils.escape_html(pVal)}</b>`,
+						frappe.utils.escape_html(cVal),
+						`<span class="sod-pill green">${frappe.utils.escape_html(sVal)}</span>`,
+						`<div style="display:flex; align-items:center; gap:6px; min-width:85px;"><div style="flex:1; background:#e2e8f0; border-radius:10px; height:5px; overflow:hidden;"><div style="width:100%; background:#10b981; height:100%;"></div></div><b style="font-size:11px;">${prNum}%</b></div>`,
+						frappe.utils.escape_html(bVal),
+						frappe.utils.escape_html(aVal),
+						`<span style="color:#12b886; font-weight:700;">${frappe.utils.escape_html(
+							mVal
+						)}</span>`,
+					];
+				};
+			} else if (lblLower.includes("budget")) {
+				tableTitle = "Project Budget Allocation & Costing";
+				badgeText = "Budget Breakdown";
+				badgeClass = "purple";
+				filteredRows = rows;
+				displayHeaders = [
+					"PROJECT ID",
+					"PROJECT NAME",
+					"CUSTOMER",
+					"STATUS",
+					"ESTIMATED BUDGET",
+					"ACTUAL COST",
+					"NET MARGIN",
+				];
+				rowMapper = (r) => {
+					const idVal = r[idIdx >= 0 ? idIdx : 0];
+					const pVal = r[projIdx >= 0 ? projIdx : 1] || idVal;
+					const cVal = r[custIdx >= 0 ? custIdx : 2] || "—";
+					const sVal = r[statusIdx >= 0 ? statusIdx : 4] || "—";
+					const bVal = r[budgetIdx >= 0 ? budgetIdx : 6] || "—";
+					const aVal = r[actualIdx >= 0 ? actualIdx : 7] || "—";
+					const mVal = r[marginIdx >= 0 ? marginIdx : 8] || "—";
+					return [
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<b>${frappe.utils.escape_html(pVal)}</b>`,
+						frappe.utils.escape_html(cVal),
+						`<span class="sod-pill ${
+							String(sVal).toLowerCase().includes("completed") ? "green" : "blue"
+						}">${frappe.utils.escape_html(sVal)}</span>`,
+						`<b style="color:#7950f2;">${frappe.utils.escape_html(bVal)}</b>`,
+						frappe.utils.escape_html(aVal),
+						`<span style="color:#12b886; font-weight:700;">${frappe.utils.escape_html(
+							mVal
+						)}</span>`,
+					];
+				};
+			} else if (
+				lblLower.includes("billed") ||
+				lblLower.includes("revenue") ||
+				lblLower.includes("invoice")
+			) {
+				tableTitle = "Project Billed Revenue Realization";
+				badgeText = "Billing & Realization";
+				badgeClass = "cyan";
+				filteredRows = rows;
+				displayHeaders = [
+					"PROJECT ID",
+					"PROJECT NAME",
+					"CUSTOMER",
+					"STATUS",
+					"ESTIMATED BUDGET",
+					"ACTUAL COST",
+					"NET MARGIN",
+				];
+				rowMapper = (r) => {
+					const idVal = r[idIdx >= 0 ? idIdx : 0];
+					const pVal = r[projIdx >= 0 ? projIdx : 1] || idVal;
+					const cVal = r[custIdx >= 0 ? custIdx : 2] || "—";
+					const sVal = r[statusIdx >= 0 ? statusIdx : 4] || "—";
+					const bVal = r[budgetIdx >= 0 ? budgetIdx : 6] || "—";
+					const aVal = r[actualIdx >= 0 ? actualIdx : 7] || "—";
+					const mVal = r[marginIdx >= 0 ? marginIdx : 8] || "—";
+					return [
+						`<a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							idVal
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(idVal)}</a>`,
+						`<b>${frappe.utils.escape_html(pVal)}</b>`,
+						frappe.utils.escape_html(cVal),
+						`<span class="sod-pill ${
+							String(sVal).toLowerCase().includes("completed") ? "green" : "blue"
+						}">${frappe.utils.escape_html(sVal)}</span>`,
+						frappe.utils.escape_html(bVal),
+						frappe.utils.escape_html(aVal),
+						`<span style="color:#0284c7; font-weight:700;">${frappe.utils.escape_html(
+							mVal
+						)}</span>`,
+					];
+				};
+			} else {
+				// Other generic table pages
+				tableTitle = `${label} Records`;
+				badgeText = label;
+				badgeClass = "blue";
+				const cardWords = lblLower
+					.replace(/[^a-z0-9 ]/g, "")
+					.split(/\s+/)
+					.filter((w) => w.length > 2);
+				if (statusIdx >= 0) {
+					const matched = rows.filter((r) => {
+						const st = String(r[statusIdx] || "").toLowerCase();
+						return cardWords.some((w) => st.includes(w));
+					});
+					filteredRows = matched.length ? matched : rows;
+				} else {
+					filteredRows = rows;
+				}
+				displayHeaders = headers.slice(0, 6);
+				rowMapper = (r) =>
+					r.slice(0, 6).map((c, ci) => {
+						const s = String(c !== null && c !== undefined ? c : "—");
+						if (ci === 0 && !s.includes("<")) return `<b>${frappe.utils.escape_html(s)}</b>`;
+						return s.includes("<") ? s : frappe.utils.escape_html(s);
+					});
+			}
+
+			contentHtml += `
+				<div style="margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+						<div style="display:flex; align-items:center; gap:8px;">
+							<h3 style="font-size: 13.5px; font-weight: 750; color: #1e293b; margin: 0; display:flex; align-items:center; gap:6px;">
+								<span>📋</span> ${tableTitle} (${filteredRows.length})
+							</h3>
+							<span class="sod-pill ${badgeClass}" style="font-size: 11px;">${badgeText}</span>
+						</div>
+						<span style="font-size: 11.5px; color: #64748b;">Showing related details in full</span>
+					</div>
+					<div class="sod-modal-table-wrap">
+						<table class="sod-table" style="width: 100%;">
+							<thead>
+								<tr>${displayHeaders.map((h) => `<th>${frappe.utils.escape_html(h)}</th>`).join("")}</tr>
+							</thead>
+							<tbody>
+								${
+									filteredRows.length
+										? filteredRows
+												.map(
+													(r) =>
+														`<tr>${rowMapper(r)
+															.map((c) => `<td>${c}</td>`)
+															.join("")}</tr>`
+												)
+												.join("")
+										: `<tr><td colspan="${displayHeaders.length}" style="text-align:center; padding: 20px; color:#888;">No matching records found for this metric.</td></tr>`
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			`;
+			hasRenderedCustomTable = true;
+		}
+
+		// 2. If data.active_projects exists (Overview dashboard or similar) and not rendered yet
+		if (!hasRenderedCustomTable && (action === "view-projects" || lblLower.includes("project"))) {
+			let projs = data.active_projects || [];
+			if (lblLower.includes("completed")) {
+				projs = projs.filter((p) => (p.status || "").toLowerCase() === "completed");
+			} else if (lblLower.includes("active") || lblLower.includes("open")) {
+				projs = projs.filter(
+					(p) =>
+						(p.status || "").toLowerCase() !== "completed" &&
+						(p.status || "").toLowerCase() !== "cancelled"
+				);
+			}
 			if (projs.length) {
 				contentHtml += `
-          <h3 style="font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #1e293b;">Matching Projects (${
-				projs.length
-			})</h3>
-          <div class="sod-modal-table-wrap">
-            <table class="sod-table">
-              <thead><tr><th>PROJECT</th><th>CUSTOMER</th><th>STATUS</th><th>PROGRESS</th><th>BUDGET</th></tr></thead>
-              <tbody>
-                ${projs
-					.map(
-						(p) => `
-                  <tr>
-                    <td><a href="/app/project/${encodeURIComponent(
-						p.project
-					)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(
-							p.project_name || p.project
-						)}</b></a></td>
-                    <td>${frappe.utils.escape_html(p.customer || "—")}</td>
-                    <td><span class="sod-pill ${
-						p.status === "Completed" ? "green" : "blue"
-					}">${frappe.utils.escape_html(p.status)}</span></td>
-                    <td><b>${flt(p.percent_complete || 0)}%</b></td>
-                    <td>${frappe.utils.escape_html(p.budget || "—")}</td>
-                  </tr>
-                `
-					)
-					.join("")}
-              </tbody>
-            </table>
+          <div style="margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-size: 13.5px; font-weight: 750; color: #1e293b; margin: 0; display:flex; align-items:center; gap:6px;">
+                <span>📋</span> Matching Projects (${projs.length})
+              </h3>
+              <span class="sod-pill blue" style="font-size: 11px;">${frappe.utils.escape_html(label)}</span>
+            </div>
+            <div class="sod-modal-table-wrap">
+              <table class="sod-table" style="width: 100%;">
+                <thead><tr><th>PROJECT</th><th>CUSTOMER</th><th>STATUS</th><th>PROGRESS</th><th>BUDGET</th></tr></thead>
+                <tbody>
+                  ${projs
+						.map(
+							(p) => `
+                    <tr>
+                      <td><a href="javascript:void(0)" data-project-drill="${frappe.utils.escape_html(
+							p.project
+						)}" class="sod-link" style="font-weight:700;">${frappe.utils.escape_html(
+								p.project_name || p.project
+							)}</a></td>
+                      <td>${frappe.utils.escape_html(p.customer || "—")}</td>
+                      <td><span class="sod-pill ${
+							p.status === "Completed" ? "green" : "blue"
+						}">${frappe.utils.escape_html(p.status)}</span></td>
+                      <td><b>${flt(p.percent_complete || 0)}%</b></td>
+                      <td>${frappe.utils.escape_html(p.budget || "—")}</td>
+                    </tr>
+                  `
+						)
+						.join("")}
+                </tbody>
+              </table>
+            </div>
           </div>
         `;
+				hasRenderedCustomTable = true;
 			}
-		} else if (action === "view-sales-orders" || label.toLowerCase().includes("order")) {
+		}
+
+		// 3. If data.sales_orders exists (Commercial Order Book, Overview, etc.) and not rendered yet
+		if (
+			!hasRenderedCustomTable &&
+			(action === "view-sales-orders" || lblLower.includes("order") || lblLower.includes("commercial"))
+		) {
 			const sos = data.sales_orders || [];
 			if (sos.length) {
 				contentHtml += `
-          <h3 style="font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #1e293b;">Matching Sales Orders (${
-				sos.length
-			})</h3>
-          <div class="sod-modal-table-wrap">
-            <table class="sod-table">
-              <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>% DELIVERED</th><th>STATUS</th></tr></thead>
-              <tbody>
-                ${sos
-					.map(
-						(s) => `
-                  <tr>
-                    <td><a href="/app/sales-order/${encodeURIComponent(
-						s[0]
-					)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(s[0])}</b></a></td>
-                    <td>${frappe.utils.escape_html(s[1])}</td>
-                    <td>${frappe.utils.escape_html(s[2])}</td>
-                    <td>${frappe.utils.escape_html(s[3])}</td>
-                    <td><span class="sod-pill blue">${frappe.utils.escape_html(
-						s[6] || s[5] || "Active"
-					)}</span></td>
-                  </tr>
-                `
-					)
-					.join("")}
-              </tbody>
-            </table>
+          <div style="margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-size: 13.5px; font-weight: 750; color: #1e293b; margin: 0; display:flex; align-items:center; gap:6px;">
+                <span>📋</span> Matching Sales Orders (${sos.length})
+              </h3>
+              <span class="sod-pill blue" style="font-size: 11px;">${frappe.utils.escape_html(label)}</span>
+            </div>
+            <div class="sod-modal-table-wrap">
+              <table class="sod-table" style="width: 100%;">
+                <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>% DELIVERED</th><th>STATUS</th></tr></thead>
+                <tbody>
+                  ${sos
+						.map(
+							(s) => `
+                    <tr>
+                      <td><a href="/app/sales-order/${encodeURIComponent(
+							s[0]
+						)}" target="_blank" class="sod-link"><b>${frappe.utils.escape_html(s[0])}</b></a></td>
+                      <td>${frappe.utils.escape_html(s[1])}</td>
+                      <td>${frappe.utils.escape_html(s[2])}</td>
+                      <td>${frappe.utils.escape_html(s[3])}</td>
+                      <td><span class="sod-pill blue">${frappe.utils.escape_html(
+							s[6] || s[5] || "Active"
+						)}</span></td>
+                    </tr>
+                  `
+						)
+						.join("")}
+                </tbody>
+              </table>
+            </div>
           </div>
         `;
+				hasRenderedCustomTable = true;
 			}
-		} else if (
-			action === "view-stock" ||
-			label.toLowerCase().includes("stock") ||
-			label.toLowerCase().includes("capital")
+		}
+
+		// 4. Stock & Quality Widgets
+		if (
+			!hasRenderedCustomTable &&
+			(action === "view-stock" || lblLower.includes("stock") || lblLower.includes("capital"))
 		) {
 			const cap = data.capital_allocation || {};
 			const lowStock = data.low_stock_items || [];
@@ -4539,12 +4820,13 @@ frappe.SarathiOwnerDashboard = class {
         `;
 			}
 		} else if (
-			action === "view-finance" ||
-			action === "view-pnl" ||
-			action === "view-reports" ||
-			label.toLowerCase().includes("profit") ||
-			label.toLowerCase().includes("receivable") ||
-			label.toLowerCase().includes("cost")
+			!hasRenderedCustomTable &&
+			(action === "view-finance" ||
+				action === "view-pnl" ||
+				action === "view-reports" ||
+				lblLower.includes("profit") ||
+				lblLower.includes("receivable") ||
+				lblLower.includes("cost"))
 		) {
 			const snap = data.financial_snapshot || {};
 			contentHtml += `
@@ -4570,18 +4852,7 @@ frappe.SarathiOwnerDashboard = class {
 
 		this.$modalBody.html(contentHtml);
 
-		// Footer buttons
-		const deskRoute =
-			route ||
-			(action === "view-projects"
-				? "/app/project"
-				: action === "view-sales-orders"
-				? "/app/sales-order"
-				: action === "view-finance"
-				? "/app/sales-invoice"
-				: action === "view-stock"
-				? "/app/item"
-				: "/app/query-report/Profit and Loss Statement");
+		// Footer buttons (Open in Desk button removed)
 		let navActionBtn = "";
 		const self = this;
 		if (action === "view-projects") {
@@ -4595,11 +4866,8 @@ frappe.SarathiOwnerDashboard = class {
 		}
 
 		this.$modalFoot.html(`
-      <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 14px; border-radius:7px; font-weight:600; cursor:pointer;" id="sod-modal-foot-close">Close</button>
+      <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 16px; border-radius:7px; font-weight:600; cursor:pointer;" id="sod-modal-foot-close">Close</button>
       ${navActionBtn}
-      <a href="${frappe.utils.escape_html(
-			deskRoute
-		)}" target="_blank" class="sod-btn-primary" style="text-decoration:none;">Open in Desk ↗</a>
     `);
 
 		this.$modalFoot.find("#sod-modal-foot-close").on("click", () => this.$modal.removeClass("show"));
@@ -4672,12 +4940,14 @@ frappe.SarathiOwnerDashboard = class {
     `);
 
 		this.$modalFoot.html(`
+      <button class="sod-btn-sm" style="background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 16px; border-radius:7px; font-weight:600; cursor:pointer;" id="sod-modal-stage-close">Close</button>
       <a class="sod-btn-primary" href="/app/${encodeURIComponent(
 			stage.doctype.toLowerCase().replace(/ /g, "-")
 		)}?project=${encodeURIComponent(projectName)}" target="_blank">
         View All ${stage.doctype}s ↗
       </a>
     `);
+		this.$modalFoot.find("#sod-modal-stage-close").on("click", () => this.$modal.removeClass("show"));
 
 		this.$modal.addClass("show");
 	}

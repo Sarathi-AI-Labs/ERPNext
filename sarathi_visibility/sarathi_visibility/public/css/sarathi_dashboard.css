@@ -5060,15 +5060,15 @@
 .sd-modal-table th {
 	position: sticky !important;
 	top: 0 !important;
-	background: #f1f5f9 !important;
-	color: #334155 !important;
-	font-size: 11px !important;
+	background: linear-gradient(135deg, #1e293b, #334155) !important;
+	color: #ffffff !important;
+	font-size: 11.5px !important;
 	font-weight: 800 !important;
 	text-transform: uppercase !important;
 	letter-spacing: 0.6px !important;
 	padding: 12px 14px !important;
-	border-bottom: 2px solid #cbd5e1 !important;
-	z-index: 2 !important;
+	border-bottom: 2px solid #0f172a !important;
+	z-index: 5 !important;
 	white-space: nowrap !important;
 }
 
@@ -5207,35 +5207,39 @@
 }
 
 .sd-modal-field-card {
-	background: #f8fafc !important;
-	border: 1.5px solid #e2e8f0 !important;
+	background: #ffffff !important;
+	border: 1.5px solid #cbd5e1 !important;
 	border-radius: 10px !important;
 	padding: 10px 14px !important;
 	display: flex !important;
 	flex-direction: column !important;
 	gap: 4px !important;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04) !important;
 	transition: all 0.2s ease !important;
 }
 
 .sd-modal-field-card:hover {
 	background: #ffffff !important;
-	border-color: #cbd5e1 !important;
-	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+	border-color: #3b82f6 !important;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08) !important;
 }
 
 .sd-modal-field-label {
-	font-size: 10.5px !important;
+	font-size: 11px !important;
 	font-weight: 800 !important;
 	text-transform: uppercase !important;
 	letter-spacing: 0.6px !important;
-	color: #64748b !important;
+	color: #475569 !important;
 }
 
 .sd-modal-field-val {
 	font-size: 13.5px !important;
 	font-weight: 750 !important;
 	color: #0f172a !important;
+	white-space: normal !important;
 	word-break: break-word !important;
+	overflow-wrap: anywhere !important;
+	line-height: 1.35 !important;
 }
 
 .sd-modal-nested-link {
@@ -5381,46 +5385,100 @@
 	font-family: inherit;
 }
 
-.sd-color-table thead tr.sd-color-table-header-row th.sd-th-pin {
-	padding: 16px 14px;
-	text-align: center;
-	vertical-align: middle;
-	color: #ffffff;
-	font-weight: 700;
-	border: none;
-	white-space: nowrap;
+.sd-color-table thead tr.sd-color-table-header-row th.sd-th-pin,
+.sd-modal-table thead tr th.sd-th-pin,
+th.sd-th-pin {
+	padding: 14px 12px !important;
+	text-align: center !important;
+	vertical-align: middle !important;
+	color: #ffffff !important;
+	font-weight: 750 !important;
+	border: none !important;
+	white-space: nowrap !important;
+	position: sticky !important;
+	top: 0 !important;
+	z-index: 5 !important;
 }
 
-.sd-color-table thead tr th.sd-th-purple {
-	background: linear-gradient(135deg, #6b21a8, #7c3aed);
-	border-top-left-radius: 16px;
+.sd-color-table thead tr th.sd-th-purple,
+.sd-modal-table thead tr th.sd-th-purple,
+th.sd-th-purple {
+	background: linear-gradient(135deg, #6b21a8, #7c3aed) !important;
+	color: #ffffff !important;
+	border-top-left-radius: 14px;
 	text-align: left;
-	padding-left: 20px;
+	padding-left: 18px !important;
 }
 
-.sd-color-table thead tr th.sd-th-blue {
-	background: linear-gradient(135deg, #0284c7, #0ea5e9);
+.sd-color-table thead tr th.sd-th-blue,
+.sd-modal-table thead tr th.sd-th-blue,
+th.sd-th-blue {
+	background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+	color: #ffffff !important;
 }
 
-.sd-color-table thead tr th.sd-th-azure {
-	background: linear-gradient(135deg, #0369a1, #0284c7);
+.sd-color-table thead tr th.sd-th-azure,
+.sd-modal-table thead tr th.sd-th-azure,
+th.sd-th-azure {
+	background: linear-gradient(135deg, #0369a1, #0284c7) !important;
+	color: #ffffff !important;
 }
 
-.sd-color-table thead tr th.sd-th-teal {
-	background: linear-gradient(135deg, #0f766e, #0d9488);
+.sd-color-table thead tr th.sd-th-teal,
+.sd-modal-table thead tr th.sd-th-teal,
+th.sd-th-teal {
+	background: linear-gradient(135deg, #0f766e, #0d9488) !important;
+	color: #ffffff !important;
 }
 
-.sd-color-table thead tr th.sd-th-forest {
-	background: linear-gradient(135deg, #047857, #059669);
+.sd-color-table thead tr th.sd-th-forest,
+.sd-modal-table thead tr th.sd-th-forest,
+th.sd-th-forest {
+	background: linear-gradient(135deg, #047857, #059669) !important;
+	color: #ffffff !important;
 }
 
-.sd-color-table thead tr th.sd-th-lime {
-	background: linear-gradient(135deg, #65a30d, #84cc16);
+.sd-color-table thead tr th.sd-th-amber,
+.sd-modal-table thead tr th.sd-th-amber,
+th.sd-th-amber {
+	background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+	color: #ffffff !important;
 }
 
-.sd-color-table thead tr th.sd-th-olive {
-	background: linear-gradient(135deg, #4d7c0f, #65a30d);
-	border-top-right-radius: 16px;
+.sd-color-table thead tr th.sd-th-rose,
+.sd-modal-table thead tr th.sd-th-rose,
+th.sd-th-rose {
+	background: linear-gradient(135deg, #e11d48, #f43f5e) !important;
+	color: #ffffff !important;
+}
+
+.sd-color-table thead tr th.sd-th-violet,
+.sd-modal-table thead tr th.sd-th-violet,
+th.sd-th-violet {
+	background: linear-gradient(135deg, #7c3aed, #9333ea) !important;
+	color: #ffffff !important;
+}
+
+.sd-color-table thead tr th.sd-th-lime,
+.sd-modal-table thead tr th.sd-th-lime,
+th.sd-th-lime {
+	background: linear-gradient(135deg, #65a30d, #84cc16) !important;
+	color: #ffffff !important;
+}
+
+.sd-color-table thead tr th.sd-th-olive,
+.sd-modal-table thead tr th.sd-th-olive,
+th.sd-th-olive {
+	background: linear-gradient(135deg, #4d7c0f, #65a30d) !important;
+	color: #ffffff !important;
+	border-top-right-radius: 14px;
+}
+
+.sd-color-table thead tr th.sd-th-plum,
+.sd-modal-table thead tr th.sd-th-plum,
+th.sd-th-plum {
+	background: linear-gradient(135deg, #831843, #be185d) !important;
+	color: #ffffff !important;
 }
 
 .sd-pin-badge {
@@ -5844,12 +5902,26 @@
 
 .sd-card-details-dialog .modal-title {
 	color: #ffffff !important;
-	font-size: 19px !important;
+	font-size: 18px !important;
 	font-weight: 750 !important;
-	letter-spacing: -0.3px !important;
-	display: flex !important;
+	letter-spacing: -0.2px !important;
+	display: inline-flex !important;
 	align-items: center !important;
 	gap: 10px !important;
+	line-height: 1.4 !important;
+	margin: 0 !important;
+}
+
+.sd-card-details-dialog .modal-title .sarathi-ui-icon {
+	width: 22px !important;
+	height: 22px !important;
+	min-width: 22px !important;
+	min-height: 22px !important;
+	flex-shrink: 0 !important;
+	stroke: #38bdf8 !important;
+	color: #38bdf8 !important;
+	display: inline-block !important;
+	vertical-align: middle !important;
 }
 
 .sd-card-details-dialog .modal-header .btn-modal-close,
@@ -6093,12 +6165,13 @@
 }
 
 .sd-modal-field-val {
-	font-size: 14px;
-	font-weight: 600;
-	color: #1e293b;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	font-size: 13.5px !important;
+	font-weight: 750 !important;
+	color: #0f172a !important;
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: anywhere !important;
+	line-height: 1.35 !important;
 }
 
 .sd-modal-related-block {
@@ -6126,22 +6199,25 @@
 	font-size: 11.5px !important;
 }
 
-/* Strictly prevent word, date, and number wrapping everywhere */
-.sd-kpi,
-.sd-kpi *,
-.sd-color-table,
-.sd-color-table *,
-.sd-modal-table,
-.sd-modal-table * {
+/* Prevent word, date, and number wrapping where appropriate, but allow cards & labels to wrap */
+.sd-color-table th,
+.sd-modal-table th {
 	word-break: keep-all !important;
 	overflow-wrap: normal !important;
 	hyphens: none !important;
 }
 
-.sd-kpi strong,
 .sd-kpi span,
-.sd-kpi small,
-.sd-kpi .sd-metric-label,
+.sd-kpi .sd-metric-label {
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
+	line-height: 1.35 !important;
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+}
 .sd-cell-badge,
 .sd-status-tag,
 .sd-status-pill,
@@ -6281,14 +6357,16 @@
 
 .sd-live-card > .sd-panel-heading > strong {
 	font-size: 13.5px !important;
-	white-space: nowrap !important;
-	overflow: hidden !important;
-	text-overflow: ellipsis !important;
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
+	line-height: 1.3 !important;
 }
 
 .sd-live-card > small {
 	font-size: 11px !important;
-	white-space: nowrap !important;
+	white-space: normal !important;
+	word-break: break-word !important;
 }
 
 .sd-running-operation {
@@ -6435,45 +6513,50 @@
 	font-size: 10px;
 }
 
-/* Global No-Wrap & Word-Break Prevention */
-.sd-kpi,
-.sd-kpi *,
-.sd-live-card,
-.sd-live-card *,
-.sd-color-table,
-.sd-color-table *,
-.sd-setup-card,
-.sd-setup-card * {
-	word-break: keep-all !important;
-	overflow-wrap: normal !important;
-	hyphens: none !important;
+/* Global Safe Wrap & Card Layout */
+.sd-kpi span,
+.sd-kpi .sd-metric-label {
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
+	line-height: 1.35 !important;
+	font-size: 12.5px !important;
+	font-weight: 700 !important;
+	color: #334155 !important;
 }
 
 .sd-kpi strong {
 	font-size: clamp(20px, 1.8vw, 26px) !important;
-	white-space: nowrap !important;
-	word-break: keep-all !important;
-	overflow-wrap: normal !important;
-	hyphens: none !important;
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
 }
 
 .sd-kpi strong.sd-kpi-val-text,
 .sd-kpi-val-text {
-	font-size: 16px !important;
-	line-height: 1.2 !important;
-	white-space: nowrap !important;
-	word-break: keep-all !important;
-	overflow-wrap: normal !important;
-	hyphens: none !important;
+	font-size: 15px !important;
+	line-height: 1.25 !important;
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
 }
 
 .sd-dashboard .sd-kpi {
 	padding: 14px 16px !important;
-	min-height: auto !important;
+	min-height: 110px !important;
+	height: auto !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: space-between !important;
+	gap: 8px !important;
 }
 
 .sd-kpis {
-	grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important;
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important;
+	gap: 12px !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
 }
 
 /* ==========================================================================
@@ -6678,4 +6761,82 @@
 	min-width: 150px !important;
 	max-width: 280px !important;
 	flex: 1 1 180px !important;
+}
+
+/* ==========================================================================
+   Multi-Zoom Resilience & Minification (25%, 50%, 69%, 75%, 90%, 100%)
+   Guarantees no word truncation, no card overlap, and responsive layouts
+   ========================================================================== */
+
+.sd-card {
+	min-width: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 110px !important;
+	height: auto !important;
+}
+
+.sd-card h3,
+.sd-card p,
+.sd-card small {
+	white-space: normal !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
+	line-height: 1.35 !important;
+}
+
+.sd-color-table-wrapper,
+.sd-modal-table-scroll {
+	width: 100% !important;
+	max-width: 100% !important;
+	overflow-x: auto !important;
+	-webkit-overflow-scrolling: touch !important;
+}
+
+.sd-color-table,
+.sd-modal-table {
+	min-width: 960px !important;
+}
+
+/* Multi-Zoom & Responsive Viewport Adaptations */
+@media (min-width: 2400px) {
+	/* 25% - 50% Zoom (Ultra-wide viewports) */
+	.sd-kpis {
+		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+		gap: 16px !important;
+	}
+	.sd-cards {
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+		gap: 16px !important;
+	}
+}
+
+@media (max-width: 1400px) {
+	/* 90% Zoom / 1400px Viewports */
+	.sd-kpis {
+		grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+		gap: 12px !important;
+	}
+}
+
+@media (max-width: 1024px) {
+	/* 75% / Mid Viewports */
+	.sd-kpis {
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+		gap: 10px !important;
+	}
+	.sd-cards {
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+		gap: 12px !important;
+	}
+}
+
+@media (max-width: 768px) {
+	/* 50% / Mobile Viewports */
+	.sd-kpis {
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+		gap: 8px !important;
+	}
+	.sd-cards {
+		grid-template-columns: 1fr !important;
+	}
 }
