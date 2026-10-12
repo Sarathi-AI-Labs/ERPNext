@@ -310,9 +310,14 @@ class TestBankStatementImportLog(ERPNextTestSuite, AccountsTestMixin):
 
 	@staticmethod
 	def _make_pdf(html: str) -> bytes:
-		import pdfkit
+		try:
+			import pdfkit
 
-		return pdfkit.from_string(html, False)
+			return pdfkit.from_string(html, False)
+		except (ImportError, ModuleNotFoundError):
+			from frappe.utils.pdf import get_pdf
+
+			return get_pdf(html)
 
 	@staticmethod
 	def _encrypt(pdf_bytes: bytes, password: str) -> bytes:
