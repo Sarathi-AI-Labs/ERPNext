@@ -29,8 +29,6 @@ dependencies = [
     # Pulls pdfminer.six (parsing), Pillow, and pypdfium2 (render backend for
     # Page.to_image) - all pure-Python wheels, no system binaries required.
     "pdfplumber>=0.11.0",
-    "pdfkit>=1.0.0",
-    "pypdf>=4.0.0",
 ]
 
 [build-system]
