@@ -2667,12 +2667,24 @@ frappe.SarathiIndustrialDashboard = class {
 		else if (d.action === "clear-dates") this.clearDateFilter();
 		else if (d.action === "open-subcontracting") this.openSubcontractingView();
 		else if (d.action === "close-subcontracting") this.closeSubcontractingView();
-		else if (d.action === "refresh-subcontracting") this.loadSubcontractingData();
+		else if (d.action === "refresh-subcontracting") {
+			b.classList.add("sd-spinning", "sod-spinning");
+			const p = this.loadSubcontractingData();
+			Promise.resolve(p).finally(() => {
+				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);
+			});
+		}
 		else if (d.action === "apply-sub-filters") this.applySubFilters();
 		else if (d.action === "reset-sub-filters") this.resetSubFilters();
 		else if (d.action === "open-accounting") this.openAccountingView();
 		else if (d.action === "close-accounting") this.closeAccountingView();
-		else if (d.action === "refresh-accounting") this.loadAccountingData();
+		else if (d.action === "refresh-accounting") {
+			b.classList.add("sd-spinning", "sod-spinning");
+			const p = this.loadAccountingData();
+			Promise.resolve(p).finally(() => {
+				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);
+			});
+		}
 		else if (d.action === "apply-acc-filters") this.applyAccFilters();
 		else if (d.action === "reset-acc-filters") this.resetAccFilters();
 		else if (d.action === "reset-kpi-selection") {
@@ -2737,7 +2749,13 @@ frappe.SarathiIndustrialDashboard = class {
 		} else if (d.reportPage !== undefined) {
 			this.reportState.start = Number(d.reportPage);
 			this.loadReport();
-		} else if (d.action === "refresh") this.load();
+		} else if (d.action === "refresh") {
+			b.classList.add("sd-spinning", "sod-spinning");
+			const p = this.load();
+			Promise.resolve(p).finally(() => {
+				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);
+			});
+		}
 		else if (d.action === "create" || d.action === "setup") this.creationMenu(d.action === "setup");
 		else if (d.action === "associate") this.create("Sarathi Customer Organization");
 		else if (d.action === "native-report") {
@@ -6359,8 +6377,13 @@ frappe.SarathiIndustrialDashboard = class {
         </div>
       `;
 
-			msg.querySelector("[data-ai-refresh]")?.addEventListener("click", () => {
-				this.load();
+			msg.querySelector("[data-ai-refresh]")?.addEventListener("click", (e) => {
+				const aiBtn = e.currentTarget || msg.querySelector("[data-ai-refresh]");
+				if (aiBtn) aiBtn.classList.add("sd-spinning", "sod-spinning");
+				const p = this.load();
+				Promise.resolve(p).finally(() => {
+					if (aiBtn) setTimeout(() => aiBtn.classList.remove("sd-spinning", "sod-spinning"), 600);
+				});
 				frappe.show_alert(
 					{ message: "Dashboard reloaded with latest live records!", indicator: "green" },
 					3

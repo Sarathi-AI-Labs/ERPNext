@@ -6973,3 +6973,255 @@ th.sd-th-plum {
 		grid-template-columns: 1fr !important;
 	}
 }
+
+/* ==========================================================================
+   SARATHI VISIBILITY: REFRESH BUTTON ANIMATION (MATCHING SARATHI OWNER)
+   ========================================================================== */
+
+.sd-spinning,
+.sod-spinning {
+	animation: sdSpin 0.75s linear infinite !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	transform-origin: center center !important;
+}
+
+@keyframes sdSpin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes sodSpin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Hero Refresh Button with glass effect matching Sarathi Owner Tower */
+.sd-hero-actions .sd-button[data-action="refresh"],
+.sd-hero-actions .sd-button,
+.sd-hero-refresh-btn {
+	background: rgba(255, 255, 255, 0.2) !important;
+	border: 1px solid rgba(255, 255, 255, 0.35) !important;
+	color: #ffffff !important;
+	padding: 8px 16px !important;
+	border-radius: 10px !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+	transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.sd-hero-actions .sd-button[data-action="refresh"]:hover,
+.sd-hero-actions .sd-button:hover,
+.sd-hero-refresh-btn:hover {
+	background: rgba(255, 255, 255, 0.35) !important;
+	transform: translateY(-2px) !important;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22) !important;
+	color: #ffffff !important;
+}
+
+.sd-hero-actions .sd-button[data-action="refresh"]:active,
+.sd-hero-actions .sd-button:active,
+.sd-hero-refresh-btn:active {
+	transform: translateY(0) !important;
+}
+
+.sd-sub-refresh-btn,
+.sd-button[data-action^="refresh"],
+[data-ai-refresh] {
+	transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+	cursor: pointer !important;
+}
+
+.sd-sub-refresh-btn:hover,
+.sd-button[data-action^="refresh"]:hover,
+[data-ai-refresh]:hover {
+	transform: translateY(-2px) !important;
+	box-shadow: 0 4px 12px rgba(8, 126, 139, 0.25) !important;
+}
+
+.sd-sub-refresh-btn:active,
+.sd-button[data-action^="refresh"]:active,
+[data-ai-refresh]:active {
+	transform: translateY(0) !important;
+}
+
+/* ==========================================================================
+   SARATHI VISIBILITY CARDS: SOLID BLACK BORDERS & HOVER LIFT ANIMATION
+   All cards have solid black borders and smooth hover interactions
+   ========================================================================== */
+
+.sd-dashboard .sd-card,
+.sd-dashboard .sd-kpi,
+.sd-dashboard .sd-setup-card,
+.sd-dashboard .sd-live-card,
+.sd-dashboard .sd-subcontract-card,
+.sd-dashboard .sd-subcontracting-main-card,
+.sd-dashboard .sd-accounting-main-card,
+.sd-dashboard .sd-acc-kpi-card,
+.sd-dashboard .sd-acc-mix-card,
+.sd-dashboard .sd-acc-tax-card,
+.sd-dashboard .sd-acc-sub-kpi,
+.sd-dashboard .sd-sub-card-mat,
+.sd-dashboard .sd-modal-field-card,
+.sd-dashboard .sd-ai-card,
+.sd-dashboard .sd-cards > *,
+.sd-dashboard .sd-kpis > *,
+.sd-dashboard .sd-setup-cards > *,
+.sd-dashboard .sd-acc-kpis-grid > *,
+.sd-card,
+.sd-kpi,
+.sd-setup-card,
+.sd-live-card,
+.sd-subcontract-card,
+.sd-subcontracting-main-card,
+.sd-accounting-main-card,
+.sd-acc-kpi-card,
+.sd-acc-mix-card,
+.sd-acc-tax-card,
+.sd-acc-sub-kpi,
+.sd-sub-card-mat,
+.sd-modal-field-card,
+.sd-ai-card,
+.sd-cards > *,
+.sd-kpis > *,
+.sd-setup-cards > *,
+.sd-acc-kpis-grid > *,
+.sarathi-kpi,
+.sarathi-card,
+.sarathi-tower .sarathi-kpi,
+.sarathi-tower .sarathi-card {
+	border: 1px solid #000000 !important;
+	border-color: #000000 !important;
+	transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
+	cursor: pointer !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* Hover effect on ANY card */
+.sd-dashboard .sd-card:hover,
+.sd-dashboard .sd-kpi:hover,
+.sd-dashboard button.sd-kpi:hover,
+.sd-dashboard .sd-setup-card:hover,
+.sd-dashboard .sd-live-card:hover,
+.sd-dashboard .sd-subcontract-card:hover,
+.sd-dashboard .sd-subcontracting-main-card:hover,
+.sd-dashboard .sd-accounting-main-card:hover,
+.sd-dashboard .sd-acc-kpi-card:hover,
+.sd-dashboard .sd-acc-mix-card:hover,
+.sd-dashboard .sd-acc-tax-card:hover,
+.sd-dashboard .sd-acc-sub-kpi:hover,
+.sd-dashboard .sd-sub-card-mat:hover,
+.sd-dashboard .sd-modal-field-card:hover,
+.sd-dashboard .sd-ai-card:hover,
+.sd-dashboard .sd-cards > *:hover,
+.sd-dashboard .sd-kpis > *:hover,
+.sd-dashboard .sd-setup-cards > *:hover,
+.sd-dashboard .sd-acc-kpis-grid > *:hover,
+.sd-card:hover,
+.sd-kpi:hover,
+.sd-setup-card:hover,
+.sd-live-card:hover,
+.sd-subcontract-card:hover,
+.sd-subcontracting-main-card:hover,
+.sd-accounting-main-card:hover,
+.sd-acc-kpi-card:hover,
+.sd-acc-mix-card:hover,
+.sd-acc-tax-card:hover,
+.sd-acc-sub-kpi:hover,
+.sd-sub-card-mat:hover,
+.sd-modal-field-card:hover,
+.sd-ai-card:hover,
+.sd-cards > *:hover,
+.sd-kpis > *:hover,
+.sd-setup-cards > *:hover,
+.sd-acc-kpis-grid > *:hover,
+.sarathi-kpi:hover,
+.sarathi-card:hover,
+.sarathi-tower .sarathi-kpi:hover,
+.sarathi-tower .sarathi-card:hover {
+	transform: translateY(-4px) !important;
+	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16) !important;
+	border: 1px solid #000000 !important;
+	border-color: #000000 !important;
+	z-index: 2;
+}
+
+/* Tactile Active Pressed State */
+.sd-dashboard .sd-card:active,
+.sd-dashboard .sd-kpi:active,
+.sd-dashboard button.sd-kpi:active,
+.sd-dashboard .sd-setup-card:active,
+.sd-dashboard .sd-live-card:active,
+.sd-dashboard .sd-subcontract-card:active,
+.sd-dashboard .sd-subcontracting-main-card:active,
+.sd-dashboard .sd-accounting-main-card:active,
+.sd-dashboard .sd-acc-kpi-card:active,
+.sd-dashboard .sd-acc-mix-card:active,
+.sd-dashboard .sd-acc-tax-card:active,
+.sd-dashboard .sd-acc-sub-kpi:active,
+.sd-dashboard .sd-sub-card-mat:active,
+.sd-dashboard .sd-modal-field-card:active,
+.sd-dashboard .sd-ai-card:active,
+.sd-dashboard .sd-cards > *:active,
+.sd-dashboard .sd-kpis > *:active,
+.sd-dashboard .sd-setup-cards > *:active,
+.sd-dashboard .sd-acc-kpis-grid > *:active,
+.sd-card:active,
+.sd-kpi:active,
+.sd-setup-card:active,
+.sd-live-card:active,
+.sd-subcontract-card:active,
+.sd-subcontracting-main-card:active,
+.sd-accounting-main-card:active,
+.sd-acc-kpi-card:active,
+.sd-acc-mix-card:active,
+.sd-acc-tax-card:active,
+.sd-acc-sub-kpi:active,
+.sd-sub-card-mat:active,
+.sd-modal-field-card:active,
+.sd-ai-card:active,
+.sd-cards > *:active,
+.sd-kpis > *:active,
+.sd-setup-cards > *:active,
+.sd-acc-kpis-grid > *:active,
+.sarathi-kpi:active,
+.sarathi-card:active,
+.sarathi-tower .sarathi-kpi:active,
+.sarathi-tower .sarathi-card:active {
+	transform: translateY(-1px) !important;
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Card Icon Micro-Interactions on Card Hover */
+.sd-card:hover .sd-card-icon,
+.sd-kpi:hover .sd-kpi-icon,
+.sd-setup-card:hover .sd-setup-icon,
+.sarathi-card:hover .sarathi-icon,
+.sarathi-kpi:hover .sarathi-icon {
+	transform: scale(1.08);
+	transition: transform 0.2s ease;
+}
+
+/* Card Containers padding for smooth hover lift */
+.sd-cards,
+.sd-kpis,
+.sd-setup-cards {
+	padding-top: 6px !important;
+	padding-bottom: 6px !important;
+}
+
