@@ -673,7 +673,7 @@
 	background: #f8fafc;
 	border: 1.5px solid #dce2f0;
 	border-radius: 9px;
-	padding: 7px 28px 7px 11px;
+	padding: 7px 46px 7px 11px;
 	font-size: 12px;
 	font-weight: 600;
 	color: #1e293b;
@@ -695,6 +695,33 @@
 	box-shadow: 0 0 0 3px rgba(83, 105, 239, 0.15);
 }
 
+.sod-combo-clear {
+	position: absolute;
+	right: 26px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: transparent;
+	border: none;
+	color: #64748b;
+	cursor: pointer;
+	padding: 2px;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all 0.15s ease;
+	z-index: 2;
+}
+
+.sod-combo-clear:hover {
+	color: #0f172a;
+	transform: translateY(-50%) scale(1.15);
+}
+
+.sod-combo-clear.visible {
+	display: inline-flex !important;
+}
+
 .sod-combo-chevron {
 	position: absolute;
 	right: 6px;
@@ -713,6 +740,42 @@
 .sod-combo-chevron:hover {
 	color: #1e293b;
 	background: #e2e8f0;
+}
+
+.sod-submit-group {
+	flex: 0 0 auto;
+	min-width: 90px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+}
+
+.sod-btn-submit {
+	height: 36px;
+	background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+	color: #ffffff;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 9px;
+	padding: 0 20px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+	transition: all 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+}
+
+.sod-btn-submit:hover {
+	background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(79, 70, 229, 0.38);
+}
+
+.sod-btn-submit:active {
+	transform: translateY(0);
 }
 
 .sod-suggestions-menu {
