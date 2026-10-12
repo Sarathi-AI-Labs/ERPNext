@@ -2661,33 +2661,43 @@ frappe.SarathiIndustrialDashboard = class {
 			this.projectViewMode = d.mode || (this.projectViewMode === "table" ? "cards" : "table");
 			this.projectPage = 0;
 			this.renderCards();
-		} else if (d.action === "toggle-ai") this.toggleAiChat();
-		else if (d.action === "switch-owner") frappe.set_route("sarathiownertower");
-		else if (d.action === "apply-dates") this.applyDateFilter();
-		else if (d.action === "clear-dates") this.clearDateFilter();
-		else if (d.action === "open-subcontracting") this.openSubcontractingView();
-		else if (d.action === "close-subcontracting") this.closeSubcontractingView();
-		else if (d.action === "refresh-subcontracting") {
+		} else if (d.action === "toggle-ai") {
+			this.toggleAiChat();
+		} else if (d.action === "switch-owner") {
+			frappe.set_route("sarathiownertower");
+		} else if (d.action === "apply-dates") {
+			this.applyDateFilter();
+		} else if (d.action === "clear-dates") {
+			this.clearDateFilter();
+		} else if (d.action === "open-subcontracting") {
+			this.openSubcontractingView();
+		} else if (d.action === "close-subcontracting") {
+			this.closeSubcontractingView();
+		} else if (d.action === "refresh-subcontracting") {
 			b.classList.add("sd-spinning", "sod-spinning");
 			const p = this.loadSubcontractingData();
 			Promise.resolve(p).finally(() => {
 				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);
 			});
-		}
-		else if (d.action === "apply-sub-filters") this.applySubFilters();
-		else if (d.action === "reset-sub-filters") this.resetSubFilters();
-		else if (d.action === "open-accounting") this.openAccountingView();
-		else if (d.action === "close-accounting") this.closeAccountingView();
-		else if (d.action === "refresh-accounting") {
+		} else if (d.action === "apply-sub-filters") {
+			this.applySubFilters();
+		} else if (d.action === "reset-sub-filters") {
+			this.resetSubFilters();
+		} else if (d.action === "open-accounting") {
+			this.openAccountingView();
+		} else if (d.action === "close-accounting") {
+			this.closeAccountingView();
+		} else if (d.action === "refresh-accounting") {
 			b.classList.add("sd-spinning", "sod-spinning");
 			const p = this.loadAccountingData();
 			Promise.resolve(p).finally(() => {
 				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);
 			});
-		}
-		else if (d.action === "apply-acc-filters") this.applyAccFilters();
-		else if (d.action === "reset-acc-filters") this.resetAccFilters();
-		else if (d.action === "reset-kpi-selection") {
+		} else if (d.action === "apply-acc-filters") {
+			this.applyAccFilters();
+		} else if (d.action === "reset-acc-filters") {
+			this.resetAccFilters();
+		} else if (d.action === "reset-kpi-selection") {
 			this.accActiveKpi = "";
 			this.accTab = "overview";
 			this.renderAccountingDetailView();
@@ -2711,11 +2721,13 @@ frappe.SarathiIndustrialDashboard = class {
 		} else if (d.action === "clear-stage-filter") {
 			this.subSelectedStage = "";
 			this.renderSubcontractingDetailView();
-		} else if (d.customer) this.navigate({ customer: d.customer, project: "" });
-		else if (d.project) this.navigate({ project: d.project });
-		else if (d.nav)
+		} else if (d.customer) {
+			this.navigate({ customer: d.customer, project: "" });
+		} else if (d.project) {
+			this.navigate({ project: d.project });
+		} else if (d.nav) {
 			this.navigate(d.nav === "organization" ? { customer: "", project: "" } : { project: "" });
-		else if (d.tab) {
+		} else if (d.tab) {
 			this.tab = d.tab;
 			this.reportState = null;
 			this.writeUrl();
@@ -2755,10 +2767,11 @@ frappe.SarathiIndustrialDashboard = class {
 			Promise.resolve(p).finally(() => {
 				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);
 			});
-		}
-		else if (d.action === "create" || d.action === "setup") this.creationMenu(d.action === "setup");
-		else if (d.action === "associate") this.create("Sarathi Customer Organization");
-		else if (d.action === "native-report") {
+		} else if (d.action === "create" || d.action === "setup") {
+			this.creationMenu(d.action === "setup");
+		} else if (d.action === "associate") {
+			this.create("Sarathi Customer Organization");
+		} else if (d.action === "native-report") {
 			frappe.route_options = {
 				...this.filters,
 				customer: this.filters.customer === "__unassigned__" ? "" : this.filters.customer,
