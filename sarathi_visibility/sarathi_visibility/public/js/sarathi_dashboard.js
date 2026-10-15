@@ -176,7 +176,7 @@ frappe.SarathiIndustrialDashboard = class {
 		this.root.addEventListener("keydown", (e) => {
 			if (e.target.dataset.dateFilter && e.key === "Enter") {
 				e.preventDefault();
-				this.applyDateFilter();
+				this.applyFilters();
 			}
 		});
 		this.el("[data-search]").addEventListener("input", (e) => {
@@ -226,6 +226,9 @@ frappe.SarathiIndustrialDashboard = class {
 			if (!this.visible) return;
 			clearTimeout(this._rtDebounce);
 			this._rtDebounce = setTimeout(() => {
+				this.data = null;
+				this.subData = null;
+				this.accData = null;
 				if (this.view === "accounting") {
 					this.loadAccountingData(true);
 				} else if (this.view === "subcontracting") {
@@ -236,13 +239,23 @@ frappe.SarathiIndustrialDashboard = class {
 			}, 1500);
 		};
 		const setupRealtime = () => {
+			const events = [
+				"sarathi_dashboard_changed",
+				"sarathi_owner_live_change",
+				"doc_update",
+				"list_update",
+			];
 			if (frappe.realtime) {
-				frappe.realtime.off("sarathi_dashboard_changed", onRealtimeChange);
-				frappe.realtime.on("sarathi_dashboard_changed", onRealtimeChange);
+				events.forEach((ev) => {
+					frappe.realtime.off(ev, onRealtimeChange);
+					frappe.realtime.on(ev, onRealtimeChange);
+				});
 			}
 			if (frappe.realtime?.socket) {
-				frappe.realtime.socket.off("sarathi_dashboard_changed", onRealtimeChange);
-				frappe.realtime.socket.on("sarathi_dashboard_changed", onRealtimeChange);
+				events.forEach((ev) => {
+					frappe.realtime.socket.off(ev, onRealtimeChange);
+					frappe.realtime.socket.on(ev, onRealtimeChange);
+				});
 				frappe.realtime.socket.off("connect", setupRealtime);
 				frappe.realtime.socket.on("connect", setupRealtime);
 			}
@@ -315,10 +328,10 @@ frappe.SarathiIndustrialDashboard = class {
 	badge(text) {
 		return frappe.sarathiUI.status(text).outerHTML;
 	}
-	async call(method, args) {
+	async call(method, args = {}) {
 		const r = await frappe.call({
 			method: `sarathi_visibility.api.dashboard.${method}`,
-			args,
+			args: { ...args, _: Date.now(), force_refresh: 1 },
 			silent: true,
 		});
 		return r.message;
@@ -387,8 +400,10 @@ frappe.SarathiIndustrialDashboard = class {
 		if ("to_date" in change) {
 			this.dateFilters.to_date = change.to_date || "";
 		}
-		this.search = "";
-		this.el("[data-search]").value = "";
+		if ("search" in change) {
+			this.search = (change.search || "").toLowerCase();
+			if (this.el("[data-search]")) this.el("[data-search]").value = change.search || "";
+		}
 		this.customerPage = this.projectPage = 0;
 		this.tab = "overview";
 		this.reportState = null;
@@ -400,26 +415,79 @@ frappe.SarathiIndustrialDashboard = class {
 		if (node.dataset.filter === "company") Object.assign(change, { customer: "", project: "" });
 		this.navigate(change);
 	}
-	applyDateFilter() {
-		const from = this.dateFilters?.from_date || this.el('[data-date-filter="from_date"]')?.value || "";
-		const to = this.dateFilters?.to_date || this.el('[data-date-filter="to_date"]')?.value || "";
-		if (!from || !to) {
-			frappe.msgprint(__("Please select both From date and To date."));
-			return;
-		}
-		if (from > to) {
+	applyFilters() {
+		const company = this.el('[data-filter="company"]')?.value || "";
+		const status = this.el('[data-filter="status"]')?.value || "";
+		const workstation = this.el('[data-filter="workstation"]')?.value || "";
+		const from = this.el('[data-date-filter="from_date"]')?.value || "";
+		const to = this.el('[data-date-filter="to_date"]')?.value || "";
+		if (from && to && from > to) {
 			frappe.msgprint(__("From date must be on or before To date."));
 			return;
 		}
-		this.navigate({ from_date: from, to_date: to });
+		const searchVal = this.el("[data-search]")?.value || "";
+		this.search = searchVal.toLowerCase();
+		this.dateFilters = { from_date: from, to_date: to };
+		this.data = null;
+		this.navigate({
+			company,
+			status,
+			workstation,
+			from_date: from,
+			to_date: to,
+			search: searchVal,
+		});
 	}
-	clearDateFilter() {
+	applyDateFilter() {
+		this.applyFilters();
+	}
+	resetFilters() {
 		this.dateFilters = { from_date: "", to_date: "" };
 		const fromEl = this.el('[data-date-filter="from_date"]');
 		const toEl = this.el('[data-date-filter="to_date"]');
-		if (fromEl) fromEl.value = "";
-		if (toEl) toEl.value = "";
-		this.navigate({ from_date: "", to_date: "" });
+		if (fromEl) {
+			fromEl.value = "";
+			fromEl.dispatchEvent(new Event("input", { bubbles: true }));
+		}
+		if (toEl) {
+			toEl.value = "";
+			toEl.dispatchEvent(new Event("input", { bubbles: true }));
+		}
+		const searchEl = this.el("[data-search]");
+		if (searchEl) {
+			searchEl.value = "";
+			searchEl.dispatchEvent(new Event("input", { bubbles: true }));
+		}
+		const statusEl = this.el('[data-filter="status"]');
+		if (statusEl) {
+			statusEl.value = "";
+			if (statusEl._syncCombo) statusEl._syncCombo();
+		}
+		const wsEl = this.el('[data-filter="workstation"]');
+		if (wsEl) {
+			wsEl.value = "";
+			if (wsEl._syncCombo) wsEl._syncCombo();
+		}
+		const compEl = this.el('[data-filter="company"]');
+		if (compEl) {
+			compEl.value = "";
+			if (compEl._syncCombo) compEl._syncCombo();
+		}
+		this.search = "";
+		this.data = null;
+		this.navigate({
+			company: "",
+			status: "",
+			workstation: "",
+			customer: "",
+			project: "",
+			from_date: "",
+			to_date: "",
+			search: "",
+		});
+	}
+	clearDateFilter() {
+		this.resetFilters();
 	}
 	async load(silent = false) {
 		if (this.view === "accounting") {
@@ -442,12 +510,13 @@ frappe.SarathiIndustrialDashboard = class {
 				: "Refreshing…";
 		}
 		try {
+			this.data = null;
 			const data = await this.call("get_summary", {
 				filters: JSON.stringify(this.filters),
 			});
 			if (request !== this.sequence || !this.visible) return;
 			this.data = data;
-			this.filters = data.filters;
+			this.filters = Object.assign({}, this.filters, data.filters);
 			this.lastSuccessfulRefresh = data.generated_at || new Date().toISOString();
 			this.lastFailedRefresh = null;
 			this.writeUrl(true);
@@ -2738,10 +2807,10 @@ frappe.SarathiIndustrialDashboard = class {
 			this.toggleAiChat();
 		} else if (d.action === "switch-owner") {
 			frappe.set_route("sarathiownertower");
-		} else if (d.action === "apply-dates") {
-			this.applyDateFilter();
-		} else if (d.action === "clear-dates") {
-			this.clearDateFilter();
+		} else if (d.action === "apply-dates" || d.action === "apply-filters") {
+			this.applyFilters();
+		} else if (d.action === "clear-dates" || d.action === "reset-filters") {
+			this.resetFilters();
 		} else if (d.action === "open-subcontracting") {
 			this.openSubcontractingView();
 		} else if (d.action === "close-subcontracting") {
@@ -2885,6 +2954,9 @@ frappe.SarathiIndustrialDashboard = class {
 			this.loadReport();
 		} else if (d.action === "refresh") {
 			b.classList.add("sd-spinning", "sod-spinning");
+			this.data = null;
+			this.subData = null;
+			this.accData = null;
 			const p = this.load();
 			Promise.resolve(p).finally(() => {
 				setTimeout(() => b.classList.remove("sd-spinning", "sod-spinning"), 600);

@@ -333,9 +333,19 @@
 
   inputEl.addEventListener("input", updateVisibility);
   inputEl.addEventListener("change", updateVisibility);
+
+  const originalValDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  if (originalValDesc) {
+   Object.defineProperty(inputEl, "value", {
+    get() { return originalValDesc.get.call(this); },
+    set(v) { originalValDesc.set.call(this, v); updateVisibility(); },
+    configurable: true
+   });
+  }
   updateVisibility();
 
   inputEl._suiClearable = { wrap, clearBtn, updateVisibility };
+  inputEl._syncClearable = updateVisibility;
   return inputEl._suiClearable;
  }
  function filterBar({ fields = [], onApply, onReset, validate } = {}) {

@@ -106,7 +106,7 @@ def parse_filters(filters=None):
 	raw = validate_filters(filters)
 	result = {
 		key: (raw or {}).get(key) or ""
-		for key in ("company", "customer", "project", "from_date", "to_date", "status")
+		for key in ("company", "customer", "project", "from_date", "to_date", "status", "workstation")
 	}
 	if (raw or {}).get("unassigned_customer"):
 		result["customer"] = UNASSIGNED

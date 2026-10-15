@@ -10,8 +10,13 @@
  const mfgDefaults = () => ({ warehouse: "", mfg_status: "", shortage_only: "1" });
  const riskDefaults = () => ({ risk_category: "", risk_severity: "" });
  const scopeKey = values => JSON.stringify(Object.entries(values).filter(([, value]) => value !== "" && value != null).sort(([a], [b]) => a.localeCompare(b)));
- const request = async (method, args) => {
-  const response = await frappe.call({ method: "sarathi_owner.api.homepage." + method, type: "GET", args, silent: true });
+ const request = async (method, args = {}) => {
+  const response = await frappe.call({
+   method: "sarathi_owner.api.homepage." + method,
+   type: "GET",
+   args: { ...args, _: Date.now(), force_refresh: 1 },
+   silent: true
+  });
   if (!response.message) throw Error("Unavailable");
   return response.message;
  };
@@ -83,7 +88,6 @@
   this.homeControls.company.addEventListener("change", async () => {
    this.homeScopeEpoch++; this.homeControls.project.value = ""; this.selectedProject = "";
    this.homeControls.warehouse.value = "";
-   this.homeData = null; this.activeData = null;
    await this.loadHomeOptions("projects");
    await this.loadHomeOptions("warehouses");
    this.homeNotice.textContent = "Company changed. Apply filters to update the overview.";
@@ -203,7 +207,7 @@
    const data = await request("get_homepage", { filters });
    if (sequence !== this.pageRequest || this.currentPage !== 0 || !this.visible) return;
    this.homeData = data; this.activeData = data;
-   this.lastSuccessfulRefresh = data.generated_at || new Date().toISOString();
+   this.lastSuccessfulRefresh = new Date(data.generated_at || Date.now());
    this.lastFailedRefresh = null;
    this.renderHomepage(data);
    const updatedTime = UI.formatTimestamp(this.lastSuccessfulRefresh);
@@ -219,11 +223,19 @@
    if (retain) {
     this.renderHomepage(this.homeData);
     const staleTime = this.lastSuccessfulRefresh ? UI.formatTimestamp(this.lastSuccessfulRefresh) : "earlier";
-    this.$content.prepend(UI.staleNotice({
-     message: `Refresh failed. Showing data from last successful update (${staleTime}).`,
-     lastSuccess: this.lastSuccessfulRefresh,
-     onRetry: () => this.refreshHomepage()
-    }));
+    if (!navigator.onLine) {
+     this.$content.prepend(UI.state("offline", {
+      message: `Offline · Showing data from last successful update (${staleTime}).`,
+      retry: () => this.refreshHomepage(),
+      retryKind: "read"
+     }));
+    } else {
+     this.$content.prepend(UI.staleNotice({
+      message: `Refresh failed. Showing data from last successful update (${staleTime}).`,
+      lastSuccess: this.lastSuccessfulRefresh,
+      onRetry: () => this.refreshHomepage()
+     }));
+    }
     this.$el.find("#sod-live-status-text").text(`Refresh failed · Showing data from ${staleTime}`);
    } else {
     this.homeData = null; this.activeData = null;

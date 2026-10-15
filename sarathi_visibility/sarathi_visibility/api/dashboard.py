@@ -1079,7 +1079,19 @@ def report_data(data, report, subset="", search=""):
 
 @frappe.whitelist()
 @authorized("production")
-def get_summary(filters=None):
+def clear_dashboard_cache(**kwargs):
+	"""Purges cached metadata and redis entries for Sarathi Visibility."""
+	try:
+		frappe.cache.delete_keys("sarathi:*")
+		frappe.clear_cache()
+		return {"status": "success", "message": "Cache purged"}
+	except Exception as e:
+		return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+@authorized("production")
+def get_summary(filters=None, **kwargs):
 	raw_filters = frappe.parse_json(filters) if isinstance(filters, str) else dict(filters or {})
 	legacy_filters = dict(raw_filters)
 	project_statuses = {"", "Active", "Ongoing", "Completed", "Delayed", "Cancelled", "On hold"}
@@ -1590,7 +1602,7 @@ def get_summary(filters=None):
 		live_activity=data["live_activity"],
 		operation_balance=data["operation_balance"],
 		wip_stock=data["wip_stock"],
-		filters=data["filters"],
+		filters={**data["filters"], **({"workstation": raw_filters["workstation"]} if "workstation" in raw_filters else {})},
 		companies=data["companies"],
 		customers=data["customers"],
 		projects=projects,
@@ -1660,7 +1672,7 @@ def get_summary(filters=None):
 
 @frappe.whitelist()
 @authorized("production")
-def get_report(filters=None, report="projects", subset="", search="", start=0, page_length=25):
+def get_report(filters=None, report="projects", subset="", search="", start=0, page_length=25, **kwargs):
 	from sarathi_visibility.api.data_helpers import pagination
 
 	start, length = pagination(start, page_length)
@@ -1680,7 +1692,7 @@ def get_report(filters=None, report="projects", subset="", search="", start=0, p
 
 @frappe.whitelist()
 @authorized("production")
-def get_record(filters, doctype, name):
+def get_record(filters, doctype, name, **kwargs):
 	data = load(filters)
 
 	keys = {dt: key for key, (dt, child) in DOCUMENTS.items()}
@@ -1790,7 +1802,7 @@ def export_allowed(report, result=None):
 
 @frappe.whitelist()
 @authorized("production")
-def export_report(filters=None, report="projects", subset="", search=""):
+def export_report(filters=None, report="projects", subset="", search="", **kwargs):
 	data = load(filters)
 
 	result = report_data(data, report, subset, search)

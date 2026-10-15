@@ -722,6 +722,10 @@ frappe.SarathiOwnerDashboard = class {
 		const name = data.name || "";
 		this.showLiveToast(`⚡ Live Update: ${dt} ${name} updated`);
 
+		// Clear cached dataset so fresh data is guaranteed
+		this.activeData = null;
+		if (this.homeData) this.homeData = null;
+
 		// Dynamically refresh the dropdown options if a Company, Customer, or Project was modified
 		if (!data.doctype || ["Company", "Customer", "Project"].includes(dt)) {
 			this.refreshFilterDropdownsOnly();
@@ -735,7 +739,7 @@ frappe.SarathiOwnerDashboard = class {
 		const selectedCompany = this.$el.find("#sod-filter-company").val() || "";
 		frappe.call({
 			method: "sarathi_owner.api.owner_dashboard.get_owner_context",
-			args: { company: selectedCompany },
+			args: { company: selectedCompany, _: Date.now() },
 			callback: (r) => {
 				if (r.message) {
 					this.context = r.message;

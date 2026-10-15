@@ -213,6 +213,8 @@ def _extra(extra):
 	# Frappe v1 passes its dispatcher command through **kwargs. It is not a query field.
 	extra.pop("cmd", None)
 	extra.pop("_", None)  # Browser GET cache-buster, never used in data selection.
+	extra.pop("force_refresh", None)
+	extra.pop("cache_buster", None)
 	if extra:
 		invalid("Unsupported dashboard query parameters.")
 
