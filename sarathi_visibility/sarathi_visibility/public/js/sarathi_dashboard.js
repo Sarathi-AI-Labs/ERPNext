@@ -488,8 +488,8 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 	render(silent) {
 		const d = this.data;
-		this.renderSubcontractingCard();
-		this.renderAccountingCard();
+		if (this.el("[data-subcontracting-cards]")) this.renderSubcontractingCard();
+		if (this.el("[data-accounting-cards]")) this.renderAccountingCard();
 		this.renderFactoryOverview();
 		this.renderProductionPipeline();
 		this.renderMaterialReadiness();
@@ -580,70 +580,80 @@ frappe.SarathiIndustrialDashboard = class {
 		).textContent = `Some data is unavailable for your role: ${d.restricted.join(
 			", "
 		)}. Totals include only records you may read.`;
-		this.el("[data-live-projects]").innerHTML = this.liveCards();
-		this.el("[data-kpis]").replaceChildren(...d.kpis.map((k) => {
-            const card = frappe.sarathiUI.kpi({
-                label: k.label,
-                value: typeof k.value === "number" ? this.num(k.value) : k.value,
-                description: k.report ? "View records" : "ERPNext records",
-                onActivate: k.report ? () => this.showCardDetailsModal(k.report, k.subset || "", k.label) : undefined,
-            });
-            card.dataset.kpiLabel = k.label;
-            return card;
-        }));
-		this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
-		this.el("[data-project-panel]").hidden = !!this.filters.project;
-		this.el("[data-project-heading]").textContent = this.filters.customer
-			? `${name} projects`
-			: "Organization projects";
-		this.el('[data-action="associate"]').hidden =
-			!d.can_create["Sarathi Customer Organization"] || !this.filters.company;
-		this.el("[data-project-summary]").hidden = !this.filters.project;
-		if (this.filters.project) {
-			const p = d.selected_project;
-			const getKpi = (key) => d.kpis.find((k) => k.report === key)?.value ?? 0;
-			this.el("[data-project-summary]").innerHTML = p
-				? `
-        <div class="sd-project-summary-box">
-          <div class="sd-project-summary-info">
-            <small>${this.esc(p.name)} · ${this.esc(name)}</small>
-            <h2>${this.esc(p.project_name)}</h2>
-            <p>${this.badge(p.status)} ${p.delayed ? this.badge("Delayed") : ""} Main BOM: ${this.link(
-						"BOM",
-						p.custom_sarathi_bom
-				  )} · ${this.link("Project", p.name, "Open Project / assign links")}</p>
-          </div>
-          <div class="sd-project-quick-links">
-            <button class="sd-button sd-tone-blue" data-report="warehouses">🏢 Warehouses (${this.num(
-				getKpi("warehouses")
-			)})</button>
-            <button class="sd-button sd-tone-teal" data-report="operations_catalogue">⚙️ Operations (${this.num(
-				getKpi("operations_catalogue")
-			)})</button>
-            <button class="sd-button sd-tone-violet" data-report="workstations">🏭 Workstations (${this.num(
-				getKpi("workstations")
-			)})</button>
-            <button class="sd-button sd-tone-amber" data-report="workstation_types">🏷️ Workstation Types (${this.num(
-				getKpi("workstation_types")
-			)})</button>
-            <button class="sd-button sd-tone-pink" data-report="routings">🔄 Routings (${this.num(
-				getKpi("routings")
-			)})</button>
-            <button class="sd-button sd-tone-orange" data-report="items">📦 Items (${this.num(
-				getKpi("items")
-			)})</button>
-          </div>
-          <button class="sd-button" data-nav="customer">← Back to customer projects</button>
-        </div>`
-				: this.empty("This project does not match the selected status filter.");
+		if (this.el("[data-live-projects]")) this.el("[data-live-projects]").innerHTML = this.liveCards();
+		if (this.el("[data-kpis]")) {
+			this.el("[data-kpis]").replaceChildren(...d.kpis.map((k) => {
+				const card = frappe.sarathiUI.kpi({
+					label: k.label,
+					value: typeof k.value === "number" ? this.num(k.value) : k.value,
+					description: k.report ? "View records" : "ERPNext records",
+					onActivate: k.report ? () => this.showCardDetailsModal(k.report, k.subset || "", k.label) : undefined,
+				});
+				card.dataset.kpiLabel = k.label;
+				return card;
+			}));
 		}
-		this.renderCards();
-		this.renderTabs();
-		if (silent && this.tab !== "overview" && this.el("[data-table-area]")) {
-			this.loadReport();
-			if (this.el("[data-tab-charts]"))
-				this.el("[data-tab-charts]").innerHTML = this.chartGrid(this.chartsForTab());
-		} else this.renderContent();
+		if (this.el("[data-customer-panel]")) this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
+		if (this.el("[data-project-panel]")) this.el("[data-project-panel]").hidden = !!this.filters.project;
+		if (this.el("[data-project-heading]")) {
+			this.el("[data-project-heading]").textContent = this.filters.customer
+				? `${name} projects`
+				: "Organization projects";
+		}
+		if (this.el('[data-action="associate"]')) {
+			this.el('[data-action="associate"]').hidden =
+				!d.can_create["Sarathi Customer Organization"] || !this.filters.company;
+		}
+		if (this.el("[data-project-summary]")) {
+			this.el("[data-project-summary]").hidden = !this.filters.project;
+			if (this.filters.project) {
+				const p = d.selected_project;
+				const getKpi = (key) => d.kpis.find((k) => k.report === key)?.value ?? 0;
+				this.el("[data-project-summary]").innerHTML = p
+					? `
+			<div class="sd-project-summary-box">
+			  <div class="sd-project-summary-info">
+				<small>${this.esc(p.name)} · ${this.esc(name)}</small>
+				<h2>${this.esc(p.project_name)}</h2>
+				<p>${this.badge(p.status)} ${p.delayed ? this.badge("Delayed") : ""} Main BOM: ${this.link(
+							"BOM",
+							p.custom_sarathi_bom
+					  )} · ${this.link("Project", p.name, "Open Project / assign links")}</p>
+			  </div>
+			  <div class="sd-project-quick-links">
+				<button class="sd-button sd-tone-blue" data-report="warehouses">🏢 Warehouses (${this.num(
+					getKpi("warehouses")
+				)})</button>
+				<button class="sd-button sd-tone-teal" data-report="operations_catalogue">⚙️ Operations (${this.num(
+					getKpi("operations_catalogue")
+				)})</button>
+				<button class="sd-button sd-tone-violet" data-report="workstations">🏭 Workstations (${this.num(
+					getKpi("workstations")
+				)})</button>
+				<button class="sd-button sd-tone-amber" data-report="workstation_types">🏷️ Workstation Types (${this.num(
+					getKpi("workstation_types")
+				)})</button>
+				<button class="sd-button sd-tone-pink" data-report="routings">🔄 Routings (${this.num(
+					getKpi("routings")
+				)})</button>
+				<button class="sd-button sd-tone-orange" data-report="items">📦 Items (${this.num(
+					getKpi("items")
+				)})</button>
+			  </div>
+			  <button class="sd-button" data-nav="customer">← Back to customer projects</button>
+			</div>`
+					: this.empty("This project does not match the selected status filter.");
+			}
+		}
+		if (this.el("[data-cards]")) this.renderCards();
+		if (this.el(".sd-tabs")) this.renderTabs();
+		if (this.el("[data-content]")) {
+			if (silent && this.tab !== "overview" && this.el("[data-table-area]")) {
+				this.loadReport();
+				if (this.el("[data-tab-charts]"))
+					this.el("[data-tab-charts]").innerHTML = this.chartGrid(this.chartsForTab());
+			} else this.renderContent();
+		}
 	}
 	pagination(kind, page, total) {
 		return total > 12
