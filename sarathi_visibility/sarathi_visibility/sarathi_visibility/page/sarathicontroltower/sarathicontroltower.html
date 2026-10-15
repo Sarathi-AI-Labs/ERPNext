@@ -1,9 +1,9 @@
 <main class="sd-dashboard">
   <header class="sd-hero">
     <div>
-      <div class="sd-eyebrow">SARATHI AI LABS · MANUFACTURING</div>
-      <h1>Sarathi Industrial Dashboard</h1>
-      <p>Customers, projects and production in one place</p>
+      <div class="sd-eyebrow">SARATHI AI LABS · PRODUCTION MANAGEMENT</div>
+      <h1>Production Management Control Tower</h1>
+      <p>Factory-wide production output, Work Orders, Job Cards, material readiness, and operational exceptions</p>
     </div>
     <div class="sd-hero-actions">
       <span data-updated role="status">Connecting to ERPNext…</span>
@@ -40,14 +40,22 @@
       </button>
     </div>
     <label
-      >Project status<select data-filter="status" aria-label="Project status">
-        <option value="">All statuses</option>
-        <option>Ongoing</option>
-        <option>Active</option>
-        <option>Completed</option>
-        <option>Delayed</option>
-        <option>On hold</option>
-        <option>Cancelled</option>
+      >Work Order status<select data-filter="status" aria-label="Work Order status">
+        <option value="">Active</option>
+        <option value="All">All statuses</option>
+        <option value="Not Started">Not Started</option>
+        <option value="In Process">In Process</option>
+        <option value="Completed">Completed</option>
+        <option value="Stopped">Stopped</option>
+        <option value="Overdue">Overdue</option>
+        <option value="Due soon">Due soon</option>
+        <option value="Draft">Draft</option>
+        <option value="Cancelled">Cancelled</option>
+      </select></label
+    >
+    <label
+      >Workstation<select data-filter="workstation" aria-label="Workstation">
+        <option value="">All workstations</option>
       </select></label
     >
     <label class="sd-search"
@@ -64,12 +72,123 @@
     aria-label="Dashboard breadcrumb"
   ></nav>
   <p class="sd-scope-note">
-    Choose From date and To date and click Submit to filter projects by creation
-    date, orders by order date, Work Orders by planned start, Job Cards and
-    stock by posting date.
+    Filter by organization, date range, Work Order status, or workstation to focus factory overview and detailed operations.
   </p>
   <div class="sd-error" data-error role="alert" hidden></div>
   <div class="sd-notice" data-permissions hidden></div>
+  <section class="sd-panel sd-factory-overview-panel" data-factory-overview-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Factory Overview</h2>
+        <p>Production progress, shop-floor execution, deadlines, and material readiness</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-factory-badge>Factory Overview</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-factory-kpis" data-factory-kpis></div>
+    <div class="sd-factory-summary" data-factory-summary></div>
+  </section>
+  <section class="sd-panel sd-pipeline-panel" data-production-pipeline-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Production Pipeline & Bottlenecks</h2>
+        <p>Operational workflow, operation sequences, dependencies, and queue constraints</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-pipeline-badge>Pipeline View</span>
+      </div>
+    </div>
+    <div class="sd-pipeline-stages" data-pipeline-stages></div>
+    <div class="sd-bottlenecks-container" data-pipeline-bottlenecks></div>
+    <div class="sd-pipeline-jobs-container" data-pipeline-jobs></div>
+  </section>
+  <section class="sd-panel sd-material-readiness-panel" data-material-readiness-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Material Readiness & Warehouse Shortages</h2>
+        <p>Component demand vs leaf warehouse available stock, deficit calculations, and Work Order readiness</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-material-readiness-badge>Material Readiness</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-material-kpis" data-material-kpis></div>
+    <div class="sd-material-summary" data-material-summary></div>
+    <div class="sd-shortage-items-container" data-material-shortage-items></div>
+    <div class="sd-shortage-lines-container" data-material-shortage-lines></div>
+  </section>
+  <section class="sd-panel sd-workstation-downtime-panel" data-workstation-downtime-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Workstations & Recorded Downtime</h2>
+        <p>Operational workstation activity, Job Card assignments, recorded downtime events, and schedule impacts</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-workstation-downtime-badge>Workstation Views</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-workstation-kpis" data-workstation-kpis></div>
+    <div class="sd-workstation-overview-container" data-workstation-overview></div>
+    <div class="sd-downtime-events-container" data-workstation-downtime-events></div>
+    <div class="sd-workstation-impact-container" data-workstation-impact></div>
+    <div class="sd-workstation-activity-container" data-workstation-activity></div>
+  </section>
+  <section class="sd-panel sd-quality-overview-panel" data-quality-overview-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Quality &amp; Inspection Overview</h2>
+        <p>Quality inspection results, pass/fail performance, sample sizes, and defect breakdown</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-quality-badge>Quality Overview</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-quality-kpis" data-quality-kpis></div>
+    <div class="sd-quality-summary" data-quality-summary></div>
+    <div class="sd-quality-inspections-container" data-quality-inspections></div>
+  </section>
+  <section class="sd-panel sd-rework-overview-panel" data-rework-overview-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Rework &amp; Corrective Actions</h2>
+        <p>Corrective Job Cards, rework operations, parent job linkages, and defect resolution status</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-rework-badge>Rework Overview</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-rework-kpis" data-rework-kpis></div>
+    <div class="sd-rework-summary" data-rework-summary></div>
+    <div class="sd-rework-jobs-container" data-rework-jobs></div>
+  </section>
+  <section class="sd-panel sd-subcontracting-overview-panel" data-subcontracting-overview-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Subcontracting Operations &amp; Receipts</h2>
+        <p>Outsourced production orders, supplier fulfillment, material reconciliation, and overdue receipts</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-blue" data-subcontracting-badge>Subcontracting Overview</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-subcontracting-kpis" data-subcontracting-kpis></div>
+    <div class="sd-subcontracting-orders-container" data-subcontracting-orders></div>
+  </section>
+  <section class="sd-panel sd-production-exceptions-panel" data-production-exceptions-panel>
+    <div class="sd-panel-heading">
+      <div>
+        <h2>Production Exception &amp; Escalation Queue</h2>
+        <p>Prioritized operational bottlenecks, material shortages, machine downtime, quality defects, and vendor delays</p>
+      </div>
+      <div class="sd-panel-actions">
+        <span class="sd-pill sd-status-red" data-exceptions-badge>0 Open Exceptions</span>
+      </div>
+    </div>
+    <div class="sd-cards sd-exceptions-kpis" data-exceptions-kpis></div>
+    <div class="sd-exceptions-toolbar-container" data-exceptions-toolbar></div>
+    <div class="sd-exceptions-table-container" data-exceptions-table></div>
+  </section>
   <section class="sd-kpis" data-kpis aria-label="Summary"></section>
   <section data-live-projects aria-label="Live project production"></section>
   <section class="sd-panel" data-subcontracting-card-panel>

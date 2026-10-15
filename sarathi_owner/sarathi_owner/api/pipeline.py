@@ -33,6 +33,8 @@ Implements the complete 24-step industrial flowchart across 3 connected lines (8
 """
 
 import frappe
+
+from sarathi_visibility.api.access import (check_record, scoped_rows, scoped_value)
 from frappe.utils import flt
 
 
@@ -41,11 +43,11 @@ def get_project_pipeline(project_name: str) -> dict:
 	if not frappe.db.exists("Project", project_name):
 		return {}
 
-	project = frappe.get_doc("Project", project_name)
+	project = check_record("Project", project_name)
 
 	# 1. Resolve Customer and Sales Orders
 	customer = project.customer
-	sales_orders = frappe.get_all(
+	sales_orders = scoped_rows(
 		"Sales Order",
 		filters={"project": project_name, "docstatus": ["!=", 2]},
 		fields=[
@@ -70,7 +72,7 @@ def get_project_pipeline(project_name: str) -> dict:
 	# 2. Quotations and Leads
 	quotations = []
 	if so_names and frappe.db.has_column("Sales Order", "prevdoc_docname"):
-		quotations = frappe.get_all(
+		quotations = scoped_rows(
 			"Quotation",
 			filters={
 				"name": ["in", [s.get("prevdoc_docname") for s in sales_orders if s.get("prevdoc_docname")]],
@@ -79,7 +81,7 @@ def get_project_pipeline(project_name: str) -> dict:
 			fields=["name", "status", "docstatus", "grand_total"],
 		)
 	if not quotations and customer and customer != "Unassigned Customer":
-		quotations = frappe.get_all(
+		quotations = scoped_rows(
 			"Quotation",
 			filters={"party_name": customer, "docstatus": ["!=", 2]},
 			fields=["name", "status", "docstatus", "grand_total"],
@@ -88,7 +90,7 @@ def get_project_pipeline(project_name: str) -> dict:
 
 	leads = []
 	if customer and customer != "Unassigned Customer":
-		leads = frappe.get_all(
+		leads = scoped_rows(
 			"Lead",
 			filters={"lead_name": ["like", f"%{customer[:15]}%"], "docstatus": ["!=", 2]},
 			fields=["name", "lead_name", "status"],
@@ -104,7 +106,7 @@ def get_project_pipeline(project_name: str) -> dict:
 	submitted_plans = [p for p in plans if p.get("docstatus") == 1]
 
 	# 5. Work Orders
-	work_orders = frappe.get_all(
+	work_orders = scoped_rows(
 		"Work Order",
 		filters={"project": project_name, "docstatus": ["!=", 2]},
 		fields=[
@@ -120,7 +122,7 @@ def get_project_pipeline(project_name: str) -> dict:
 		],
 	)
 	if not work_orders and so_names:
-		work_orders = frappe.get_all(
+		work_orders = scoped_rows(
 			"Work Order",
 			filters={"sales_order": ["in", so_names], "docstatus": ["!=", 2]},
 			fields=[
@@ -148,7 +150,7 @@ def get_project_pipeline(project_name: str) -> dict:
 	# 6. Job Cards
 	job_cards = []
 	if wo_names:
-		job_cards = frappe.get_all(
+		job_cards = scoped_rows(
 			"Job Card",
 			filters={"work_order": ["in", wo_names], "docstatus": ["!=", 2]},
 			fields=["name", "operation", "status", "for_quantity", "total_completed_qty", "work_order"],
@@ -158,12 +160,12 @@ def get_project_pipeline(project_name: str) -> dict:
 	stock_entries_mfg = []
 	stock_entries_transfer = []
 	if wo_names:
-		stock_entries_mfg = frappe.get_all(
+		stock_entries_mfg = scoped_rows(
 			"Stock Entry",
 			filters={"work_order": ["in", wo_names], "purpose": "Manufacture", "docstatus": 1},
 			fields=["name", "work_order", "fg_completed_qty", "posting_date"],
 		)
-		stock_entries_transfer = frappe.get_all(
+		stock_entries_transfer = scoped_rows(
 			"Stock Entry",
 			filters={
 				"work_order": ["in", wo_names],
@@ -173,13 +175,13 @@ def get_project_pipeline(project_name: str) -> dict:
 			fields=["name", "work_order", "posting_date"],
 		)
 	if not stock_entries_mfg:
-		stock_entries_mfg = frappe.get_all(
+		stock_entries_mfg = scoped_rows(
 			"Stock Entry",
 			filters={"project": project_name, "purpose": "Manufacture", "docstatus": 1},
 			fields=["name", "work_order", "fg_completed_qty", "posting_date"],
 		)
 	if not stock_entries_transfer:
-		stock_entries_transfer = frappe.get_all(
+		stock_entries_transfer = scoped_rows(
 			"Stock Entry",
 			filters={"project": project_name, "purpose": "Material Transfer for Manufacture", "docstatus": 1},
 			fields=["name", "work_order", "posting_date"],
@@ -191,13 +193,13 @@ def get_project_pipeline(project_name: str) -> dict:
 	total_advance_paid = sum(flt(so.advance_paid) for so in sales_orders)
 	payment_entries = []
 	if so_names and frappe.db.table_exists("Payment Entry Reference"):
-		pe_names = frappe.get_all(
+		pe_names = scoped_rows(
 			"Payment Entry Reference",
 			filters={"reference_name": ["in", so_names], "docstatus": 1},
 			pluck="parent",
 		)
 		if pe_names:
-			payment_entries = frappe.get_all(
+			payment_entries = scoped_rows(
 				"Payment Entry",
 				filters={"name": ["in", list(set(pe_names))], "docstatus": 1},
 				fields=["name", "paid_amount", "posting_date"],
@@ -207,7 +209,7 @@ def get_project_pipeline(project_name: str) -> dict:
 				total_advance_paid = pe_sum
 
 	# 9. Quality Inspections
-	quality_inspections = frappe.get_all(
+	quality_inspections = scoped_rows(
 		"Quality Inspection",
 		filters={"docstatus": ["!=", 2]},
 		fields=["name", "status", "inspection_type", "reference_type", "reference_name"],
@@ -223,19 +225,19 @@ def get_project_pipeline(project_name: str) -> dict:
 	# 10. Delivery Notes
 	delivery_notes = []
 	if so_names:
-		dn_items = frappe.get_all(
+		dn_items = scoped_rows(
 			"Delivery Note Item",
 			filters={"against_sales_order": ["in", so_names], "docstatus": 1},
 			pluck="parent",
 		)
 		if dn_items:
-			delivery_notes = frappe.get_all(
+			delivery_notes = scoped_rows(
 				"Delivery Note",
 				filters={"name": ["in", list(set(dn_items))], "docstatus": 1},
 				fields=["name", "status", "posting_date", "grand_total"],
 			)
 	if not delivery_notes:
-		delivery_notes = frappe.get_all(
+		delivery_notes = scoped_rows(
 			"Delivery Note",
 			filters={"project": project_name, "docstatus": 1},
 			fields=["name", "status", "posting_date", "grand_total"],
@@ -244,19 +246,19 @@ def get_project_pipeline(project_name: str) -> dict:
 	# 11. Sales Invoices
 	sales_invoices = []
 	if so_names:
-		si_items = frappe.get_all(
+		si_items = scoped_rows(
 			"Sales Invoice Item",
 			filters={"sales_order": ["in", so_names], "docstatus": 1},
 			pluck="parent",
 		)
 		if si_items:
-			sales_invoices = frappe.get_all(
+			sales_invoices = scoped_rows(
 				"Sales Invoice",
 				filters={"name": ["in", list(set(si_items))], "docstatus": 1},
 				fields=["name", "status", "posting_date", "grand_total", "outstanding_amount"],
 			)
 	if not sales_invoices:
-		sales_invoices = frappe.get_all(
+		sales_invoices = scoped_rows(
 			"Sales Invoice",
 			filters={"project": project_name, "docstatus": 1},
 			fields=["name", "status", "posting_date", "grand_total", "outstanding_amount"],
@@ -1138,7 +1140,7 @@ def _resolve_project_boms(project) -> list:
 
 	# Check custom_sarathi_bom on Project
 	if hasattr(project, "custom_sarathi_bom") and project.custom_sarathi_bom:
-		info = frappe.db.get_value(
+		info = scoped_value(
 			"BOM",
 			project.custom_sarathi_bom,
 			["name", "item", "docstatus", "is_active"],
@@ -1149,7 +1151,7 @@ def _resolve_project_boms(project) -> list:
 
 	# Check custom_sarathi_project on BOM
 	if frappe.db.has_column("BOM", "custom_sarathi_project"):
-		for b in frappe.get_all(
+		for b in scoped_rows(
 			"BOM",
 			filters={"custom_sarathi_project": project.name, "docstatus": ["!=", 2]},
 			fields=["name", "item", "docstatus", "is_active"],
@@ -1157,14 +1159,14 @@ def _resolve_project_boms(project) -> list:
 			boms[b.name] = b
 
 	# Check BOMs on project Work Orders
-	wo_boms = frappe.get_all(
+	wo_boms = scoped_rows(
 		"Work Order",
 		filters={"project": project.name, "docstatus": ["!=", 2]},
 		pluck="bom_no",
 	)
 	for bom_no in set(wo_boms) - {None, ""}:
 		if bom_no not in boms and frappe.db.exists("BOM", bom_no):
-			info = frappe.db.get_value(
+			info = scoped_value(
 				"BOM", bom_no, ["name", "item", "docstatus", "is_active"], as_dict=True
 			)
 			if info:
@@ -1178,7 +1180,7 @@ def _resolve_production_plans(project_name: str, so_names: list) -> list:
 	plans = {}
 
 	if frappe.db.has_column("Production Plan", "project"):
-		for p in frappe.get_all(
+		for p in scoped_rows(
 			"Production Plan",
 			filters={"project": project_name, "docstatus": ["!=", 2]},
 			fields=["name", "docstatus", "status"],
@@ -1187,14 +1189,14 @@ def _resolve_production_plans(project_name: str, so_names: list) -> list:
 
 	# Check via Sales Orders
 	if so_names and frappe.db.table_exists("Production Plan Sales Order"):
-		pp_so = frappe.get_all(
+		pp_so = scoped_rows(
 			"Production Plan Sales Order",
 			filters={"sales_order": ["in", so_names]},
 			pluck="parent",
 		)
 		for parent in set(pp_so):
 			if parent not in plans and frappe.db.exists("Production Plan", parent):
-				info = frappe.db.get_value(
+				info = scoped_value(
 					"Production Plan",
 					parent,
 					["name", "docstatus", "status"],
@@ -1206,14 +1208,14 @@ def _resolve_production_plans(project_name: str, so_names: list) -> list:
 	# Check child table Production Plan Item
 	if so_names and frappe.db.table_exists("Production Plan Item"):
 		if frappe.db.has_column("Production Plan Item", "sales_order"):
-			pp_items = frappe.get_all(
+			pp_items = scoped_rows(
 				"Production Plan Item",
 				filters={"sales_order": ["in", so_names]},
 				pluck="parent",
 			)
 			for parent in set(pp_items):
 				if parent not in plans and frappe.db.exists("Production Plan", parent):
-					info = frappe.db.get_value(
+					info = scoped_value(
 						"Production Plan",
 						parent,
 						["name", "docstatus", "status"],

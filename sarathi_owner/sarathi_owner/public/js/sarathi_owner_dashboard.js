@@ -63,9 +63,8 @@ frappe.SarathiOwnerDashboard = class {
 
 		this.page.main.empty();
 
-		if (!frappe.templates || !frappe.templates["sarathiownertower"]) {
-			frappe.provide("frappe.templates");
-			frappe.templates["sarathiownertower"] = `<div class="sod-wrapper">
+		frappe.provide("frappe.templates");
+		frappe.templates["sarathiownertower"] = `<div class="sod-wrapper">
   <!-- Top View Switcher Bar -->
   <div class="sod-switcher-bar">
     <span class="sod-switcher-label">Dashboard View:</span>
@@ -80,9 +79,6 @@ frappe.SarathiOwnerDashboard = class {
   <div class="sod-app">
     <!-- Left Navigation Sidebar -->
     <aside class="sod-side">
-      <div class="sod-brand">
-        ✦ SARATHI <small>AI LABS · CONTROL TOWER</small>
-      </div>
       <nav id="sod-nav" class="sod-nav" aria-label="Owner navigation"></nav>
     </aside>
 
@@ -93,10 +89,13 @@ frappe.SarathiOwnerDashboard = class {
           <a href="javascript:void(0)" class="sod-link" data-action="go-home">Owner</a>
           / <b id="sod-crumb-text">Home</b></span>
         <div style="display: flex; align-items: center; gap: 12px">
+          <button class="sod-btn-glass sod-btn-refresh-top" data-action="refresh" title="Sync all live values">
+            ↻ Refresh
+          </button>
           <div class="sod-live-status-pill" id="sod-live-status-pill"
-            title="Connected to ERPNext Realtime Socket.IO Gateway">
+            title="Last successful ERPNext record refresh">
             <span class="sod-pulse-dot"></span>
-            <span id="sod-live-status-text">LIVE SYNCED</span>
+            <span id="sod-live-status-text">Waiting for records</span>
           </div>
           <div class="sod-user-pill">
             <span id="sod-live-time"></span> &nbsp;
@@ -104,24 +103,6 @@ frappe.SarathiOwnerDashboard = class {
           </div>
         </div>
       </div>
-
-      <!-- Hero Gradient Banner -->
-      <section class="sod-hero">
-        <div>
-          <div class="sod-eyebrow">SARATHI CONTROL TOWER · OWNER EDITION</div>
-          <h1 id="sod-title">Sarathi Owner Overview</h1>
-          <p id="sod-subtitle">
-            ERPNext projects, financial health, and strategic operations in one
-            live view.
-          </p>
-        </div>
-        <div class="sod-hero-actions">
-          <button class="sod-btn sod-btn-glass" data-action="refresh" title="Sync all live values">
-            ↻ Refresh
-          </button>
-          <div class="sod-hero-symbol">✧</div>
-        </div>
-      </section>
 
       <!-- Global Filter Bar: Customer | Project | Status | Date Range | Submit -->
       <section class="sod-filters" id="sod-filters" aria-label="Global Filters">
@@ -250,9 +231,9 @@ frappe.SarathiOwnerDashboard = class {
     </div>
   </div>
 </div>`;
-		}
 
 		this.root = $(frappe.render_template("sarathiownertower", {})).appendTo(this.page.main)[0];
+		this.sharedUI = frappe.sarathiUI.enhance(this.root);
 
 		// Purge any duplicate sod-wrapper, footers, or switcher bars
 		$(wrapper).find(".sod-wrapper").not(this.root).remove();
@@ -736,6 +717,7 @@ frappe.SarathiOwnerDashboard = class {
 	}
 
 	handleLiveSocketChange(data = {}) {
+		if (!this.visible) return;
 		const dt = data.doctype || "Transaction";
 		const name = data.name || "";
 		this.showLiveToast(`⚡ Live Update: ${dt} ${name} updated`);
@@ -797,10 +779,12 @@ frappe.SarathiOwnerDashboard = class {
 				try {
 					localStorage.removeItem("_page:sarathiownertower");
 					localStorage.removeItem("page:sarathiownertower");
+					localStorage.removeItem("route:sarathiownertower");
 				} catch (e) {
 					// Ignore storage exceptions in restricted environments
 				}
 			}
+			self.activeData = null;
 			frappe.call({
 				method: "sarathi_owner.api.owner_dashboard.clear_owner_cache",
 				callback: () => {
@@ -1298,13 +1282,18 @@ frappe.SarathiOwnerDashboard = class {
 	}
 
 	getFilters() {
+		const custVal = this.$el.find("#sod-filter-customer").val();
+		const custInputVal = this.$el.find("#sod-filter-customer-input").val();
+		const projVal = this.$el.find("#sod-filter-project").val();
+		const projInputVal = this.$el.find("#sod-filter-project-input").val();
+
 		return {
 			company: "",
 			date_range: this.$el.find("#sod-filter-date").val() || "all",
 			from_date: this.$el.find("#sod-filter-from-date").val() || "",
 			to_date: this.$el.find("#sod-filter-to-date").val() || "",
-			customer: this.$el.find("#sod-filter-customer").val() || "",
-			project: this.$el.find("#sod-filter-project").val() || this.selectedProject || "",
+			customer: custVal || (custInputVal ? custInputVal.trim() : ""),
+			project: projVal || this.selectedProject || (projInputVal ? projInputVal.trim() : ""),
 			status: this.$el.find("#sod-filter-status").val() || "",
 			search: "",
 			_ts: Date.now(),
@@ -1341,19 +1330,41 @@ frappe.SarathiOwnerDashboard = class {
      DATA REFRESH: Full reload vs. Smooth Live Updating
   ------------------------------------------------------------- */
 	setLiveStatus(ok) {
-		this.$el
-			.find("#sod-live-status-text")
-			.text(
-				ok ? `Updated ${new Date().toLocaleTimeString()}` : "Refresh failed · values may be outdated"
-			);
-		if (!ok)
-			this.$content.html(
-				'<div class="sod-empty" role="alert">Live data could not be loaded. Click Refresh to retry.</div>'
-			);
+		if (ok) {
+			this.lastSuccessfulRefresh = new Date();
+			this.lastFailedRefresh = null;
+			const timeStr = this.lastSuccessfulRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+			this.$el.find("#sod-live-status-text").text(`Last updated: ${timeStr}`);
+			this.$content.find(".sui-stale-banner").remove();
+		} else {
+			this.lastFailedRefresh = new Date();
+			if (this.activeData && Object.keys(this.activeData).length && this.lastSuccessfulRefresh) {
+				const timeStr = this.lastSuccessfulRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+				this.$el.find("#sod-live-status-text").text(`Refresh failed · Showing data from ${timeStr}`);
+				if (!this.$content.find(".sui-stale-banner").length) {
+					this.$content.prepend(`
+						<div class="sui-stale-banner" role="alert" style="margin-bottom:16px;">
+							<p style="margin:0;">Refresh failed. Showing data from last successful update (${timeStr}).</p>
+							<button type="button" class="sui-action" data-action="refresh" style="margin-left:auto;">Retry</button>
+						</div>
+					`);
+				}
+			} else {
+				this.$el.find("#sod-live-status-text").text("Data unavailable");
+				this.$content.html(
+					'<div class="sod-empty" role="alert"><p>Live data could not be loaded. Please check your connection and try again.</p><button type="button" class="sui-action" data-action="refresh" style="margin-top:12px;">Retry</button></div>'
+				);
+			}
+		}
 	}
 
 	refreshCurrentPage() {
+        Object.values(this.chartResizeDisposers || {}).forEach(dispose => dispose());
+        this.chartResizeDisposers = {};
 		this.chartInstances = {};
+
+		const formattedTime = this.lastSuccessfulRefresh ? this.lastSuccessfulRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : null;
+		this.$el.find("#sod-live-status-text").text(formattedTime ? `Refreshing… (Last updated: ${formattedTime})` : "Refreshing…");
 
 		this.$content.html(`
       <div class="sod-loading">
@@ -1411,6 +1422,9 @@ frappe.SarathiOwnerDashboard = class {
 		const config = this.pagesConfig[this.currentPage] || this.pagesConfig[0];
 		const pageKey = config[3] || "home";
 
+		const formattedTime = this.lastSuccessfulRefresh ? this.lastSuccessfulRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : null;
+		this.$el.find("#sod-live-status-text").text(formattedTime ? `Refreshing… (Last updated: ${formattedTime})` : "Refreshing…");
+
 		if (pageKey === "home") {
 			frappe.call({
 				method: "sarathi_owner.api.owner_dashboard.get_owner_summary",
@@ -1454,6 +1468,8 @@ frappe.SarathiOwnerDashboard = class {
      RENDERER: Page 0 (Owner Home)
   ------------------------------------------------------------- */
 	renderOwnerHome(data) {
+        Object.values(this.chartResizeDisposers || {}).forEach(dispose => dispose());
+        this.chartResizeDisposers = {};
 		const cards = data.cards || [];
 		const pipelines = data.pipelines || [];
 		const alerts = data.action_alerts || [];
@@ -1463,9 +1479,27 @@ frappe.SarathiOwnerDashboard = class {
 
 		let html = "";
 
-		// 1. Strategic Manufacturing Pipeline Section (Matrix Comparison Table Format - Steps 1–8)
+		// 1. KPI Cards (Executive Metrics)
+		html += '<div class="sod-grid sod-cards" id="sod-kpi-cards-grid">';
+		cards.forEach((c) => {
+            const card = frappe.sarathiUI.kpi({ label: c.label, value: c.value, description: c.desc || "ERPNext records" });
+            card.classList.add("sod-card");
+            card.querySelector(".sui-kpi-label").classList.add("sod-label");
+            card.querySelector(".sui-kpi-value").classList.add("sod-kpi-val");
+            if (c.action) {
+                // Existing bindEvents delegation owns the action; do not attach a second listener.
+                card.dataset.action = c.action;
+                card.setAttribute("role", "button"); card.tabIndex = 0;
+                card.setAttribute("aria-label", c.label + ". View records");
+            }
+            html += card.outerHTML;
+        });
+		html += "</div>";
+
+		// 2. Strategic Manufacturing Pipeline Section (Matrix Comparison Table Format - Steps 1–8)
+		// Placed above Financial Health & Net Margin Run-Rate section
 		html += `
-      <section class="sod-panel sod-pipeline-sheet-section">
+      <section class="sod-panel sod-pipeline-sheet-section" style="margin-top: 17px;">
         <div class="sod-panel-head">
           <div>
             <h2>Strategic Manufacturing Pipeline · Active Projects</h2>
@@ -1478,24 +1512,6 @@ frappe.SarathiOwnerDashboard = class {
         ${this.renderStrategicPipelineSheet(pipelines)}
       </section>
     `;
-
-		// 2. KPI Cards (Executive Metrics below Pipeline)
-		html += '<div class="sod-grid sod-cards" id="sod-kpi-cards-grid" style="margin-top: 17px;">';
-		cards.forEach((c) => {
-			html += `
-        <div class="sod-card ${c.color}" data-action="${frappe.utils.escape_html(
-				c.action || ""
-			)}" role="button" tabindex="0" title="Click to drill down">
-          <div class="sod-label"><span class="sod-metric-icon">${this.workspaceIcon(
-				c.label
-			)}</span>${frappe.utils.escape_html(c.label)}</div>
-          <strong class="sod-kpi-val">${frappe.utils.escape_html(c.value)}</strong>
-          <small>${frappe.utils.escape_html(c.desc || "ERPNext records")}</small>
-          <span class="sod-card-arrow">↗</span>
-        </div>
-      `;
-		});
-		html += "</div>";
 
 		// 2. Interactive Charts Grid (Frappe Charts)
 		html += `
@@ -1728,7 +1744,7 @@ frappe.SarathiOwnerDashboard = class {
       <div class="sod-panel">
         <div class="sod-panel-head">
           <div>
-            <h2>Real-Time Business Events <span class="sod-live-status-pill"><span class="sod-pulse-dot"></span> LIVE</span></h2>
+            <h2>Recent Business Events <span class="sod-live-status-pill"><span class="sod-pulse-dot"></span> ERPNext records</span></h2>
             <p>Curated stream of Sales, Manufacturing, Invoicing, and Stock movements</p>
           </div>
           <div>
@@ -1818,11 +1834,14 @@ frappe.SarathiOwnerDashboard = class {
 	renderFrappeChart(selector, options) {
 		const $target = this.$content.find(selector);
 		if (!$target.length) return null;
+        this.chartResizeDisposers?.[selector]?.();
 		$target.empty();
 
 		try {
 			if (window.frappe && frappe.Chart) {
 				const chart = new frappe.Chart($target[0], {
+                    animate: false,
+                    disableEntryAnimation: true,
 					data: options.data || { labels: [], datasets: [] },
 					type: options.type || "bar",
 					height: options.height || 220,
@@ -1834,7 +1853,10 @@ frappe.SarathiOwnerDashboard = class {
 						formatTooltipY: (d) => (typeof d === "number" ? "₹" + d.toLocaleString("en-IN") : d),
 					},
 				});
-				this.chartInstances[selector] = chart;
+				this.chartResizeDisposers ||= {};
+                this.chartResizeDisposers[selector]?.();
+                this.chartResizeDisposers[selector] = frappe.sarathiUI.observeChart($target[0], chart);
+                this.chartInstances[selector] = chart;
 				return chart;
 			}
 		} catch (e) {
@@ -2050,11 +2072,25 @@ frappe.SarathiOwnerDashboard = class {
 			},
 			error: (err) => {
 				if (request !== self.reportRequest || pageIndex !== self.currentPage) return;
-				self.$content.find("#sod-report-table-area").html(`
-          <div class="sod-empty" style="color:#e03131;">
-            Failed to run report: ${frappe.utils.escape_html(err.message || "Execution Error")}
-          </div>
-        `);
+				if (self.activeReportData && self.activeReportData.columns && self.activeReportData.columns.length) {
+					if (!self.$content.find(".sui-stale-banner").length) {
+						self.$content.find("#sod-report-table-area").prepend(`
+							<div class="sui-stale-banner" role="alert" style="margin-bottom:12px;">
+								<p style="margin:0;">Report refresh failed. Showing previously retrieved data.</p>
+								<button type="button" class="sui-action" id="sod-btn-retry-report" style="margin-left:auto;">Retry</button>
+							</div>
+						`);
+						self.$content.find("#sod-btn-retry-report").on("click", () => self.executeLiveReport(self.currentReportName, true));
+					}
+				} else {
+					self.$content.find("#sod-report-table-area").html(`
+						<div class="sod-empty" role="alert" style="color:#b91c1c;">
+							<p style="margin:0 0 10px;">Unable to execute report query. Please verify your permissions and try again.</p>
+							<button type="button" class="sui-action" id="sod-btn-retry-report">Retry</button>
+						</div>
+					`);
+					self.$content.find("#sod-btn-retry-report").on("click", () => self.executeLiveReport(self.currentReportName, true));
+				}
 			},
 		});
 	}
@@ -4949,12 +4985,14 @@ frappe.SarathiOwnerDashboard = class {
 	}
 
 	show() {
+		this.visible = true;
 		window.scrollTo(0, 0);
 
 		if (typeof localStorage !== "undefined") {
 			try {
 				localStorage.removeItem("_page:sarathiownertower");
 				localStorage.removeItem("page:sarathiownertower");
+				localStorage.removeItem("route:sarathiownertower");
 			} catch (e) {
 				// Local storage might be restricted in certain browser contexts
 			}
@@ -4965,6 +5003,20 @@ frappe.SarathiOwnerDashboard = class {
 			$(".sod-wrapper").not(this.root).remove();
 			$(".sod-footer").remove();
 			$(".sod-wrapper ~ .sod-wrapper").remove();
+		}
+
+		// Clear cached dataset to ensure fresh reload
+		this.activeData = null;
+
+		// Sync with route or URL tab parameter if present
+		const urlParams = new URLSearchParams(window.location.search);
+		const tabParam = urlParams.get("tab");
+		if (tabParam) {
+			const targetIdx = this.pagesConfig.findIndex((p) => p[3] === tabParam);
+			if (targetIdx >= 0 && targetIdx !== this.currentPage) {
+				this.selectPage(targetIdx);
+				return;
+			}
 		}
 
 		this.refreshFilterDropdownsOnly();
@@ -4980,6 +5032,10 @@ frappe.SarathiOwnerDashboard = class {
 	}
 
 	hide() {
+        Object.values(this.chartResizeDisposers || {}).forEach(dispose => dispose());
+        this.chartResizeDisposers = {};
+		this.visible = false;
+		this.pageRequest = (this.pageRequest || 0) + 1;
 		if (this.refreshTimer) {
 			clearInterval(this.refreshTimer);
 			this.refreshTimer = null;

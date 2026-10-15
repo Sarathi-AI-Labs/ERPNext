@@ -109,7 +109,7 @@ class TestModuleCatalog(unittest.TestCase):
 				"first_name": "Catalog Test",
 				"user_type": "System User",
 				"send_welcome_email": 0,
-				"roles": [{"role": "Stock User"}],
+				"roles": [{"role": "Stock User"}, {"role": "Manufacturing Manager"}],
 			}
 		).insert()
 		frappe.set_user(user.name)

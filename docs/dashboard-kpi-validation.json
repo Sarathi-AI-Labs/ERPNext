@@ -1,0 +1,1980 @@
+{
+  "versions": {
+    "frappe": "16.31.0",
+    "erpnext": "16.33.0"
+  },
+  "captured_at": "2026-10-13 16:53:25.564025",
+  "scope": {
+    "company_alias": "C1",
+    "company_fingerprint": "5e337d9cdb9410ed",
+    "currency": "INR",
+    "from_date": "2026-04-01",
+    "as_of": "2026-10-13",
+    "actor": "Administrator (audit only)"
+  },
+  "checks": [
+    {
+      "id": "invoice_net_vs_sales_register",
+      "kpi_ids": [
+        "FIN-001",
+        "SALES-001",
+        "SALES-002",
+        "SALES-003"
+      ],
+      "source": "Sales Invoice.base_net_total versus Sales Register.net_total",
+      "expected": 17699999.5,
+      "actual": 17699999.5,
+      "difference": 0.0,
+      "records": 2,
+      "status": "verified",
+      "limitation": "External net invoiced sales, not P&L total income. No submitted return or foreign-currency fixture exists on this site."
+    },
+    {
+      "id": "pnl_income_vs_gl",
+      "kpi_ids": [
+        "FIN-002"
+      ],
+      "source": "Profit and Loss Statement income summary versus eligible Income GL credit-debit",
+      "expected": 17699999.5,
+      "actual": 17699999.5,
+      "difference": 0.0,
+      "records": 73,
+      "status": "verified",
+      "limitation": ""
+    },
+    {
+      "id": "pnl_expense_vs_gl",
+      "kpi_ids": [
+        "FIN-003"
+      ],
+      "source": "Profit and Loss Statement expense summary versus eligible Expense GL debit-credit",
+      "expected": -31995000.5,
+      "actual": -31995000.5,
+      "difference": 0.0,
+      "records": 73,
+      "status": "verified",
+      "limitation": ""
+    },
+    {
+      "id": "pnl_profit_vs_gl",
+      "kpi_ids": [
+        "FIN-004",
+        "FIN-005"
+      ],
+      "source": "Profit and Loss Statement net profit versus eligible income-expense",
+      "expected": 49695000.0,
+      "actual": 49695000.0,
+      "difference": 0.0,
+      "records": 73,
+      "status": "verified",
+      "limitation": "Default finance book, non-consolidated company currency; alternative books/dimensions and fiscal-year boundaries not exercised."
+    },
+    {
+      "id": "ar_current_snapshot",
+      "kpi_ids": [
+        "AR-001"
+      ],
+      "source": "Accounts Receivable invoice-voucher outstanding versus matching current invoice headers",
+      "expected": 4200000.5,
+      "actual": 4200000.5,
+      "difference": 0.0,
+      "records": 2,
+      "status": "verified",
+      "limitation": "Invoice-voucher subset at current audit date only. Historical allocations, advances and Journal Entry balances are not reconciled by this comparison."
+    },
+    {
+      "id": "ar_net_vs_payment_ledger",
+      "kpi_ids": [
+        "AR-001"
+      ],
+      "source": "Accounts Receivable all voucher balances versus current eligible Payment Ledger Entry amounts",
+      "expected": -3559999.5,
+      "actual": -3559999.5,
+      "difference": 0.0,
+      "records": 8,
+      "status": "verified",
+      "limitation": "Current base-currency all-party balance only. Historical delinking/reallocation and party/finance-book filters require separate report fixtures."
+    },
+    {
+      "id": "ap_current_snapshot",
+      "kpi_ids": [
+        "AP-001"
+      ],
+      "source": "Accounts Payable invoice-voucher outstanding versus matching current invoice headers",
+      "expected": 638793.0,
+      "actual": 638793.0,
+      "difference": 0.0,
+      "records": 8,
+      "status": "verified",
+      "limitation": "Invoice-voucher subset at current audit date only. Historical allocations, advances and Journal Entry balances are not reconciled by this comparison."
+    },
+    {
+      "id": "ap_net_vs_payment_ledger",
+      "kpi_ids": [
+        "AP-001"
+      ],
+      "source": "Accounts Payable all voucher balances versus current eligible Payment Ledger Entry amounts",
+      "expected": 638793.0,
+      "actual": 638793.0,
+      "difference": 0.0,
+      "records": 8,
+      "status": "verified",
+      "limitation": "Current base-currency all-party balance only. Historical delinking/reallocation and party/finance-book filters require separate report fixtures."
+    },
+    {
+      "id": "stock_value_current_vs_report",
+      "kpi_ids": [
+        "INV-001"
+      ],
+      "source": "Current Bin.stock_value versus native Stock Balance.bal_val at audit date",
+      "expected": 32536350.0,
+      "actual": 32536350.0,
+      "difference": 0.0,
+      "records": 14,
+      "status": "verified",
+      "limitation": "Current snapshot only, no stock-closing/repost/foreign-company or historical valuation fixture. A difference must be investigated, never replaced with purchase-price valuation."
+    },
+    {
+      "id": "stock_item_warehouse_balances",
+      "kpi_ids": [
+        "INV-001",
+        "INV-002"
+      ],
+      "source": "Current Bin quantity/value versus native Stock Balance by exact item and warehouse",
+      "expected": 0.0,
+      "actual": 0.0,
+      "difference": 0.0,
+      "records": 14,
+      "status": "verified",
+      "limitation": "Counts mismatched item/warehouse pairs; missing zero-balance rows treated as zero."
+    },
+    {
+      "id": "work_order_qty_vs_report",
+      "kpi_ids": [
+        "MFG-001",
+        "MFG-002"
+      ],
+      "source": "Submitted Work Order quantity versus corresponding Work Order Summary rows",
+      "expected": 233.0,
+      "actual": 233.0,
+      "difference": 0.0,
+      "records": 6,
+      "status": "verified",
+      "limitation": "Source-to-report total check only: quantities must be split by item/UOM in dashboard output, never expose this cross-item audit checksum as a KPI."
+    },
+    {
+      "id": "work_order_produced_vs_report",
+      "kpi_ids": [
+        "MFG-002"
+      ],
+      "source": "Submitted Work Order produced_qty versus corresponding Work Order Summary rows",
+      "expected": 130.0,
+      "actual": 130.0,
+      "difference": 0.0,
+      "records": 6,
+      "status": "verified",
+      "limitation": "Same exact submitted IDs and creation-date cohort; group dashboard quantities by item/UOM."
+    }
+  ],
+  "observed_invoice_basis": {
+    "submitted_invoices": 2,
+    "returns": 0,
+    "invoice_currencies": [
+      "INR"
+    ],
+    "partially_outstanding_current_invoices": 2,
+    "base_net_total": 17699999.5,
+    "base_grand_total": 17699999.5
+  },
+  "pnl_net_margin_pct": 280.7627197955571,
+  "ar_report_total": -3559999.5,
+  "ar_voucher_rows": 6,
+  "ap_report_total": 638793.0,
+  "ap_voucher_rows": 8,
+  "production_groups": [
+    {
+      "group_alias": "item_group_1",
+      "uom": "Nos",
+      "planned": 68.0,
+      "produced": 17.0,
+      "work_orders": 2,
+      "achievement_pct": 25.0
+    },
+    {
+      "group_alias": "item_group_2",
+      "uom": "Nos",
+      "planned": 135.0,
+      "produced": 85.0,
+      "work_orders": 2,
+      "achievement_pct": 62.96296296296296
+    },
+    {
+      "group_alias": "item_group_3",
+      "uom": "Nos",
+      "planned": 20.0,
+      "produced": 18.0,
+      "work_orders": 1,
+      "achievement_pct": 90.0
+    },
+    {
+      "group_alias": "item_group_4",
+      "uom": "Nos",
+      "planned": 10.0,
+      "produced": 10.0,
+      "work_orders": 1,
+      "achievement_pct": 100.0
+    }
+  ],
+  "work_order_status_counts": {
+    "Not Started": 4,
+    "Completed": 2
+  },
+  "job_cards": {
+    "records": 15,
+    "submitted": 0,
+    "statuses": {
+      "Open": 15
+    },
+    "remaining_sum_audit_only": 313.0
+  },
+  "configuration_gaps": {
+    "Work Order Operation": 0,
+    "Job Card Time Log": 0,
+    "Stock Reservation Entry": 0,
+    "Downtime Entry": 0,
+    "Subcontracting Order": 0,
+    "Subcontracting Receipt": 0,
+    "Workflow": 0,
+    "Workflow Action": 0,
+    "ToDo": 0,
+    "Shift Type": null,
+    "Issue": 0
+  },
+  "not_exercised": [
+    "native submitted credit note",
+    "partial-payment allocation history",
+    "foreign invoice/account currencies",
+    "reservation allocation",
+    "cancel/amend controller lifecycle",
+    "live machine telemetry",
+    "assigned operator jobs",
+    "multi-item scalar production KPI (prohibited)"
+  ],
+  "source_metadata": {
+    "Account": {
+      "exists": true,
+      "records": 829,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "account_type": {
+          "type": "Select",
+          "options": "\nAccumulated Depreciation\nAsset Received But Not Billed\nBank\nCash\nChargeable\nCapital Work in Progress\nCost of Goods Sold\nCurrent Asset\nCurrent Liability\nDepreciation\nDirect Expense\nDirect Income\nEquity\nExpense Account\nExpenses Included In Asset Valuation\nExpenses Included In Valuation\nFixed Asset\nIncome Account\nIndirect Expense\nIndirect Income\nLiability\nPayable\nReceivable\nRound Off\nRound Off for Opening\nStock\nStock Adjustment\nStock Received But Not Billed\nService Received But Not Billed\nTax\nTemporary"
+        },
+        "is_group": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "root_type": {
+          "type": "Select",
+          "options": "\nAsset\nLiability\nIncome\nExpense\nEquity"
+        }
+      }
+    },
+    "BOM": {
+      "exists": true,
+      "records": 6,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "is_active": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Bin": {
+      "exists": true,
+      "records": 14,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "actual_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "indented_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "ordered_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "planned_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "projected_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "reserved_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "reserved_qty_for_production": {
+          "type": "Float",
+          "options": null
+        },
+        "reserved_qty_for_production_plan": {
+          "type": "Float",
+          "options": null
+        },
+        "reserved_qty_for_sub_contract": {
+          "type": "Float",
+          "options": null
+        },
+        "reserved_stock": {
+          "type": "Float",
+          "options": null
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "stock_value": {
+          "type": "Float",
+          "options": null
+        },
+        "valuation_rate": {
+          "type": "Float",
+          "options": null
+        },
+        "warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        }
+      }
+    },
+    "Budget": {
+      "exists": true,
+      "records": 1,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "account": {
+          "type": "Link",
+          "options": "Account"
+        },
+        "budget_against": {
+          "type": "Select",
+          "options": "\nCost Center\nProject"
+        },
+        "budget_amount": {
+          "type": "Currency",
+          "options": null
+        },
+        "budget_end_date": {
+          "type": "Date",
+          "options": null
+        },
+        "budget_start_date": {
+          "type": "Date",
+          "options": null
+        },
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "cost_center": {
+          "type": "Link",
+          "options": "Cost Center"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "from_fiscal_year": {
+          "type": "Link",
+          "options": "Fiscal Year"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "to_fiscal_year": {
+          "type": "Link",
+          "options": "Fiscal Year"
+        }
+      }
+    },
+    "Budget Distribution": {
+      "exists": true,
+      "records": 12,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "amount": {
+          "type": "Currency",
+          "options": null
+        },
+        "end_date": {
+          "type": "Date",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "percent": {
+          "type": "Percent",
+          "options": null
+        },
+        "start_date": {
+          "type": "Date",
+          "options": null
+        }
+      }
+    },
+    "Customer": {
+      "exists": true,
+      "records": 10,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Downtime Entry": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "downtime": {
+          "type": "Float",
+          "options": null
+        },
+        "from_time": {
+          "type": "Datetime",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "stop_reason": {
+          "type": "Select",
+          "options": "\nExcessive machine set up time\nUnplanned machine maintenance\nOn-machine press checks\nMachine operator errors\nMachine malfunction\nElectricity down\nOther"
+        },
+        "to_time": {
+          "type": "Datetime",
+          "options": null
+        },
+        "workstation": {
+          "type": "Link",
+          "options": "Workstation"
+        }
+      }
+    },
+    "GL Entry": {
+      "exists": true,
+      "records": 89,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "account": {
+          "type": "Link",
+          "options": "Account"
+        },
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "cost_center": {
+          "type": "Link",
+          "options": "Cost Center"
+        },
+        "credit": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "debit": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "finance_book": {
+          "type": "Link",
+          "options": "Finance Book"
+        },
+        "is_cancelled": {
+          "type": "Check",
+          "options": null
+        },
+        "is_opening": {
+          "type": "Select",
+          "options": "No\nYes"
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "voucher_type": {
+          "type": "Link",
+          "options": "DocType"
+        }
+      }
+    },
+    "Issue": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "status": {
+          "type": "Select",
+          "options": "Open\nReplied\nOn Hold\nResolved\nClosed"
+        }
+      }
+    },
+    "Item": {
+      "exists": true,
+      "records": 13,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        }
+      }
+    },
+    "Item Reorder": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        },
+        "warehouse_group": {
+          "type": "Link",
+          "options": "Warehouse"
+        },
+        "warehouse_reorder_level": {
+          "type": "Float",
+          "options": null
+        },
+        "warehouse_reorder_qty": {
+          "type": "Float",
+          "options": null
+        }
+      }
+    },
+    "Job Card": {
+      "exists": true,
+      "records": 15,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "expected_end_date": {
+          "type": "Datetime",
+          "options": null
+        },
+        "for_job_card": {
+          "type": "Link",
+          "options": "Job Card"
+        },
+        "for_quantity": {
+          "type": "Float",
+          "options": null
+        },
+        "is_corrective_job_card": {
+          "type": "Check",
+          "options": null
+        },
+        "is_paused": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "operation_id": {
+          "type": "Data",
+          "options": null
+        },
+        "process_loss_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "quality_inspection": {
+          "type": "Link",
+          "options": "Quality Inspection"
+        },
+        "remarks": {
+          "type": "Small Text",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "Open\nWork In Progress\nPartially Transferred\nMaterial Transferred\nOn Hold\nSubmitted\nCancelled\nCompleted"
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "total_completed_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "total_time_in_mins": {
+          "type": "Float",
+          "options": null
+        },
+        "work_order": {
+          "type": "Link",
+          "options": "Work Order"
+        },
+        "workstation": {
+          "type": "Link",
+          "options": "Workstation"
+        }
+      }
+    },
+    "Job Card Time Log": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "completed_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "employee": {
+          "type": "Link",
+          "options": "Employee"
+        },
+        "from_time": {
+          "type": "Datetime",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "time_in_mins": {
+          "type": "Float",
+          "options": null
+        },
+        "to_time": {
+          "type": "Datetime",
+          "options": null
+        }
+      }
+    },
+    "Operation": {
+      "exists": true,
+      "records": 6,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Payment Entry": {
+      "exists": true,
+      "records": 6,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "party": {
+          "type": "Dynamic Link",
+          "options": "party_type"
+        },
+        "party_type": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "payment_type": {
+          "type": "Select",
+          "options": "Receive\nPay\nInternal Transfer"
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        }
+      }
+    },
+    "Payment Entry Reference": {
+      "exists": true,
+      "records": 6,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "allocated_amount": {
+          "type": "Currency",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "reference_doctype": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "reference_name": {
+          "type": "Dynamic Link",
+          "options": "reference_doctype"
+        }
+      }
+    },
+    "Payment Ledger Entry": {
+      "exists": true,
+      "records": 22,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "account": {
+          "type": "Link",
+          "options": "Account"
+        },
+        "account_currency": {
+          "type": "Link",
+          "options": "Currency"
+        },
+        "account_type": {
+          "type": "Select",
+          "options": "Receivable\nPayable"
+        },
+        "against_voucher_no": {
+          "type": "Dynamic Link",
+          "options": "against_voucher_type"
+        },
+        "against_voucher_type": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "amount": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "amount_in_account_currency": {
+          "type": "Currency",
+          "options": "account_currency"
+        },
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "delinked": {
+          "type": "Check",
+          "options": null
+        },
+        "due_date": {
+          "type": "Date",
+          "options": null
+        },
+        "party": {
+          "type": "Dynamic Link",
+          "options": "party_type"
+        },
+        "party_type": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        },
+        "voucher_no": {
+          "type": "Dynamic Link",
+          "options": "voucher_type"
+        },
+        "voucher_type": {
+          "type": "Link",
+          "options": "DocType"
+        }
+      }
+    },
+    "Project": {
+      "exists": true,
+      "records": 10,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "customer": {
+          "type": "Link",
+          "options": "Customer"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "expected_end_date": {
+          "type": "Date",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "percent_complete": {
+          "type": "Percent",
+          "options": null
+        },
+        "percent_complete_method": {
+          "type": "Select",
+          "options": "Manual\nTask Completion\nTask Progress\nTask Weight"
+        },
+        "status": {
+          "type": "Select",
+          "options": "Open\nOn hold\nCompleted\nCancelled"
+        }
+      }
+    },
+    "Purchase Invoice": {
+      "exists": true,
+      "records": 8,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "due_date": {
+          "type": "Date",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Purchase Order": {
+      "exists": true,
+      "records": 8,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "\nDraft\nOn Hold\nTo Receive and Bill\nTo Bill\nTo Receive\nCompleted\nCancelled\nClosed\nDelivered"
+        }
+      }
+    },
+    "Purchase Order Item": {
+      "exists": true,
+      "records": 8,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "base_net_amount": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "billed_amt": {
+          "type": "Currency",
+          "options": "currency"
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "qty": {
+          "type": "Float",
+          "options": null
+        },
+        "received_qty": {
+          "type": "Float",
+          "options": null
+        }
+      }
+    },
+    "Quality Inspection": {
+      "exists": true,
+      "records": 4,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "reference_name": {
+          "type": "Dynamic Link",
+          "options": "reference_type"
+        },
+        "reference_type": {
+          "type": "Select",
+          "options": "\nPurchase Receipt\nPurchase Invoice\nSubcontracting Receipt\nDelivery Note\nSales Invoice\nStock Entry\nJob Card"
+        },
+        "report_date": {
+          "type": "Date",
+          "options": null
+        },
+        "sample_size": {
+          "type": "Float",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "\nAccepted\nRejected\nCancelled"
+        }
+      }
+    },
+    "Routing": {
+      "exists": true,
+      "records": 3,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Sales Invoice": {
+      "exists": true,
+      "records": 2,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "base_grand_total": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "base_net_total": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "conversion_rate": {
+          "type": "Float",
+          "options": null
+        },
+        "currency": {
+          "type": "Link",
+          "options": "Currency"
+        },
+        "customer": {
+          "type": "Link",
+          "options": "Customer"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "due_date": {
+          "type": "Date",
+          "options": null
+        },
+        "is_internal_customer": {
+          "type": "Check",
+          "options": null
+        },
+        "is_return": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "represents_company": {
+          "type": "Link",
+          "options": "Company"
+        }
+      }
+    },
+    "Sales Invoice Item": {
+      "exists": true,
+      "records": 2,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "base_net_amount": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "income_account": {
+          "type": "Link",
+          "options": "Account"
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        }
+      }
+    },
+    "Sales Order": {
+      "exists": true,
+      "records": 8,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "customer": {
+          "type": "Link",
+          "options": "Customer"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "status": {
+          "type": "Select",
+          "options": "\nDraft\nOn Hold\nTo Pay\nTo Deliver and Bill\nTo Bill\nTo Deliver\nCompleted\nCancelled\nClosed"
+        },
+        "transaction_date": {
+          "type": "Date",
+          "options": null
+        }
+      }
+    },
+    "Sales Order Item": {
+      "exists": true,
+      "records": 8,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "base_net_amount": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "base_net_rate": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "conversion_factor": {
+          "type": "Float",
+          "options": null
+        },
+        "delivered_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "delivery_date": {
+          "type": "Date",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "qty": {
+          "type": "Float",
+          "options": null
+        },
+        "returned_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        }
+      }
+    },
+    "Stock Entry": {
+      "exists": true,
+      "records": 5,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "is_return": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        },
+        "posting_time": {
+          "type": "Time",
+          "options": null
+        },
+        "purpose": {
+          "type": "Select",
+          "options": "Material Issue\nMaterial Receipt\nMaterial Transfer\nMaterial Transfer for Manufacture\nMaterial Consumption for Manufacture\nManufacture\nRepack\nSend to Subcontractor\nDisassemble\nReceive from Customer\nReturn Raw Material to Customer\nSubcontracting Delivery\nSubcontracting Return"
+        },
+        "work_order": {
+          "type": "Link",
+          "options": "Work Order"
+        }
+      }
+    },
+    "Stock Entry Detail": {
+      "exists": true,
+      "records": 8,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "is_finished_item": {
+          "type": "Check",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "s_warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "t_warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        },
+        "transfer_qty": {
+          "type": "Float",
+          "options": null
+        }
+      }
+    },
+    "Stock Ledger Entry": {
+      "exists": true,
+      "records": 26,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "actual_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "is_cancelled": {
+          "type": "Check",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        },
+        "posting_time": {
+          "type": "Time",
+          "options": null
+        },
+        "qty_after_transaction": {
+          "type": "Float",
+          "options": null
+        },
+        "stock_value": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "stock_value_difference": {
+          "type": "Currency",
+          "options": "Company:company:default_currency"
+        },
+        "voucher_detail_no": {
+          "type": "Data",
+          "options": null
+        },
+        "voucher_no": {
+          "type": "Dynamic Link",
+          "options": "voucher_type"
+        },
+        "warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        }
+      }
+    },
+    "Stock Reservation Entry": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "consumed_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "delivered_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "reserved_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "transferred_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "voucher_detail_no": {
+          "type": "Data",
+          "options": null
+        },
+        "voucher_no": {
+          "type": "Dynamic Link",
+          "options": "voucher_type"
+        },
+        "voucher_type": {
+          "type": "Select",
+          "options": "\nSales Order\nWork Order\nSubcontracting Inward Order\nProduction Plan\nSubcontracting Order"
+        },
+        "warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        }
+      }
+    },
+    "Subcontracting Order": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "Draft\nOpen\nPartially Received\nCompleted\nMaterial Transferred\nPartial Material Transferred\nCancelled\nClosed"
+        },
+        "supplier": {
+          "type": "Link",
+          "options": "Supplier"
+        },
+        "supplier_warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        }
+      }
+    },
+    "Subcontracting Order Item": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "expected_delivery_date": {
+          "type": "Date",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "qty": {
+          "type": "Float",
+          "options": null
+        },
+        "received_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "returned_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "schedule_date": {
+          "type": "Date",
+          "options": null
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        }
+      }
+    },
+    "Subcontracting Order Supplied Item": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "consumed_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "returned_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "rm_item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "total_supplied_qty": {
+          "type": "Float",
+          "options": null
+        }
+      }
+    },
+    "Subcontracting Receipt": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "is_return": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "posting_date": {
+          "type": "Date",
+          "options": null
+        }
+      }
+    },
+    "Subcontracting Receipt Item": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "qty": {
+          "type": "Float",
+          "options": null
+        },
+        "rejected_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "subcontracting_order": {
+          "type": "Link",
+          "options": "Subcontracting Order"
+        }
+      }
+    },
+    "Supplier": {
+      "exists": true,
+      "records": 5,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Task": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "progress": {
+          "type": "Percent",
+          "options": null
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "status": {
+          "type": "Select",
+          "options": "Open\nWorking\nPending Review\nOverdue\nTemplate\nCompleted\nCancelled"
+        },
+        "task_weight": {
+          "type": "Float",
+          "options": null
+        }
+      }
+    },
+    "ToDo": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "allocated_to": {
+          "type": "Link",
+          "options": "User"
+        },
+        "reference_name": {
+          "type": "Dynamic Link",
+          "options": "reference_type"
+        },
+        "reference_type": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "status": {
+          "type": "Select",
+          "options": "Open\nClosed\nCancelled"
+        }
+      }
+    },
+    "User Permission": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "allow": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "applicable_for": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "for_value": {
+          "type": "Dynamic Link",
+          "options": "allow"
+        },
+        "user": {
+          "type": "Link",
+          "options": "User"
+        }
+      }
+    },
+    "Warehouse": {
+      "exists": true,
+      "records": 46,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "is_group": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Work Order": {
+      "exists": true,
+      "records": 7,
+      "is_submittable": true,
+      "missing_fields": [],
+      "fields": {
+        "company": {
+          "type": "Link",
+          "options": "Company"
+        },
+        "docstatus": {
+          "type": "System",
+          "options": null
+        },
+        "fg_warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "planned_end_date": {
+          "type": "Datetime",
+          "options": null
+        },
+        "planned_start_date": {
+          "type": "Datetime",
+          "options": null
+        },
+        "process_loss_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "produced_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "production_item": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "project": {
+          "type": "Link",
+          "options": "Project"
+        },
+        "qty": {
+          "type": "Float",
+          "options": null
+        },
+        "reserve_stock": {
+          "type": "Check",
+          "options": null
+        },
+        "sales_order": {
+          "type": "Link",
+          "options": "Sales Order"
+        },
+        "skip_transfer": {
+          "type": "Check",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "\nDraft\nSubmitted\nNot Started\nIn Process\nStock Reserved\nStock Partially Reserved\nCompleted\nStopped\nClosed\nCancelled"
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "wip_warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        }
+      }
+    },
+    "Work Order Item": {
+      "exists": true,
+      "records": 21,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "consumed_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "include_item_in_manufacturing": {
+          "type": "Check",
+          "options": null
+        },
+        "item_code": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "required_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "returned_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "source_warehouse": {
+          "type": "Link",
+          "options": "Warehouse"
+        },
+        "stock_reserved_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "stock_uom": {
+          "type": "Link",
+          "options": "UOM"
+        },
+        "transferred_qty": {
+          "type": "Float",
+          "options": null
+        }
+      }
+    },
+    "Work Order Operation": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "completed_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "finished_good": {
+          "type": "Link",
+          "options": "Item"
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "operation": {
+          "type": "Link",
+          "options": "Operation"
+        },
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "pending_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "process_loss_qty": {
+          "type": "Float",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "Pending\nWork in Progress\nCompleted"
+        }
+      }
+    },
+    "Workflow": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "document_type": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "is_active": {
+          "type": "Check",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    },
+    "Workflow Action": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "permitted_roles": {
+          "type": "Table MultiSelect",
+          "options": "Workflow Action Permitted Role"
+        },
+        "reference_doctype": {
+          "type": "Link",
+          "options": "DocType"
+        },
+        "reference_name": {
+          "type": "Dynamic Link",
+          "options": "reference_doctype"
+        },
+        "status": {
+          "type": "Select",
+          "options": "Open\nCompleted"
+        },
+        "user": {
+          "type": "Link",
+          "options": "User"
+        },
+        "workflow_state": {
+          "type": "Data",
+          "options": null
+        }
+      }
+    },
+    "Workflow Action Permitted Role": {
+      "exists": true,
+      "records": 0,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "parent": {
+          "type": "System",
+          "options": null
+        },
+        "role": {
+          "type": "Link",
+          "options": "Role"
+        }
+      }
+    },
+    "Workstation": {
+      "exists": true,
+      "records": 6,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "modified": {
+          "type": "System",
+          "options": null
+        },
+        "name": {
+          "type": "System",
+          "options": null
+        },
+        "status": {
+          "type": "Select",
+          "options": "Production\nOff\nIdle\nProblem\nMaintenance\nSetup"
+        },
+        "working_hours": {
+          "type": "Table",
+          "options": "Workstation Working Hour"
+        }
+      }
+    },
+    "Workstation Type": {
+      "exists": true,
+      "records": 6,
+      "is_submittable": false,
+      "missing_fields": [],
+      "fields": {
+        "name": {
+          "type": "System",
+          "options": null
+        }
+      }
+    }
+  },
+  "installed_source_sha256": {
+    "erpnext.accounts.report.profit_and_loss_statement.profit_and_loss_statement": "0a5590d11da894b6ff735638cb5337fb6879ca6751e3adcfc94187298c4f3753",
+    "erpnext.accounts.report.sales_register.sales_register": "45d6e51bf53e11b86ab5a6c8b077dacebb609f0ef09bb5a4747b753969dc8369",
+    "erpnext.projects.doctype.project.project": "c28768762555b0da40a4571517e13ef61af7316c025f1bf69c327439639ec002",
+    "erpnext.manufacturing.doctype.work_order.work_order": "7916c33c69e858946efc8922befaab02187cc7a46f06a639306e59830686c287",
+    "erpnext.stock.doctype.stock_reservation_entry.stock_reservation_entry": "b03816ad879f9ff413999f51d63ca1804281931b4725e66d2f657d6b33e5198b"
+  }
+}

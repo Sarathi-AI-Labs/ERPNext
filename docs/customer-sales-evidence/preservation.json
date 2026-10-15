@@ -1,0 +1,8 @@
+{
+  "changed_existing_files": [
+    "sarathi_owner/sarathi_owner/api/homepage.py",
+    "sarathi_owner/sarathi_owner/public/css/sarathi_owner_homepage.css",
+    "sarathi_owner/sarathi_owner/public/js/sarathi_owner_homepage.js"
+  ],
+  "missing": []
+}

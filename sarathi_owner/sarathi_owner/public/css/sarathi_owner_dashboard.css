@@ -386,17 +386,9 @@
 	display: none !important;
 }
 
-/* Quick Desk Action Shortcuts Bar */
+/* Quick Desk Action Shortcuts Bar - Hidden per specification */
 .sod-shortcuts-bar {
-	background: #ffffff;
-	border-radius: 12px;
-	border: 1px solid var(--sod-line);
-	padding: 12px 18px;
-	margin-top: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	box-shadow: 0 2px 8px rgba(16, 30, 67, 0.04);
+	display: none !important;
 }
 
 .sod-shortcuts-label {
@@ -524,6 +516,30 @@
 	color: #465ecb;
 	font-weight: 800;
 	font-size: 11px;
+}
+
+.sod-btn-refresh-top {
+	background: #ffffff !important;
+	border: 1.5px solid #dce4f7 !important;
+	color: #4353ff !important;
+	padding: 6px 14px !important;
+	border-radius: 20px !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	box-shadow: 0 1px 4px rgba(16, 30, 67, 0.08) !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	transition: all 0.2s ease !important;
+}
+
+.sod-btn-refresh-top:hover {
+	background: #eef2ff !important;
+	border-color: #4353ff !important;
+	color: #2b39cc !important;
+	transform: translateY(-1px);
+	box-shadow: 0 3px 8px rgba(67, 83, 255, 0.18) !important;
 }
 
 /* Hero Banner */

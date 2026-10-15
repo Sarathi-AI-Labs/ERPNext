@@ -1,0 +1,792 @@
+{
+  "company": "SarathiAILabs",
+  "reference_at": "2026-10-14 11:06:44",
+  "review_days": 7,
+  "scopes": [
+    {
+      "label": "whole company",
+      "filters": {
+        "company": "SarathiAILabs",
+        "reference_at": "2026-10-14 11:06:44",
+        "project_page_length": 100,
+        "task_page_length": 100,
+        "health_delivery_page_length": 100,
+        "project_health": "",
+        "project_status": "",
+        "task_view": "Attention",
+        "delivery_view": "All open",
+        "project_start": 0,
+        "task_start": 0,
+        "health_delivery_start": 0,
+        "review_days": 7
+      },
+      "project_counts": {
+        "total": 10,
+        "active": 9,
+        "completed": 1,
+        "cancelled": 0,
+        "overdue": 1,
+        "due_soon": 0,
+        "held": 0,
+        "at_risk": 0,
+        "unknown": 0
+      },
+      "delivery_counts": {
+        "open_orders": 6,
+        "overdue_orders": 0,
+        "due_soon_orders": 0,
+        "held_orders": 0,
+        "partially_delivered_orders": 0,
+        "unknown_date_orders": 0
+      },
+      "task_records": 0,
+      "checks": [
+        {
+          "check": "Project total",
+          "expected": 10,
+          "actual": 10,
+          "passed": true
+        },
+        {
+          "check": "Project active",
+          "expected": 9,
+          "actual": 9,
+          "passed": true
+        },
+        {
+          "check": "Project completed",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "check": "Project cancelled",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project overdue",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "check": "Project due_soon",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project held",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0009",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0009",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0001",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0001",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0002",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0002",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0003",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0003",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0004",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0004",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0005",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0005",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0006",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0006",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0007",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0007",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0008",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0008",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0010",
+          "expected": 100.0,
+          "actual": 100.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0010",
+          "expected": "Manual",
+          "actual": "Manual",
+          "passed": true
+        },
+        {
+          "check": "Visible overdue Tasks",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery open_orders",
+          "expected": 6,
+          "actual": 6,
+          "passed": true
+        },
+        {
+          "check": "Delivery overdue_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery due_soon_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery held_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery partially_delivered_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery unknown_date_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery line partition",
+          "expected": {
+            "Not overdue": 6
+          },
+          "actual": {
+            "Not overdue": 6
+          },
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7rpa6snc5d",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7rv670n330",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7sad6rg3ca",
+          "expected": 50.0,
+          "actual": 50.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7sfa5r1c8l",
+          "expected": 30.0,
+          "actual": 30.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7sq9h09b5u",
+          "expected": 20.0,
+          "actual": 20.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7t4c097s0n",
+          "expected": 38.0,
+          "actual": 38.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty AERO-MOUNT-01 / Nos",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty DIE-FIXTURE-01 / Nos",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty EV-BATTPACK-01 / Nos",
+          "expected": 68.0,
+          "actual": 68.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty EV-CHASSIS-01 / Nos",
+          "expected": 50.0,
+          "actual": 50.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty ROBOT-ARM-01 / Nos",
+          "expected": 20.0,
+          "actual": 20.0,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "selected Customer",
+      "filters": {
+        "company": "SarathiAILabs",
+        "reference_at": "2026-10-14 11:06:44",
+        "project_page_length": 100,
+        "task_page_length": 100,
+        "health_delivery_page_length": 100,
+        "customer": "ISRO Propulsion Complex Vendor",
+        "project_health": "",
+        "project_status": "",
+        "task_view": "Attention",
+        "delivery_view": "All open",
+        "project_start": 0,
+        "task_start": 0,
+        "health_delivery_start": 0,
+        "review_days": 7
+      },
+      "project_counts": {
+        "total": 1,
+        "active": 0,
+        "completed": 1,
+        "cancelled": 0,
+        "overdue": 0,
+        "due_soon": 0,
+        "held": 0,
+        "at_risk": 0,
+        "unknown": 0
+      },
+      "delivery_counts": {
+        "open_orders": 0,
+        "overdue_orders": 0,
+        "due_soon_orders": 0,
+        "held_orders": 0,
+        "partially_delivered_orders": 0,
+        "unknown_date_orders": 0
+      },
+      "task_records": 0,
+      "checks": [
+        {
+          "check": "Project total",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "check": "Project active",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project completed",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "check": "Project cancelled",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project overdue",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project due_soon",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project held",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0010",
+          "expected": 100.0,
+          "actual": 100.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0010",
+          "expected": "Manual",
+          "actual": "Manual",
+          "passed": true
+        },
+        {
+          "check": "Visible overdue Tasks",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery open_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery overdue_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery due_soon_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery held_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery partially_delivered_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery unknown_date_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery line partition",
+          "expected": {},
+          "actual": {},
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "zero-day review window",
+      "filters": {
+        "company": "SarathiAILabs",
+        "reference_at": "2026-10-14 11:06:44",
+        "project_page_length": 100,
+        "task_page_length": 100,
+        "health_delivery_page_length": 100,
+        "review_days": 0,
+        "project_health": "",
+        "project_status": "",
+        "task_view": "Attention",
+        "delivery_view": "All open",
+        "project_start": 0,
+        "task_start": 0,
+        "health_delivery_start": 0
+      },
+      "project_counts": {
+        "total": 10,
+        "active": 9,
+        "completed": 1,
+        "cancelled": 0,
+        "overdue": 1,
+        "due_soon": 0,
+        "held": 0,
+        "at_risk": 0,
+        "unknown": 0
+      },
+      "delivery_counts": {
+        "open_orders": 6,
+        "overdue_orders": 0,
+        "due_soon_orders": 0,
+        "held_orders": 0,
+        "partially_delivered_orders": 0,
+        "unknown_date_orders": 0
+      },
+      "task_records": 0,
+      "checks": [
+        {
+          "check": "Project total",
+          "expected": 10,
+          "actual": 10,
+          "passed": true
+        },
+        {
+          "check": "Project active",
+          "expected": 9,
+          "actual": 9,
+          "passed": true
+        },
+        {
+          "check": "Project completed",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "check": "Project cancelled",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project overdue",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "check": "Project due_soon",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Project held",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0009",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0009",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0001",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0001",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0002",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0002",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0003",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0003",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0004",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0004",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0005",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0005",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0006",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0006",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0007",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0007",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0008",
+          "expected": 0.0,
+          "actual": 0.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0008",
+          "expected": "Task Completion",
+          "actual": "Task Completion",
+          "passed": true
+        },
+        {
+          "check": "Stored progress PROJ-0010",
+          "expected": 100.0,
+          "actual": 100.0,
+          "passed": true
+        },
+        {
+          "check": "Stored method PROJ-0010",
+          "expected": "Manual",
+          "actual": "Manual",
+          "passed": true
+        },
+        {
+          "check": "Visible overdue Tasks",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery open_orders",
+          "expected": 6,
+          "actual": 6,
+          "passed": true
+        },
+        {
+          "check": "Delivery overdue_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery due_soon_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery held_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery partially_delivered_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery unknown_date_orders",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "check": "Delivery line partition",
+          "expected": {
+            "Not overdue": 6
+          },
+          "actual": {
+            "Not overdue": 6
+          },
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7rpa6snc5d",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7rv670n330",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7sad6rg3ca",
+          "expected": 50.0,
+          "actual": 50.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7sfa5r1c8l",
+          "expected": 30.0,
+          "actual": 30.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7sq9h09b5u",
+          "expected": 20.0,
+          "actual": 20.0,
+          "passed": true
+        },
+        {
+          "check": "Source line stock qty 7t4c097s0n",
+          "expected": 38.0,
+          "actual": 38.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty AERO-MOUNT-01 / Nos",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty DIE-FIXTURE-01 / Nos",
+          "expected": 10.0,
+          "actual": 10.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty EV-BATTPACK-01 / Nos",
+          "expected": 68.0,
+          "actual": 68.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty EV-CHASSIS-01 / Nos",
+          "expected": 50.0,
+          "actual": 50.0,
+          "passed": true
+        },
+        {
+          "check": "Item / UOM qty ROBOT-ARM-01 / Nos",
+          "expected": 20.0,
+          "actual": 20.0,
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "differences": [],
+  "passed": true
+}

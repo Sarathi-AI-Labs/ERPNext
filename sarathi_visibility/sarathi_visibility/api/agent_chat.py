@@ -10,21 +10,26 @@ import json
 
 import frappe
 
+from sarathi_visibility.api.access import authorized
+
 from ERPNext_Agent.core.state import AgentState
 from ERPNext_Agent.core.workflow import SarathiAgentGraph
-from ERPNext_Agent.tools.client import FrappeClient
 
 
 def _get_agent_state(session_id: str, user: str) -> AgentState:
 	"""Restore AgentState from Frappe Redis cache or initialize new state."""
-	cached = frappe.cache.hget("sarathi_agent_graph_state", session_id)
+	cached = frappe.cache.hget("sarathi_agent_graph_state", frappe.as_json([user, session_id]))
 	if cached:
 		try:
 			if isinstance(cached, str):
 				data = json.loads(cached)
 			else:
 				data = cached
+			if data.get("user") != user:
+				frappe.throw("This conversation is not available for your permissions.", frappe.PermissionError)
 			return AgentState.from_dict(data)
+		except frappe.PermissionError:
+			raise
 		except Exception as e:
 			frappe.log_error(f"Error restoring AgentState: {e}", "SarathiAgentGraph")
 	return AgentState(session_id=session_id, user=user)
@@ -33,14 +38,19 @@ def _get_agent_state(session_id: str, user: str) -> AgentState:
 def _persist_agent_state(session_id: str, state: AgentState):
 	"""Persist current AgentState to Frappe Redis cache."""
 	try:
-		frappe.cache.hset("sarathi_agent_graph_state", session_id, state.to_dict())
+		frappe.cache.hset("sarathi_agent_graph_state", frappe.as_json([frappe.session.user, session_id]), state.to_dict())
 	except Exception as e:
 		frappe.log_error(f"Error persisting AgentState: {e}", "SarathiAgentGraph")
 
 
 @frappe.whitelist(methods=["POST"])
+@authorized("production")
 def send_message(message, session_id=None, company=None, customer=None, project=None):
 	"""Conversational endpoint for the Sarathi Dashboard chatbot."""
+	if not isinstance(message, str) or not message.strip() or len(message) > 16000:
+		frappe.throw("Invalid conversation message.")
+	if session_id is not None and (not isinstance(session_id, str) or not session_id or len(session_id) > 140):
+		frappe.throw("Invalid conversation identifier.")
 	user = frappe.session.user
 	sid = session_id or user or "default_user"
 
@@ -62,7 +72,9 @@ def send_message(message, session_id=None, company=None, customer=None, project=
 		state.parameters["project"] = project
 
 	# Execute LangGraph State Machine
-	graph = SarathiAgentGraph(client=FrappeClient())
+	from sarathi_visibility.api.agent_client import DashboardAgentClient
+
+	graph = SarathiAgentGraph(client=DashboardAgentClient())
 	res_state = graph.invoke(state)
 
 	# Persist multi-turn conversation state
@@ -78,6 +90,7 @@ def send_message(message, session_id=None, company=None, customer=None, project=
 
 
 @frappe.whitelist(methods=["GET"])
+@authorized("production")
 def get_suggestions(company=None, customer=None, project=None):
 	"""Returns dynamic contextual prompt chips for the Sarathi dashboard."""
 	chips = [

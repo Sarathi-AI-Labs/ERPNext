@@ -1,89 +1,47 @@
-// Clear any stale cached page payload from older versions
-if (typeof localStorage !== "undefined") {
-	try {
-		localStorage.removeItem("_page:sarathiownertower");
-	} catch (e) {
-		// Local storage can be unavailable in restricted browser contexts.
-	}
-}
-
-frappe.pages["sarathiownertower"].on_page_load = function (wrapper) {
-	if (typeof localStorage !== "undefined") {
-		try {
-			localStorage.removeItem("_page:sarathiownertower");
-			localStorage.removeItem("page:sarathiownertower");
-		} catch (e) {
-			// Local storage can be unavailable in restricted browser contexts.
-		}
-	}
-	wrapper.disable_scroll_to_top = true;
-	if (wrapper.page) {
-		wrapper.page.disable_scroll_to_top = true;
-		wrapper.page.hide_sidebar = true;
-	}
-	frappe.app?.sidebar?.toggle?.(true);
-	frappe.app?.sidebar?.hide?.();
-	$(".layout-side-section, .desk-sidebar, .body-sidebar").addClass("hidden").hide();
-
-	frappe.require(
-		[
-			"/assets/sarathi_owner/css/sarathi_owner_dashboard.css",
-			"/assets/sarathi_owner/js/sarathi_owner_dashboard.js",
-		],
-		() => {
-			wrapper.disable_scroll_to_top = true;
-			if (wrapper.page) {
-				wrapper.page.disable_scroll_to_top = true;
-				wrapper.page.hide_sidebar = true;
-			}
-			frappe.app?.sidebar?.toggle?.(true);
-			frappe.app?.sidebar?.hide?.();
-			$(".layout-side-section, .desk-sidebar, .body-sidebar").addClass("hidden").hide();
-			if (!wrapper.sarathi_owner_dashboard) {
-				wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(wrapper);
-			} else {
-				wrapper.sarathi_owner_dashboard.show?.();
-			}
-		}
-	);
-};
-
-frappe.pages["sarathiownertower"].on_page_show = function (wrapper) {
-	if (typeof localStorage !== "undefined") {
-		try {
-			localStorage.removeItem("_page:sarathiownertower");
-			localStorage.removeItem("page:sarathiownertower");
-		} catch (e) {
-			// Local storage can be unavailable in restricted browser contexts.
-		}
-	}
-	if (wrapper.page) wrapper.page.hide_sidebar = true;
-	frappe.app?.sidebar?.toggle?.(true);
-	frappe.app?.sidebar?.hide?.();
-	$(".layout-side-section, .desk-sidebar, .body-sidebar").addClass("hidden").hide();
-
-	if (wrapper.sarathi_owner_dashboard) {
-		wrapper.sarathi_owner_dashboard.show?.();
-	} else {
-		frappe.require(
-			[
-				"/assets/sarathi_owner/css/sarathi_owner_dashboard.css",
-				"/assets/sarathi_owner/js/sarathi_owner_dashboard.js",
-			],
-			() => {
-				if (wrapper.page) wrapper.page.hide_sidebar = true;
-				frappe.app?.sidebar?.toggle?.(true);
-				frappe.app?.sidebar?.hide?.();
-				$(".layout-side-section, .desk-sidebar, .body-sidebar").addClass("hidden").hide();
-				if (!wrapper.sarathi_owner_dashboard) {
-					wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(wrapper);
-				}
-				wrapper.sarathi_owner_dashboard.show?.();
-			}
-		);
-	}
-};
-
-frappe.pages["sarathiownertower"].on_page_hide = function (wrapper) {
-	wrapper.sarathi_owner_dashboard?.hide?.();
-};
+// A shared promise prevents on_page_load/on_page_show from creating duplicate instances.
+(() => {
+ const route = "sarathiownertower";
+ const initialize = wrapper => {
+  if (wrapper.sarathiInitializing) return wrapper.sarathiInitializing;
+  const pending = (async () => {
+   await frappe.require("/assets/sarathi_visibility/js/sarathi_dashboard_runtime.js");
+   const runtime = frappe.sarathiDashboardRuntime;
+   runtime.evict();
+   await runtime.load([
+    "/assets/sarathi_visibility/css/sarathi_ui.css",
+    "/assets/sarathi_visibility/js/sarathi_ui.js",
+   ]);
+   await runtime.load([
+    "/assets/sarathi_visibility/css/sarathi_dashboard_assistant.css",
+    "/assets/sarathi_visibility/js/sarathi_dashboard_assistant.js",
+    "/assets/sarathi_owner/css/sarathi_owner_dashboard.css",
+    "/assets/sarathi_owner/js/sarathi_owner_dashboard.js",
+   ]);
+   await runtime.load([
+    "/assets/sarathi_owner/css/sarathi_owner_homepage.css",
+    "/assets/sarathi_owner/js/sarathi_owner_homepage.js",
+   ]);
+   if (frappe.get_route()[0] !== route) return;
+   wrapper.disable_scroll_to_top = true;
+   if (!wrapper.sarathi_owner_dashboard) wrapper.sarathi_owner_dashboard = new frappe.SarathiOwnerDashboard(wrapper);
+   wrapper.sarathi_owner_dashboard.sarathiRoute = route;
+   wrapper.sarathi_owner_dashboard.show();
+   wrapper.page.hide_sidebar = true;
+   wrapper.page.disable_scroll_to_top = true;
+   frappe.app?.sidebar?.toggle?.(true);
+   runtime.activate(wrapper.sarathi_owner_dashboard);
+  })();
+  wrapper.sarathiInitializing = pending;
+  pending.catch(error => {
+   console.error(error);
+   frappe.msgprint(__("Dashboard could not load. Please retry or check your connection."));
+  }).finally(() => { wrapper.sarathiInitializing = null; });
+  return pending;
+ };
+ frappe.pages[route].on_page_load = initialize;
+ frappe.pages[route].on_page_show = initialize;
+ frappe.pages[route].on_page_hide = wrapper => {
+  wrapper.sarathi_owner_dashboard?.hide();
+  frappe.sarathiDashboardRuntime?.deactivate(wrapper.sarathi_owner_dashboard);
+ };
+})();

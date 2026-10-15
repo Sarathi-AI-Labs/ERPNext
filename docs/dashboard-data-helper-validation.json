@@ -1,0 +1,143 @@
+{
+  "task": "DASH-006",
+  "date": "2026-10-13",
+  "versions": {
+    "frappe": "16.31.0",
+    "erpnext": "16.33.0"
+  },
+  "integration_tests": {
+    "total": 39,
+    "passed": 39,
+    "skipped": 0,
+    "includes_dash003_regressions": 19
+  },
+  "existing_production_regressions": {
+    "total": 15,
+    "passed": 14,
+    "skipped": 1,
+    "skip_reason": "Existing submitted production with a time log required"
+  },
+  "http": {
+    "checks": [
+      {
+        "check": "authorized list",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "check": "authorized detail",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "check": "permission-scoped count",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "check": "permission-scoped options",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "check": "forged document",
+        "status": 403,
+        "passed": true
+      },
+      {
+        "check": "unsupported SQL sort",
+        "status": 417,
+        "passed": true
+      },
+      {
+        "check": "unexpected fields",
+        "status": 417,
+        "passed": true
+      },
+      {
+        "check": "unsupported filters",
+        "status": 417,
+        "passed": true
+      },
+      {
+        "check": "guest direct access",
+        "status": 403,
+        "passed": true
+      },
+      {
+        "check": "write-style POST denied",
+        "status": 403,
+        "passed": true
+      }
+    ],
+    "temporary_user_permissions_and_session_removed": true
+  },
+  "browser": {
+    "routes": [
+      {
+        "route": "sarathiownertower",
+        "http_status": 200,
+        "data_received": true,
+        "shared_ui_loaded": true,
+        "filters_preserved": true,
+        "keyboard_drilldown_opened": true,
+        "production_tab_rendered": null,
+        "viewports": [
+          {
+            "width": 1440,
+            "page_scroll_width": 1440
+          },
+          {
+            "width": 390,
+            "page_scroll_width": 390
+          }
+        ]
+      },
+      {
+        "route": "sarathicontroltower",
+        "http_status": 200,
+        "data_received": true,
+        "shared_ui_loaded": true,
+        "filters_preserved": true,
+        "keyboard_drilldown_opened": true,
+        "production_tab_rendered": true,
+        "viewports": [
+          {
+            "width": 1440,
+            "page_scroll_width": 1440
+          },
+          {
+            "width": 390,
+            "page_scroll_width": 390
+          }
+        ]
+      }
+    ],
+    "javascript_errors": [],
+    "http_errors": [],
+    "temporary_session_revoked": true
+  },
+  "source_checks": {
+    "python_syntax": "passed",
+    "modified_file_whitespace": "passed",
+    "changed_pre_existing_files": [
+      "sarathi_visibility/sarathi_visibility/api/dashboard.py"
+    ],
+    "core_changed": false,
+    "unrelated_baseline_files_changed": false
+  },
+  "performance": {
+    "bounded_list_option_query_rows": 101,
+    "maximum_client_page_size": 100,
+    "record_checks_per_result_row": 0,
+    "large_dataset_benchmark": "not executed",
+    "vps_latency": "not measured"
+  },
+  "limits": [
+    "Shared masters Customer/Workstation are native-readable site records, not company-owned rows",
+    "No arbitrary grouped/financial/manufacturing aggregation",
+    "No full shop-floor assigned-list or transaction APIs",
+    "Legacy report loader still materializes its existing dataset",
+    "Native custom field permlevel permutations and large-data concurrency are not certified"
+  ]
+}

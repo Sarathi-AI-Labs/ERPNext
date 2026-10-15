@@ -1,0 +1,1380 @@
+{
+  "user": "Administrator",
+  "routes": [
+    {
+      "route": "sarathiownertower",
+      "viewports": [
+        {
+          "viewport": 360,
+          "page_scroll_width": 360,
+          "root_width": 346,
+          "root_scroll_width": 346,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-cyan",
+              "width": 137
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-blue",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-blue",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-amber",
+              "width": 136
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9336,
+          "height": 800
+        },
+        {
+          "viewport": 390,
+          "page_scroll_width": 390,
+          "root_width": 376,
+          "root_scroll_width": 376,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-blue",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-blue",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-amber",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-amber",
+              "width": 37
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9352,
+          "height": 844
+        },
+        {
+          "viewport": 480,
+          "page_scroll_width": 480,
+          "root_width": 466,
+          "root_scroll_width": 466,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-blue",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-amber",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-amber",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-wait-badge",
+              "width": 58
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9352,
+          "height": 900
+        },
+        {
+          "viewport": 767,
+          "page_scroll_width": 767,
+          "root_width": 753,
+          "root_scroll_width": 753,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-violet",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-indigo",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-indigo",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 59
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9389,
+          "height": 1000
+        },
+        {
+          "viewport": 768,
+          "page_scroll_width": 768,
+          "root_width": 754,
+          "root_scroll_width": 754,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-violet",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-indigo",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-indigo",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 59
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9389,
+          "height": 1000
+        },
+        {
+          "viewport": 1023,
+          "page_scroll_width": 1023,
+          "root_width": 1009,
+          "root_scroll_width": 1009,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-violet",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-indigo",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-indigo",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 59
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9378,
+          "height": 1000
+        },
+        {
+          "viewport": 1024,
+          "page_scroll_width": 1024,
+          "root_width": 1010,
+          "root_scroll_width": 1010,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-violet",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-indigo",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-indigo",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 59
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 42,
+          "charts": 23,
+          "text_length": 9728,
+          "height": 1000
+        },
+        {
+          "viewport": 1440,
+          "page_scroll_width": 1440,
+          "root_width": 1426,
+          "root_scroll_width": 1426,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-teal",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-green",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-green",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 112
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-status",
+              "width": 141
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 42,
+          "charts": 23,
+          "text_length": 9718,
+          "height": 1000
+        },
+        {
+          "viewport": 844,
+          "page_scroll_width": 844,
+          "root_width": 830,
+          "root_scroll_width": 830,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sod-matrix-table",
+              "width": 1431
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TR",
+              "cls": "",
+              "width": 1430
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-amber",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-num col-amber",
+              "width": 37
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-wait-badge",
+              "width": 58
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sod-matrix-th-title",
+              "width": 115
+            },
+            {
+              "tag": "TH",
+              "cls": "sod-matrix-th sod-matrix-col-step col-violet",
+              "width": 136
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-stripe",
+              "width": 135
+            },
+            {
+              "tag": "DIV",
+              "cls": "sod-matrix-th-inner",
+              "width": 115
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 28,
+          "charts": 23,
+          "text_length": 9368,
+          "height": 390
+        }
+      ],
+      "http_status": 200,
+      "data_received": true,
+      "views": [
+        "home",
+        "projects",
+        "project_detail",
+        "customers",
+        "sales_orders",
+        "manufacturing",
+        "stock_quality",
+        "invoicing",
+        "payments",
+        "financial_reports",
+        "accounts_setup",
+        "taxes",
+        "banking",
+        "budget",
+        "share_management",
+        "subscription",
+        "reports"
+      ],
+      "initial_data_keys": [
+        "accounts_flow",
+        "cards",
+        "capital_allocation",
+        "pipelines",
+        "output_trend",
+        "charts",
+        "action_alerts",
+        "live_activity",
+        "low_stock_items",
+        "active_projects",
+        "financial_snapshot",
+        "accounting_control_tower",
+        "industrial_summary"
+      ],
+      "onboarding_overlay_present": false,
+      "shared_ui_loaded": true,
+      "phone_kpi_columns": "352px",
+      "filters_expanded": true,
+      "filters_preserved": true,
+      "keyboard_drilldown_opened": true
+    },
+    {
+      "route": "sarathicontroltower",
+      "viewports": [
+        {
+          "viewport": 360,
+          "page_scroll_width": 360,
+          "root_width": 346,
+          "root_scroll_width": 346,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-purple",
+              "width": 366
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 342
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-blue",
+              "width": 119
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 95
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 92
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-azure",
+              "width": 132
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 108
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 800
+        },
+        {
+          "viewport": 390,
+          "page_scroll_width": 390,
+          "root_width": 376,
+          "root_scroll_width": 376,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-purple",
+              "width": 366
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-blue",
+              "width": 119
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 95
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 92
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-azure",
+              "width": 132
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 108
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 73
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 844
+        },
+        {
+          "viewport": 480,
+          "page_scroll_width": 480,
+          "root_width": 466,
+          "root_scroll_width": 466,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-blue",
+              "width": 119
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 95
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 92
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-azure",
+              "width": 132
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 108
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 73
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-teal",
+              "width": 145
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 121
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 900
+        },
+        {
+          "viewport": 767,
+          "page_scroll_width": 767,
+          "root_width": 753,
+          "root_scroll_width": 753,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-teal",
+              "width": 145
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 121
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 85
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-forest",
+              "width": 137
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 113
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 96
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-lime",
+              "width": 122
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 98
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 1000
+        },
+        {
+          "viewport": 768,
+          "page_scroll_width": 768,
+          "root_width": 754,
+          "root_scroll_width": 754,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-teal",
+              "width": 145
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 121
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 85
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-forest",
+              "width": 137
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 113
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 96
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-lime",
+              "width": 122
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 98
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 1000
+        },
+        {
+          "viewport": 1023,
+          "page_scroll_width": 1023,
+          "root_width": 1009,
+          "root_scroll_width": 1009,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-lime",
+              "width": 122
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 98
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 98
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-olive",
+              "width": 183
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 159
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 87
+            },
+            {
+              "tag": "TBODY",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-tr sd-tr-even",
+              "width": 1203
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 1000
+        },
+        {
+          "viewport": 1024,
+          "page_scroll_width": 1024,
+          "root_width": 1010,
+          "root_scroll_width": 1010,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-lime",
+              "width": 122
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 98
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 98
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-olive",
+              "width": 183
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 159
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 87
+            },
+            {
+              "tag": "TBODY",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-tr sd-tr-even",
+              "width": 1203
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 254,
+          "charts": 22,
+          "text_length": 13792,
+          "height": 1000
+        },
+        {
+          "viewport": 1440,
+          "page_scroll_width": 1440,
+          "root_width": 1426,
+          "root_scroll_width": 1426,
+          "outside_elements": [],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 254,
+          "charts": 22,
+          "text_length": 13792,
+          "height": 1000
+        },
+        {
+          "viewport": 844,
+          "page_scroll_width": 844,
+          "root_width": 830,
+          "root_scroll_width": 830,
+          "outside_elements": [
+            {
+              "tag": "TABLE",
+              "cls": "sd-color-table",
+              "width": 1203
+            },
+            {
+              "tag": "THEAD",
+              "cls": "",
+              "width": 1203
+            },
+            {
+              "tag": "TR",
+              "cls": "sd-color-table-header-row",
+              "width": 1203
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-forest",
+              "width": 137
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 113
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 96
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-lime",
+              "width": 122
+            },
+            {
+              "tag": "DIV",
+              "cls": "sd-pin-badge",
+              "width": 98
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-icon",
+              "width": 28
+            },
+            {
+              "tag": "SPAN",
+              "cls": "sd-pin-text",
+              "width": 98
+            },
+            {
+              "tag": "TH",
+              "cls": "sd-th-pin sd-th-olive",
+              "width": 183
+            }
+          ],
+          "small_control_examples": [],
+          "small_controls": 0,
+          "visible_controls": 248,
+          "charts": 22,
+          "text_length": 13472,
+          "height": 390
+        }
+      ],
+      "http_status": 200,
+      "data_received": true,
+      "views": [
+        "overview",
+        "sales",
+        "production",
+        "engineering",
+        "materials",
+        "procurement",
+        "quality",
+        "fulfillment",
+        "reports",
+        "integrations"
+      ],
+      "initial_data_keys": [
+        "accounting_summary",
+        "subcontracting_summary",
+        "project_health",
+        "pipeline_summary",
+        "tracking_setup",
+        "procurement_exceptions",
+        "procurement_exception_count",
+        "production_summary",
+        "live_activity",
+        "operation_balance",
+        "wip_stock",
+        "filters",
+        "companies",
+        "customers",
+        "projects",
+        "selected_project",
+        "kpis",
+        "charts",
+        "alerts",
+        "alert_count",
+        "generated_at",
+        "reports",
+        "can_create",
+        "restricted"
+      ],
+      "onboarding_overlay_present": false,
+      "shared_ui_loaded": true,
+      "phone_kpi_columns": "352px",
+      "filters_expanded": true,
+      "filters_preserved": true,
+      "keyboard_drilldown_opened": true,
+      "production_tab_rendered": true
+    }
+  ],
+  "javascript_errors": [],
+  "http_errors": [],
+  "blocked_mutations": [],
+  "standard_page_unmarked": true,
+  "audit_session_revoked": true
+}

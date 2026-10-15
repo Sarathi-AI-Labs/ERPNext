@@ -57,7 +57,6 @@ def _ensure_owner_page(page_name: str):
 		for role in (
 			"Sarathi Owner",
 			"System Manager",
-			"Manufacturing Manager",
 		):
 			if frappe.db.exists("Role", role):
 				page.append("roles", {"role": role})

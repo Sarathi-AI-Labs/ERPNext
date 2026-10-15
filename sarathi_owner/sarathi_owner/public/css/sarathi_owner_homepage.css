@@ -1,0 +1,130 @@
+.sod-wrapper[data-sarathi-ui] .sod-homepage { display:grid; gap:18px; }
+.sod-wrapper[data-sarathi-ui] .sod-homepage h2 { font-size:18px; font-weight:650; margin:0 0 12px; }
+.sod-wrapper[data-sarathi-ui] .sod-home-filters { margin:16px 12px; padding:16px; background:var(--sui-surface); border:1px solid var(--sui-border); border-radius:12px; }
+.sod-wrapper[data-sarathi-ui] .sod-home-filters summary { min-height:44px; cursor:pointer; font-size:16px; font-weight:600; }
+.sod-wrapper[data-sarathi-ui] .sod-home-filters summary:focus-visible { outline:3px solid var(--sui-accent); outline-offset:3px; }
+.sod-wrapper[data-sarathi-ui] .sod-home-option-searches { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.sod-wrapper[data-sarathi-ui] .sod-home-option-search { display:grid; gap:6px; min-width:0; }
+.sod-wrapper[data-sarathi-ui] .sod-home-option-search input { width:100%; border:1px solid var(--sui-border); border-radius:6px; padding:8px; background:var(--sui-surface); color:var(--sui-ink); }
+.sod-wrapper[data-sarathi-ui] .sod-home-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.sod-wrapper[data-sarathi-ui] :is(.sod-home-panel,.sod-home-availability) { min-width:0; padding:18px; background:var(--sui-surface); border:1px solid var(--sui-border); border-radius:12px; }
+.sod-wrapper[data-sarathi-ui] :is(.sod-home-date-basis,.sod-home-notice) { font-size:13px; line-height:1.6; }
+.sod-wrapper[data-sarathi-ui] .sod-home-notice { margin-top:10px; }
+.sod-wrapper[data-sarathi-ui] [hidden] { display:none !important; }
+@media(max-width:1023px) { .sod-wrapper[data-sarathi-ui] .sod-home-grid { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:767px) { .sod-wrapper[data-sarathi-ui] .sod-home-option-searches { grid-template-columns:minmax(0,1fr); } .sod-wrapper[data-sarathi-ui] .sod-home-filters { margin:12px 0; } }
+
+.sod-wrapper[data-sarathi-ui] .sod-home-intro { padding:16px 12px 0; }
+.sod-wrapper[data-sarathi-ui] .sod-home-search-panel { margin-top:14px; }
+
+.sod-wrapper[data-sarathi-ui] .sod-finance-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:16px 0; }
+@media(max-width:1023px) { .sod-wrapper[data-sarathi-ui] .sod-finance-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:479px) { .sod-wrapper[data-sarathi-ui] .sod-finance-kpis { grid-template-columns:minmax(0,1fr); } }
+
+.sod-wrapper[data-sarathi-ui] .sod-finance-kpis .sui-kpi { container-type:inline-size; justify-content:flex-start; }
+.sod-wrapper[data-sarathi-ui] .sod-finance-kpis .sui-kpi-value { font-size:clamp(1.05rem,7.5cqi,1.5rem); font-variant-numeric:tabular-nums; }
+.sod-wrapper[data-sarathi-ui] .sod-finance-kpis .sui-action > span:empty { display:none; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-analytics { display:grid; gap:24px; }
+.sod-wrapper[data-sarathi-ui] :is(.sod-sales-revenue,.sod-sales-backlog) { min-width:0; display:grid; gap:12px; }
+.sod-wrapper[data-sarathi-ui] .sod-customer-ranking { margin:0; padding-left:24px; display:grid; gap:12px; }
+.sod-wrapper[data-sarathi-ui] .sod-customer-ranking li { overflow-wrap:anywhere; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-bar-track { height:8px; margin:6px 0; background:var(--sui-border); border-radius:4px; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-bar { height:100%; background:var(--sui-accent); border-radius:4px; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-analytics summary { min-height:44px; padding:10px 0; cursor:pointer; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-analytics h3 { font-size:17px; margin:8px 0; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-analytics .sui-chart { min-width:0; overflow:hidden; }
+.sod-wrapper[data-sarathi-ui] .sod-sales-analytics .sui-record-list { min-width:0; max-width:100%; }
+@media(min-width:768px) {
+ .sod-wrapper[data-sarathi-ui] .sod-sales-backlog > .sui-record-list .sui-table { min-width:1200px; }
+ .sod-wrapper[data-sarathi-ui] .sod-sales-backlog > .sui-record-list td:is(:first-child,:nth-child(9)) { white-space:nowrap; }
+}
+.sod-wrapper[data-sarathi-ui] .sod-project-health { display:grid; gap:24px; }
+.sod-wrapper[data-sarathi-ui] :is(.sod-project-portfolio,.sod-project-tasks,.sod-project-deliveries) { display:grid; gap:12px; min-width:0; }
+.sod-wrapper[data-sarathi-ui] .sod-project-health :is(.sui-record-list,.sui-table-region) { min-width:0; max-width:100%; }
+.sod-wrapper[data-sarathi-ui] .sod-project-progress { display:grid; gap:6px; min-width:140px; }
+.sod-wrapper[data-sarathi-ui] .sod-project-health h3 { font-size:17px; margin:8px 0; }
+.sod-wrapper[data-sarathi-ui] .sod-project-health summary { min-height:44px; padding:10px 0; cursor:pointer; }
+@media(min-width:768px) { .sod-wrapper[data-sarathi-ui] .sod-project-health .sui-table { min-width:1100px; } }
+@media(max-width:767px) { .sod-wrapper[data-sarathi-ui] .sod-project-progress { min-width:0; } }
+
+.sod-wrapper[data-sarathi-ui] .sod-mfg-inventory { display:grid; gap:24px; }
+.sod-wrapper[data-sarathi-ui] :is(.sod-mfg-summary,.sod-inv-summary,.sod-shortage-summary) { display:grid; gap:12px; min-width:0; }
+.sod-wrapper[data-sarathi-ui] .sod-mfg-inventory h3 { font-size:17px; margin:8px 0; }
+.sod-wrapper[data-sarathi-ui] .sod-mfg-inventory summary { min-height:44px; padding:10px 0; cursor:pointer; }
+.sod-wrapper[data-sarathi-ui] .sod-mfg-inventory :is(.sui-record-list,.sui-table-region) { min-width:0; max-width:100%; }
+.sod-wrapper[data-sarathi-ui] .sod-uom-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:8px 0; }
+.sod-wrapper[data-sarathi-ui] .sod-uom-card { padding:14px; background:var(--sui-surface-2, #f8f9fa); border:1px solid var(--sui-border); border-radius:8px; display:grid; gap:6px; min-width:0; }
+.sod-wrapper[data-sarathi-ui] .sod-uom-card-title { font-weight:600; font-size:15px; }
+.sod-wrapper[data-sarathi-ui] .sod-uom-card-stat { font-size:13px; color:var(--sui-ink-muted); }
+@media(min-width:768px) {
+ .sod-wrapper[data-sarathi-ui] .sod-mfg-inventory .sui-table { min-width:1050px; }
+}
+
+/* DASH-013: Executive Risks, Approvals & Drill-downs */
+.sod-wrapper[data-sarathi-ui] .sod-executive-risks { display:grid; gap:20px; }
+.sod-wrapper[data-sarathi-ui] :is(.sod-risk-exceptions, .sod-approvals-queue) { display:grid; gap:12px; min-width:0; }
+.sod-wrapper[data-sarathi-ui] .sod-executive-risks h3 { font-size:17px; margin:8px 0; }
+.sod-wrapper[data-sarathi-ui] .sod-executive-risks summary { min-height:44px; padding:10px 0; cursor:pointer; }
+.sod-wrapper[data-sarathi-ui] .sod-executive-risks :is(.sui-record-list, .sui-table-region) { min-width:0; max-width:100%; }
+
+.sod-wrapper[data-sarathi-ui] .sod-severity-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 9px; border-radius:9999px;
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
+  line-height:1.2; white-space:nowrap;
+}
+.sod-wrapper[data-sarathi-ui] .sod-severity-badge::before {
+  content: attr(data-icon);
+  margin-right: 2px;
+}
+.sod-wrapper[data-sarathi-ui] .sod-severity-badge[data-severity="Critical"] {
+  background:#fef2f2; color:#991b1b; border:1px solid #f87171;
+}
+.sod-wrapper[data-sarathi-ui] .sod-severity-badge[data-severity="High"] {
+  background:#fff7ed; color:#9a3412; border:1px solid #fdba74;
+}
+.sod-wrapper[data-sarathi-ui] .sod-severity-badge[data-severity="Medium"] {
+  background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;
+}
+.sod-wrapper[data-sarathi-ui] .sod-severity-badge[data-severity="Informational"] {
+  background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd;
+}
+
+.sod-wrapper[data-sarathi-ui] .sod-risk-item-cell {
+  display:grid; gap:4px; min-width:0;
+}
+.sod-wrapper[data-sarathi-ui] .sod-risk-item-title {
+  font-weight:600; font-size:14px; color:var(--sui-ink);
+}
+.sod-wrapper[data-sarathi-ui] .sod-risk-item-desc {
+  font-size:12.5px; color:var(--sui-ink-muted, #64748b); line-height:1.45;
+}
+.sod-wrapper[data-sarathi-ui] .sod-risk-meta-cell {
+  font-size:13px; font-variant-numeric:tabular-nums;
+}
+.sod-wrapper[data-sarathi-ui] .sod-risk-overdue-tag {
+  color:#dc2626; font-weight:600;
+}
+.sod-wrapper[data-sarathi-ui] .sod-risk-due-soon-tag {
+  color:#b45309; font-weight:600;
+}
+
+@media(min-width:768px) {
+  .sod-wrapper[data-sarathi-ui] .sod-executive-risks .sui-table { min-width:1150px; }
+}
+
+/* ==========================================================================
+   DASH-028: Responsive Breakpoints for Owner Homepage
+   ========================================================================== */
+@media(min-width:1440px) {
+  .sod-wrapper[data-sarathi-ui] .sod-homepage { max-width: 1600px; margin: 0 auto; }
+}
+
+@media(max-width:374px) {
+  .sod-wrapper[data-sarathi-ui] .sod-home-filters { margin: 8px 0; padding: 12px 10px; }
+  .sod-wrapper[data-sarathi-ui] :is(.sod-home-panel, .sod-home-availability) { padding: 14px 10px; }
+  .sod-wrapper[data-sarathi-ui] .sod-finance-kpis { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .sod-wrapper[data-sarathi-ui] .sod-finance-kpis .sui-kpi { padding: 12px 10px; }
+  .sod-wrapper[data-sarathi-ui] .sod-uom-cards { grid-template-columns: minmax(0, 1fr); }
+}
+

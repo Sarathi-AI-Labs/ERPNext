@@ -21,7 +21,13 @@ add_to_apps_screen = [
 		"title": "Production Manager",
 		"logo": "/assets/sarathi_visibility/icons/production_manager.png",
 		"route": "/desk/sarathicontroltower",
-	}
+	},
+	{
+		"name": "Shop-Floor Workboard",
+		"title": "Shop-Floor Workboard",
+		"logo": "/assets/sarathi_visibility/icons/production_manager.png",
+		"route": "/desk/sarathishopfloor",
+	},
 ]
 
 

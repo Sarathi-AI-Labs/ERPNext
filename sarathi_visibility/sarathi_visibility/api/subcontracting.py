@@ -6,6 +6,8 @@ from collections import defaultdict
 from typing import Any
 
 import frappe
+
+from sarathi_visibility.api.access import (authorized, require_capability, scoped_rows, scoped_value, scoped_count, validate_filters)
 from frappe.utils import (
 	date_diff,
 	flt,
@@ -37,7 +39,8 @@ def _parse_filters(filters: Any = None) -> dict[str, str]:
 
 def get_subcontracting_card_summary(filters: Any = None) -> dict[str, Any]:
 	"""Lightweight summary metrics specifically for the main dashboard card."""
-	f = _parse_filters(filters)
+	require_capability("production")
+	f = _parse_filters(validate_filters(filters))
 	if not _check_read("Subcontracting Order"):
 		return {
 			"active_subcontracts": 0,
@@ -48,9 +51,9 @@ def get_subcontracting_card_summary(filters: Any = None) -> dict[str, Any]:
 
 	company_currency = "INR"
 	if f["company"]:
-		company_currency = frappe.db.get_value("Company", f["company"], "default_currency") or "INR"
+		company_currency = scoped_value("Company", f["company"], "default_currency") or "INR"
 	else:
-		first_comp = frappe.db.get_value("Company", {}, "default_currency")
+		first_comp = scoped_value("Company", {}, "default_currency")
 		if first_comp:
 			company_currency = first_comp
 
@@ -77,7 +80,7 @@ def get_subcontracting_card_summary(filters: Any = None) -> dict[str, Any]:
 		else:
 			order_filters["transaction_date"] = ["<=", f["to_date"]]
 
-	orders = frappe.get_all(
+	orders = scoped_rows(
 		"Subcontracting Order",
 		fields=["name", "status", "docstatus", "total", "schedule_date"],
 		filters=order_filters,
@@ -101,7 +104,7 @@ def get_subcontracting_card_summary(filters: Any = None) -> dict[str, Any]:
 	material_val = 0.0
 	submitted_order_names = [o.name for o in orders if o.docstatus == 1 and o.status != "Cancelled"]
 	if submitted_order_names and _check_read("Subcontracting Order Supplied Item"):
-		supplied_items = frappe.get_all(
+		supplied_items = scoped_rows(
 			"Subcontracting Order Supplied Item",
 			fields=[
 				"parent",
@@ -130,6 +133,7 @@ def get_subcontracting_card_summary(filters: Any = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 	"""Detailed data payload for the Subcontracting Detail View."""
 	f = _parse_filters(filters)
@@ -140,15 +144,15 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 	currency = "INR"
 	if f["company"]:
-		currency = frappe.db.get_value("Company", f["company"], "default_currency") or "INR"
+		currency = scoped_value("Company", f["company"], "default_currency") or "INR"
 	else:
-		default_comp = frappe.db.get_value("Company", {}, "default_currency")
+		default_comp = scoped_value("Company", {}, "default_currency")
 		if default_comp:
 			currency = default_comp
 
 	suppliers_list = []
 	if _check_read("Supplier"):
-		suppliers_list = frappe.get_all(
+		suppliers_list = scoped_rows(
 			"Supplier",
 			fields=["name", "supplier_name"],
 			filters={"disabled": 0},
@@ -159,7 +163,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 	projects_list = []
 	if _check_read("Project"):
 		proj_filter = {"company": f["company"]} if f["company"] else {}
-		projects_list = frappe.get_all(
+		projects_list = scoped_rows(
 			"Project",
 			fields=["name", "project_name"],
 			filters=proj_filter,
@@ -225,7 +229,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 		"creation",
 		"modified",
 	]
-	orders = frappe.get_all(
+	orders = scoped_rows(
 		"Subcontracting Order",
 		fields=sco_fields,
 		filters=order_filter,
@@ -237,7 +241,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 	# Fetch SCO Items
 	sco_items_map = defaultdict(list)
 	if order_names and _check_read("Subcontracting Order Item"):
-		items = frappe.get_all(
+		items = scoped_rows(
 			"Subcontracting Order Item",
 			fields=[
 				"parent",
@@ -263,7 +267,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 	supplied_items_map = defaultdict(list)
 	all_supplied_items = []
 	if order_names and _check_read("Subcontracting Order Supplied Item"):
-		supplied = frappe.get_all(
+		supplied = scoped_rows(
 			"Subcontracting Order Supplied Item",
 			fields=[
 				"parent",
@@ -305,7 +309,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 	receipts = []
 	if has_scr:
-		receipts = frappe.get_all(
+		receipts = scoped_rows(
 			"Subcontracting Receipt",
 			fields=[
 				"name",
@@ -329,7 +333,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 	scr_items_map = defaultdict(list)
 	scr_names = [r.name for r in receipts]
 	if scr_names and _check_read("Subcontracting Receipt Item"):
-		r_items = frappe.get_all(
+		r_items = scoped_rows(
 			"Subcontracting Receipt Item",
 			fields=[
 				"parent",
@@ -473,7 +477,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 			po_filters["supplier"] = f["supplier"]
 		if f["project"]:
 			po_filters["project"] = f["project"]
-		po_count = frappe.db.count("Purchase Order", filters=po_filters)
+		po_count = scoped_count("Purchase Order", filters=po_filters)
 
 	# 2. Stock Transfer
 	stock_transfer_count = 0
@@ -486,7 +490,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 			se_filt["company"] = f["company"]
 		if f["project"]:
 			se_filt["project"] = f["project"]
-		stock_transfer_count = frappe.db.count("Stock Entry", filters=se_filt)
+		stock_transfer_count = scoped_count("Stock Entry", filters=se_filt)
 	if stock_transfer_count == 0:
 		stock_transfer_count = sum(
 			1
@@ -526,7 +530,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 		qi_filt = {"docstatus": 1}
 		if f["company"]:
 			qi_filt["company"] = f["company"]
-		qi_count = frappe.db.count("Quality Inspection", filters=qi_filt)
+		qi_count = scoped_count("Quality Inspection", filters=qi_filt)
 
 	# 6. Subcontract Receipt
 	receipt_count = sum(1 for r in receipts if r.docstatus == 1)
@@ -541,7 +545,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 			pi_filt["supplier"] = f["supplier"]
 		if f["project"]:
 			pi_filt["project"] = f["project"]
-		billing_count = frappe.db.count("Purchase Invoice", filters=pi_filt)
+		billing_count = scoped_count("Purchase Invoice", filters=pi_filt)
 	if billing_count == 0:
 		billing_count = completed_subcontracts
 
@@ -801,7 +805,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 		if rem <= 0 and sent <= 0:
 			continue
 
-		item_name = frappe.db.get_value("Item", s.rm_item_code, "item_name") or s.rm_item_code
+		item_name = scoped_value("Item", s.rm_item_code, "item_name") or s.rm_item_code
 		rate = flt(s.rate)
 		m_val = rem * rate
 
@@ -948,7 +952,7 @@ def get_subcontracting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 	# 3. Stock Entry transfers
 	if has_se:
-		se_entries = frappe.get_all(
+		se_entries = scoped_rows(
 			"Stock Entry",
 			fields=[
 				"name",

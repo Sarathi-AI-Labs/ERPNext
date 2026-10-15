@@ -1,0 +1,93 @@
+{
+  "viewports": [
+    {
+      "width": 360,
+      "page_scroll_width": 360,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 390,
+      "page_scroll_width": 390,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 480,
+      "page_scroll_width": 480,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 767,
+      "page_scroll_width": 767,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 768,
+      "page_scroll_width": 768,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 1023,
+      "page_scroll_width": 1023,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 1024,
+      "page_scroll_width": 1024,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 1440,
+      "page_scroll_width": 1440,
+      "records": 74,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 844,
+      "page_scroll_width": 844,
+      "records": 74,
+      "dashboard_container_overflow": []
+    }
+  ],
+  "javascript_errors": [],
+  "http_errors": [],
+  "summary_requests": 0,
+  "multi_company_requires_selection": true,
+  "company_scope_matches": true,
+  "mfg_inv_available": true,
+  "mfg_counts": {
+    "total": 7,
+    "active": 4,
+    "completed": 2,
+    "overdue": 0,
+    "due_soon": 0,
+    "draft": 1,
+    "cancelled": 0,
+    "stopped": 0
+  },
+  "inv_metrics": {
+    "valuation": 32536350,
+    "actual_qty": 44478,
+    "items": 10
+  },
+  "risk_counts": {
+    "low_stock_items": 0,
+    "negative_projected_items": 5,
+    "zero_stock_with_demand": 5,
+    "unconfigured_items": 14
+  },
+  "shortage_counts": {
+    "shortage_work_orders": 0,
+    "shortage_items": 0,
+    "total_shortage_lines": 0
+  },
+  "wo_rows": 7,
+  "stock_rows": 14,
+  "audit_session_revoked": true
+}

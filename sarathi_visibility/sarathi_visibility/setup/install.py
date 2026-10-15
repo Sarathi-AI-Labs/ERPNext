@@ -5,9 +5,17 @@ import frappe
 
 def before_install():
 	ensure_role("Sarathi Super Admin")
+	ensure_dashboard_roles()
+
+
+def ensure_dashboard_roles():
+	"""Capability labels only; grant no native record rights or user assignments."""
+	for role in ("Sarathi Owner", "Sarathi Supervisor", "Sarathi Operator"):
+		ensure_role(role)
 
 
 def after_install():
+	ensure_dashboard_roles()
 	from sarathi_visibility.setup.dashboard import install
 
 	install()
@@ -20,6 +28,7 @@ def after_install():
 
 
 def after_migrate():
+	ensure_dashboard_roles()
 	from sarathi_visibility.setup.dashboard import install
 
 	install()
@@ -128,6 +137,39 @@ def ensure_desk_icons():
 			{
 				"label": "Production Manager",
 				"link": "/desk/sarathicontroltower",
+				"link_type": "External",
+				"icon_type": "App",
+				"app": "sarathi_visibility",
+				"logo_url": "/assets/sarathi_visibility/icons/production_manager.png",
+				"hidden": 0,
+				"standard": 1,
+				"restrict_removal": 1,
+			},
+		)
+
+	# 3. Shop-Floor Workboard icon
+	if not frappe.db.exists("Desktop Icon", "Shop-Floor Workboard"):
+		doc = frappe.new_doc("Desktop Icon")
+		doc.name = "Shop-Floor Workboard"
+		doc.label = "Shop-Floor Workboard"
+		doc.link = "/desk/sarathishopfloor"
+		doc.link_type = "External"
+		doc.icon_type = "App"
+		doc.app = "sarathi_visibility"
+		doc.logo_url = "/assets/sarathi_visibility/icons/production_manager.png"
+		doc.hidden = 0
+		doc.standard = 1
+		doc.restrict_removal = 1
+		doc.flags.do_not_update_json = True
+		doc.flags.in_import = True
+		doc.save(ignore_permissions=True)
+	else:
+		frappe.db.set_value(
+			"Desktop Icon",
+			"Shop-Floor Workboard",
+			{
+				"label": "Shop-Floor Workboard",
+				"link": "/desk/sarathishopfloor",
 				"link_type": "External",
 				"icon_type": "App",
 				"app": "sarathi_visibility",
@@ -257,7 +299,7 @@ def _ensure_control_tower_page(page_name: str):
 		page.title = "Sarathi Industrial Dashboard"
 		page.set("roles", [])
 		for role in (
-			"Manufacturing User",
+			"Sarathi Owner",
 			"Manufacturing Manager",
 			"System Manager",
 			"Sarathi Super Admin",

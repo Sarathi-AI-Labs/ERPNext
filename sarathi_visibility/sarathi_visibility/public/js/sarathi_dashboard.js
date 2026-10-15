@@ -51,6 +51,7 @@ frappe.SarathiIndustrialDashboard = class {
 			hide_sidebar: true,
 		});
 		this.root = $(frappe.render_template("sarathicontroltower", {})).appendTo(this.page.main)[0];
+		this.sharedUI = frappe.sarathiUI.enhance(this.root);
 		this.filters = {};
 		this.dateFilters = { from_date: "", to_date: "" };
 		this.sequence = 0;
@@ -166,6 +167,10 @@ frappe.SarathiIndustrialDashboard = class {
 			}
 			if (e.target.dataset.tableSearch) {
 				this.filterTable(e.target.dataset.tableSearch);
+			}
+			if (e.target.dataset.exceptionSearch !== undefined) {
+				this.exceptionSearch = e.target.value.trim().toLowerCase();
+				this.filterExceptionTable();
 			}
 		});
 		this.root.addEventListener("keydown", (e) => {
@@ -289,7 +294,7 @@ frappe.SarathiIndustrialDashboard = class {
 			: "—";
 	}
 	empty(text = "No linked records for this selection.") {
-		return `<div class="sd-empty">${this.esc(text)}</div>`;
+		return frappe.sarathiUI.state("empty", { message: text }).outerHTML;
 	}
 	statusColor(text) {
 		const v = String(text || "").toLowerCase();
@@ -308,7 +313,7 @@ frappe.SarathiIndustrialDashboard = class {
 			: "violet";
 	}
 	badge(text) {
-		return `<span class="sd-pill sd-status-${this.statusColor(text)}">${this.esc(text)}</span>`;
+		return frappe.sarathiUI.status(text).outerHTML;
 	}
 	async call(method, args) {
 		const r = await frappe.call({
@@ -320,7 +325,7 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 	readUrl() {
 		const q = new URLSearchParams(location.search);
-		for (const k of ["company", "customer", "project", "from_date", "to_date", "status"])
+		for (const k of ["company", "customer", "project", "from_date", "to_date", "status", "workstation"])
 			this.filters[k] = q.get(k) || "";
 		this.dateFilters = {
 			from_date: this.filters.from_date || "",
@@ -424,8 +429,18 @@ frappe.SarathiIndustrialDashboard = class {
 			return this.loadSubcontractingData(silent);
 		}
 		const request = ++this.sequence;
+		this.isRefreshing = true;
 		this.root.setAttribute("aria-busy", "true");
-		if (!silent) this.el("[data-updated]").textContent = "Loading records…";
+		const prevSuccessFormatted = this.lastSuccessfulRefresh
+			? (window.frappe?.sarathiUI?.formatTimestamp
+				? frappe.sarathiUI.formatTimestamp(this.lastSuccessfulRefresh)
+				: frappe.datetime.str_to_user(this.lastSuccessfulRefresh))
+			: null;
+		if (!silent) {
+			this.el("[data-updated]").textContent = prevSuccessFormatted
+				? `Refreshing… (Last updated: ${prevSuccessFormatted})`
+				: "Refreshing…";
+		}
 		try {
 			const data = await this.call("get_summary", {
 				filters: JSON.stringify(this.filters),
@@ -433,19 +448,41 @@ frappe.SarathiIndustrialDashboard = class {
 			if (request !== this.sequence || !this.visible) return;
 			this.data = data;
 			this.filters = data.filters;
+			this.lastSuccessfulRefresh = data.generated_at || new Date().toISOString();
+			this.lastFailedRefresh = null;
 			this.writeUrl(true);
 			this.el("[data-error]").hidden = true;
+			this.el("[data-error]").innerHTML = "";
 			this.render(silent);
-			this.el("[data-updated]").textContent = `Updated ${frappe.datetime.str_to_user(
-				data.generated_at
-			)}`;
+			const formattedTime = window.frappe?.sarathiUI?.formatTimestamp
+				? frappe.sarathiUI.formatTimestamp(this.lastSuccessfulRefresh)
+				: frappe.datetime.str_to_user(this.lastSuccessfulRefresh);
+			this.el("[data-updated]").textContent = `Last updated: ${formattedTime}`;
 		} catch (e) {
 			if (request !== this.sequence) return;
+			this.lastFailedRefresh = new Date().toISOString();
+			const timeStr = this.lastSuccessfulRefresh
+				? (window.frappe?.sarathiUI?.formatTimestamp
+					? frappe.sarathiUI.formatTimestamp(this.lastSuccessfulRefresh)
+					: frappe.datetime.str_to_user(this.lastSuccessfulRefresh))
+				: null;
 			this.el("[data-error]").hidden = false;
-			this.el("[data-error]").textContent =
-				"Unable to load this selection. Check access and filter values, then click Refresh. Previous results may be out of date.";
-			this.el("[data-updated]").textContent = "Refresh failed";
+			if (this.data && timeStr) {
+				this.el("[data-error]").innerHTML = `
+					<span>Refresh failed. Showing data from last update (${timeStr}).</span>
+					<button type="button" class="sd-button sd-btn-retry" style="margin-left:8px;" data-action="refresh">Retry</button>
+				`;
+				this.el("[data-updated]").textContent = `Last updated: ${timeStr} (Stale)`;
+			} else {
+				this.data = null;
+				this.el("[data-error]").innerHTML = `
+					<span>Unable to load Control Tower data. Please check your connection and filter access, then click Retry.</span>
+					<button type="button" class="sd-button sd-btn-retry" style="margin-left:8px;" data-action="refresh">Retry</button>
+				`;
+				this.el("[data-updated]").textContent = "Data unavailable";
+			}
 		} finally {
+			this.isRefreshing = false;
 			if (request === this.sequence) this.root.setAttribute("aria-busy", "false");
 		}
 	}
@@ -453,6 +490,14 @@ frappe.SarathiIndustrialDashboard = class {
 		const d = this.data;
 		this.renderSubcontractingCard();
 		this.renderAccountingCard();
+		this.renderFactoryOverview();
+		this.renderProductionPipeline();
+		this.renderMaterialReadiness();
+		this.renderWorkstationDowntime();
+		this.renderQualityOverview();
+		this.renderReworkOverview();
+		this.renderSubcontractingOverview();
+		this.renderProductionExceptions();
 		if (this.view === "subcontracting") {
 			const accEl = this.el("[data-accounting-view]");
 			if (accEl) accEl.hidden = true;
@@ -487,6 +532,20 @@ frappe.SarathiIndustrialDashboard = class {
 						`<option value="${this.esc(c.name)}">${this.esc(c.company_name || c.name)}</option>`
 				)
 				.join("");
+		const wsFilter = this.el('[data-filter="workstation"]');
+		if (wsFilter && d.factory_overview?.workstations) {
+			const currentWs = this.filters.workstation || "";
+			wsFilter.innerHTML =
+				`<option value="">All workstations</option>` +
+				d.factory_overview.workstations
+					.map(
+						(w) =>
+							`<option value="${this.esc(w.value)}"${w.value === currentWs ? " selected" : ""}>${this.esc(
+								w.label
+							)}</option>`
+					)
+					.join("");
+		}
 		for (const n of this.root.querySelectorAll("[data-filter]"))
 			n.value = this.filters[n.dataset.filter] || "";
 		for (const n of this.root.querySelectorAll("[data-date-filter]")) {
@@ -522,23 +581,16 @@ frappe.SarathiIndustrialDashboard = class {
 			", "
 		)}. Totals include only records you may read.`;
 		this.el("[data-live-projects]").innerHTML = this.liveCards();
-		this.el("[data-kpis]").innerHTML = d.kpis
-			.map((k, i) => {
-				const isDate = typeof k.value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(k.value);
-				const isText =
-					isDate || (typeof k.value === "string" && (k.value.length > 3 || isNaN(k.value)));
-				const formatted = typeof k.value === "number" ? this.num(k.value) : this.esc(k.value);
-				return `<button class="sd-kpi sd-tone-${i % 6}" data-kpi-label="${this.esc(
-					k.label
-				)}" data-report="${k.report}" data-subset="${
-					k.subset || ""
-				}"><span class="sd-metric-label">${this.workspaceIcon(k.label)}${this.esc(
-					k.label
-				)}</span><strong class="${
-					isText ? "sd-kpi-val-text" : ""
-				}">${formatted}</strong><small>View records ↗</small></button>`;
-			})
-			.join("");
+		this.el("[data-kpis]").replaceChildren(...d.kpis.map((k) => {
+            const card = frappe.sarathiUI.kpi({
+                label: k.label,
+                value: typeof k.value === "number" ? this.num(k.value) : k.value,
+                description: k.report ? "View records" : "ERPNext records",
+                onActivate: k.report ? () => this.showCardDetailsModal(k.report, k.subset || "", k.label) : undefined,
+            });
+            card.dataset.kpiLabel = k.label;
+            return card;
+        }));
 		this.el("[data-customer-panel]").hidden = !!this.filters.customer || !!this.filters.project;
 		this.el("[data-project-panel]").hidden = !!this.filters.project;
 		this.el("[data-project-heading]").textContent = this.filters.customer
@@ -1964,11 +2016,8 @@ frappe.SarathiIndustrialDashboard = class {
 			)}</strong></span>`;
 		}
 		if (c.fieldtype === "Percent") {
-			const pct = Math.min(100, Math.max(0, Number(val) || 0));
-			return `<div class="sd-table-progress-box" style="margin: 0 auto; min-width: 100px;"><div class="sd-table-progress-bar"><div class="sd-table-progress-fill" style="width: ${pct}%;"></div></div><div class="sd-table-progress-meta" style="justify-content: center;"><span class="sd-prog-pct">${this.num(
-				val
-			)}%</span></div></div>`;
-		}
+            return frappe.sarathiUI.progress({ value: val, label: c.label || "Progress" }).outerHTML;
+        }
 		if (["Float", "Int"].includes(c.fieldtype)) {
 			return `<span class="sd-cell-badge sd-badge-teal" style="white-space:nowrap;"><strong>${this.num(
 				val
@@ -2057,10 +2106,11 @@ frappe.SarathiIndustrialDashboard = class {
 			this.renderCardDetailsTable(dialog, data, reportKey, subset, dialogTitle, project);
 		} catch (err) {
 			dialog.fields_dict.card_content.$wrapper.html(
-				`<div class="sd-empty">Unable to load records for this card. ${this.esc(
-					err.message || ""
-				)}</div>`
+				`<div class="sd-empty" role="alert"><p>Unable to load records for this card. Please check your permissions and try again.</p><button type="button" class="sd-button sd-primary sd-btn-retry" data-action="retry-card">Retry</button></div>`
 			);
+			dialog.fields_dict.card_content.$wrapper.find("[data-action='retry-card']").on("click", () => {
+				this.showCardDetailsModal(reportKey, subset, label, projectContext);
+			});
 		}
 	}
 
@@ -2634,8 +2684,19 @@ frappe.SarathiIndustrialDashboard = class {
 	}
 
 	click(event) {
+		const woLink = event.target.closest("[data-inspect-wo]");
+		if (woLink) {
+			event.preventDefault();
+			frappe.set_route("Form", "Work Order", woLink.dataset.inspectWo);
+			return;
+		}
 		const pill = event.target.closest(".sd-filter-pill");
 		if (pill) {
+			if (pill.dataset.action === "filter-wo-status") {
+				const st = pill.dataset.status;
+				this.navigate({ status: this.filters.status === st ? "" : st });
+				return;
+			}
 			const group = pill.closest("[data-table-filters]");
 			if (group) {
 				group.querySelectorAll(".sd-filter-pill").forEach((p) => p.classList.remove("active"));
@@ -2721,6 +2782,55 @@ frappe.SarathiIndustrialDashboard = class {
 		} else if (d.action === "clear-stage-filter") {
 			this.subSelectedStage = "";
 			this.renderSubcontractingDetailView();
+		} else if (d.action === "filter-pipeline-stage") {
+			this.pipelineSelectedStage = d.stage;
+			this.renderProductionPipeline();
+		} else if (d.action === "filter-material-readiness") {
+			this.materialSelectedReadiness = d.status;
+			this.renderMaterialReadiness();
+		} else if (d.action === "filter-workstation-status") {
+			this.workstationSelectedStatus = d.status;
+			this.renderWorkstationDowntime();
+		} else if (d.action === "filter-quality-status") {
+			this.qualitySelectedStatus = d.status;
+			this.renderQualityOverview();
+		} else if (d.action === "filter-rework-status") {
+			this.reworkSelectedStatus = d.status;
+			this.renderReworkOverview();
+		} else if (d.action === "filter-subcontracting-status") {
+			this.subcontractingSelectedStatus = d.status;
+			this.renderSubcontractingOverview();
+		} else if (d.action === "filter-exception-category") {
+			this.exceptionSelectedCategory = d.category;
+			this.renderProductionExceptions();
+		} else if (d.action === "filter-exception-severity") {
+			this.exceptionSelectedSeverity = d.severity;
+			this.renderProductionExceptions();
+		} else if (d.action === "clear-exception-filters") {
+			this.exceptionSelectedCategory = "All";
+			this.exceptionSelectedSeverity = "All";
+			this.exceptionSearch = "";
+			this.renderProductionExceptions();
+		} else if (d.inspectQi) {
+			frappe.set_route("Form", "Quality Inspection", d.inspectQi);
+		} else if (d.inspectSco) {
+			frappe.set_route("Form", "Subcontracting Order", d.inspectSco);
+		} else if (d.inspectSupplier) {
+			frappe.set_route("Form", "Supplier", d.inspectSupplier);
+		} else if (d.inspectPo) {
+			frappe.set_route("Form", "Purchase Order", d.inspectPo);
+		} else if (d.inspectWo) {
+			frappe.set_route("Form", "Work Order", d.inspectWo);
+		} else if (d.inspectJc) {
+			frappe.set_route("Form", "Job Card", d.inspectJc);
+		} else if (d.inspectItem) {
+			frappe.set_route("Form", "Item", d.inspectItem);
+		} else if (d.inspectWarehouse) {
+			frappe.set_route("Form", "Warehouse", d.inspectWarehouse);
+		} else if (d.inspectWorkstation) {
+			frappe.set_route("Form", "Workstation", d.inspectWorkstation);
+		} else if (d.inspectDowntime) {
+			frappe.set_route("Form", "Downtime Entry", d.inspectDowntime);
 		} else if (d.customer) {
 			this.navigate({ customer: d.customer, project: "" });
 		} else if (d.project) {
@@ -2998,6 +3108,1929 @@ frappe.SarathiIndustrialDashboard = class {
 		return `${sign}${prefix}${abs.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 	}
 
+	renderFactoryOverview() {
+		const panel = this.el("[data-factory-overview-panel]");
+		if (!panel) return;
+		const fo = this.data?.factory_overview;
+		if (!fo || fo.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Factory Overview</h2>
+						<p>Production progress, shop-floor execution, deadlines, and material readiness</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(fo?.reason || "Factory Overview is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-factory-badge]");
+		if (badge) {
+			badge.textContent = `As of ${fo.reference_date}`;
+		}
+
+		// 1. Render 7 KPI cards
+		const kpisContainer = this.el("[data-factory-kpis]");
+		if (kpisContainer && fo.kpis) {
+			const k = fo.kpis;
+			const cards = [
+				frappe.sarathiUI.kpi({
+					label: k.active_work_orders.label,
+					value: this.num(k.active_work_orders.value),
+					description: k.active_work_orders.description,
+					onActivate: () => frappe.set_route("List", "Work Order", { status: ["in", ["Not Started", "In Process"]] }),
+				}),
+				frappe.sarathiUI.kpi({
+					label: k.planned_production.label,
+					value: k.planned_production.value,
+					description: k.planned_production.description,
+					onActivate: () => frappe.set_route("List", "Work Order"),
+				}),
+				frappe.sarathiUI.kpi({
+					label: k.actual_production.label,
+					value: k.actual_production.value,
+					description: k.actual_production.description,
+					onActivate: () => frappe.set_route("List", "Work Order"),
+				}),
+				frappe.sarathiUI.kpi({
+					label: k.production_achievement.label,
+					value: k.production_achievement.value,
+					description: k.production_achievement.description,
+					status: (k.production_achievement.pct >= 90 ? "success" : k.production_achievement.pct >= 50 ? "info" : "warning"),
+				}),
+				frappe.sarathiUI.kpi({
+					label: k.overdue_work_orders.label,
+					value: this.num(k.overdue_work_orders.value),
+					description: k.overdue_work_orders.description,
+					status: (k.overdue_work_orders.value > 0 ? "danger" : "success"),
+					onActivate: () => this.navigate({ status: "Overdue" }),
+				}),
+				frappe.sarathiUI.kpi({
+					label: k.open_job_cards.label,
+					value: this.num(k.open_job_cards.value),
+					description: k.open_job_cards.description,
+					onActivate: () => frappe.set_route("List", "Job Card", { status: ["in", ["Open", "Work In Progress"]] }),
+				}),
+				frappe.sarathiUI.kpi({
+					label: k.material_blockers.label,
+					value: this.num(k.material_blockers.value),
+					description: k.material_blockers.description,
+					status: (k.material_blockers.value > 0 ? "danger" : "success"),
+				}),
+			];
+			cards.forEach((card, idx) => {
+				card.dataset.factoryKpi = ["active_wo", "planned", "actual", "achievement", "overdue", "job_cards", "material_blockers"][idx];
+			});
+			kpisContainer.replaceChildren(...cards);
+		}
+
+		// 2. Render Production Summary section
+		const summaryContainer = this.el("[data-factory-summary]");
+		if (summaryContainer && fo.summary) {
+			const s = fo.summary;
+
+			// Status Distribution Badges
+			const statusCounts = s.status_distribution || {};
+			const statusOrder = ["Not Started", "In Process", "Completed", "Stopped", "Draft", "Cancelled"];
+			const statusHtml = Object.keys(statusCounts).length > 0
+				? `<div class="sd-factory-status-bar" role="group" aria-label="Work Order Statuses">
+					<span class="sd-status-bar-label">Work Order Statuses:</span>
+					${statusOrder.filter((st) => statusCounts[st] !== undefined).map((st) => `
+						<button type="button" class="sd-pill sd-status-${this.statusColor(st)} sd-filter-pill${this.filters.status === st ? " active" : ""}" data-action="filter-wo-status" data-status="${this.esc(st)}">
+							${this.esc(st)}: <b>${statusCounts[st]}</b>
+						</button>
+					`).join("")}
+				</div>`
+				: "";
+
+			// Item Production Summary Table
+			const itemRows = s.item_production_summary || [];
+			const itemTableHtml = itemRows.length > 0
+				? `<div class="sd-table-container">
+					<table class="sd-table sd-factory-table" aria-label="Planned vs Actual Output by Item">
+						<thead>
+							<tr>
+								<th>Item</th>
+								<th>Stock Unit</th>
+								<th>Active Orders</th>
+								<th>Planned Qty</th>
+								<th>Produced Qty</th>
+								<th>Achievement</th>
+								<th>Work Orders</th>
+							</tr>
+						</thead>
+						<tbody>
+							${itemRows.map((row) => `
+								<tr>
+									<td>
+										<div class="sd-item-cell">
+											<strong>${this.link("Item", row.item_code, row.item_name)}</strong>
+											<span class="sd-item-sub">${this.esc(row.item_code)}</span>
+										</div>
+									</td>
+									<td><span class="sd-badge-subtle">${this.esc(row.stock_uom)}</span></td>
+									<td><strong>${row.active_orders}</strong></td>
+									<td>${this.num(row.planned_qty)} ${this.esc(row.stock_uom)}</td>
+									<td>${this.num(row.produced_qty)} ${this.esc(row.stock_uom)}</td>
+									<td>
+										<div class="sd-progress-cell">
+											<div class="sd-progress-bar">
+												<div class="sd-progress-fill ${row.achievement_pct >= 90 ? "sd-bg-green" : row.achievement_pct >= 50 ? "sd-bg-blue" : "sd-bg-amber"}" style="width: ${Math.min(100, row.achievement_pct)}%"></div>
+											</div>
+											<span class="sd-progress-val">${row.achievement_pct}%</span>
+										</div>
+									</td>
+									<td>
+										<div class="sd-wo-tags">
+											${(row.work_orders || []).map((wo) => `<a href="javascript:void(0)" class="sd-wo-link" data-inspect-wo="${this.esc(wo)}" title="Open ${this.esc(wo)} in Form">${this.esc(wo)}</a>`).join(" ")}
+										</div>
+									</td>
+								</tr>
+							`).join("")}
+						</tbody>
+					</table>
+				</div>`
+				: `<div class="sd-empty-box">${this.empty("No active manufacturing orders for this selection.")}</div>`;
+
+			// Overdue & Approaching Jobs Tables
+			const overdueJobs = s.overdue_jobs || [];
+			const overdueHtml = overdueJobs.length > 0
+				? `<div class="sd-job-alert-table-wrap">
+					<table class="sd-table sd-table-compact" aria-label="Overdue Work Orders">
+						<thead>
+							<tr>
+								<th>Work Order</th>
+								<th>Item</th>
+								<th>Target Date</th>
+								<th>Overdue</th>
+								<th>Progress</th>
+							</tr>
+						</thead>
+						<tbody>
+							${overdueJobs.map((j) => `
+								<tr>
+									<td><a href="javascript:void(0)" class="sd-wo-link sd-urgent" data-inspect-wo="${this.esc(j.work_order)}">${this.esc(j.work_order)}</a></td>
+									<td>${this.esc(j.item_name || j.production_item)}</td>
+									<td>${this.esc(j.target_date || "—")}</td>
+									<td><span class="sd-pill sd-status-red">${j.days_overdue}d overdue</span></td>
+									<td>${this.num(j.produced_qty)} / ${this.num(j.planned_qty)} ${this.esc(j.stock_uom)}</td>
+								</tr>
+							`).join("")}
+						</tbody>
+					</table>
+				</div>`
+				: `<div class="sd-success-state">
+					<span class="sd-pill sd-status-green">✓ 0 Overdue Orders</span>
+					<p>All active Work Orders are on schedule or within expected delivery windows.</p>
+				</div>`;
+
+			const approachingJobs = s.approaching_jobs || [];
+			const approachingHtml = approachingJobs.length > 0
+				? `<div class="sd-job-alert-table-wrap">
+					<table class="sd-table sd-table-compact" aria-label="Approaching Work Orders">
+						<thead>
+							<tr>
+								<th>Work Order</th>
+								<th>Item</th>
+								<th>Target Date</th>
+								<th>Due</th>
+								<th>Progress</th>
+							</tr>
+						</thead>
+						<tbody>
+							${approachingJobs.map((j) => `
+								<tr>
+									<td><a href="javascript:void(0)" class="sd-wo-link" data-inspect-wo="${this.esc(j.work_order)}">${this.esc(j.work_order)}</a></td>
+									<td>${this.esc(j.item_name || j.production_item)}</td>
+									<td>${this.esc(j.target_date || "—")}</td>
+									<td><span class="sd-pill sd-status-amber">${j.days_remaining === 0 ? "Due today" : `${j.days_remaining}d remaining`}</span></td>
+									<td>${this.num(j.produced_qty)} / ${this.num(j.planned_qty)} ${this.esc(j.stock_uom)}</td>
+								</tr>
+							`).join("")}
+						</tbody>
+					</table>
+				</div>`
+				: `<div class="sd-success-state">
+					<span class="sd-pill sd-status-blue">0 Orders Due in 7 Days</span>
+					<p>No active Work Orders due within the review window.</p>
+				</div>`;
+
+			summaryContainer.innerHTML = `
+				<div class="sd-factory-summary-header">
+					${statusHtml}
+				</div>
+				<div class="sd-factory-progress-card">
+					<div class="sd-section-title">
+						<h3>Planned versus Actual Output by Item</h3>
+						<span class="sd-subtle-hint">Production volume in item-specific stock units</span>
+					</div>
+					${itemTableHtml}
+				</div>
+				<div class="sd-factory-alerts-grid">
+					<div class="sd-factory-alert-box sd-overdue-box">
+						<div class="sd-alert-heading">
+							<h3>Overdue Work Orders</h3>
+							<span class="sd-pill ${overdueJobs.length > 0 ? "sd-status-red" : "sd-status-green"}">${overdueJobs.length}</span>
+						</div>
+						${overdueHtml}
+					</div>
+					<div class="sd-factory-alert-box sd-approaching-box">
+						<div class="sd-alert-heading">
+							<h3>Approaching Due Date (Next 7 Days)</h3>
+							<span class="sd-pill sd-status-amber">${approachingJobs.length}</span>
+						</div>
+						${approachingHtml}
+					</div>
+				</div>
+			`;
+		}
+	}
+
+	renderProductionPipeline() {
+		const panel = this.el("[data-production-pipeline-panel]");
+		if (!panel) return;
+		const pp = this.data?.production_pipeline;
+		if (!pp || pp.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Production Pipeline & Bottlenecks</h2>
+						<p>Operational workflow, operation sequences, dependencies, and queue constraints</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(pp?.reason || "Production pipeline is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-pipeline-badge]");
+		if (badge) {
+			badge.textContent = `As of ${pp.reference_date}`;
+		}
+
+		// 1. Render Interactive Stage Cards
+		const stagesContainer = this.el("[data-pipeline-stages]");
+		if (stagesContainer && pp.stages) {
+			const activeStage = this.pipelineSelectedStage || "All";
+			const stageIcons = {
+				"Material Staging": "📦",
+				"In Production": "⚙️",
+				"Manufacture Receipt": "📥",
+				"Completed": "✅",
+			};
+			const stagesHtml = `
+				<div class="sd-pipeline-stages-grid" role="group" aria-label="Production Pipeline Stages">
+					<button type="button" class="sd-pipeline-stage-card ${activeStage === "All" ? "active" : ""}" data-action="filter-pipeline-stage" data-stage="All">
+						<div class="sd-stage-header">
+							<span class="sd-stage-icon">🏭</span>
+							<span class="sd-pill sd-status-blue">${pp.summary.total_work_orders}</span>
+						</div>
+						<h4>All Pipeline Work Orders</h4>
+						<p>Entire factory manufacturing stream</p>
+					</button>
+					${pp.stages.map((st) => `
+						<button type="button" class="sd-pipeline-stage-card ${activeStage === st.key ? "active" : ""}" data-action="filter-pipeline-stage" data-stage="${this.esc(st.key)}">
+							<div class="sd-stage-header">
+								<span class="sd-stage-icon">${stageIcons[st.key] || "⚙️"}</span>
+								<span class="sd-pill ${st.count > 0 ? "sd-status-blue" : "sd-status-subtle"}">${st.count}</span>
+							</div>
+							<h4>${this.esc(st.label)}</h4>
+							<p>${this.esc(st.description)}</p>
+						</button>
+					`).join("")}
+				</div>
+			`;
+			stagesContainer.innerHTML = stagesHtml;
+		}
+
+		// 2. Render Bottlenecks & Delayed Operations Grid
+		const bottlenecksContainer = this.el("[data-pipeline-bottlenecks]");
+		if (bottlenecksContainer) {
+			const bList = pp.bottlenecks || [];
+			const dOps = pp.delayed_operations || [];
+
+			const bottlenecksHtml = bList.length > 0
+				? `<div class="sd-bottlenecks-list">
+					${bList.map((b) => `
+						<div class="sd-bottleneck-card sd-severity-${this.esc(b.severity)}">
+							<div class="sd-bottleneck-header">
+								<div class="sd-bottleneck-title-row">
+									<span class="sd-bottleneck-type-badge sd-type-${this.esc(b.type)}">${this.esc(b.type.toUpperCase())}</span>
+									<strong>${this.esc(b.title)}</strong>
+								</div>
+								<span class="sd-pill ${b.severity === "high" ? "sd-status-red" : "sd-status-amber"}">${b.affected_work_orders_count} Orders Affected</span>
+							</div>
+							<p class="sd-bottleneck-reason">${this.esc(b.reason)}</p>
+							<div class="sd-bottleneck-meta">
+								${b.workstation ? `<span><b>Workstation:</b> ${this.esc(b.workstation)}</span>` : ""}
+								${b.queue_depth ? `<span><b>Queue Depth:</b> ${b.queue_depth} jobs</span>` : ""}
+								${b.oldest_overdue_days > 0 ? `<span class="sd-urgent-text"><b>Oldest Overdue:</b> ${b.oldest_overdue_days}d</span>` : ""}
+							</div>
+							<div class="sd-bottleneck-drilldowns">
+								<span class="sd-subtle-hint">Inspect:</span>
+								${(b.affected_work_orders || []).slice(0, 4).map((wo) => `
+									<a href="javascript:void(0)" class="sd-drilldown-tag" data-inspect-wo="${this.esc(wo)}" title="Open Work Order ${this.esc(wo)}">${this.esc(wo)}</a>
+								`).join(" ")}
+								${(b.affected_work_orders || []).length > 4 ? `<span class="sd-more-tag">+${b.affected_work_orders.length - 4} more</span>` : ""}
+							</div>
+						</div>
+					`).join("")}
+				</div>`
+				: `<div class="sd-success-state">
+					<span class="sd-pill sd-status-green">✓ No Operational Bottlenecks Detected</span>
+					<p>Workstation queues and operation dependencies are running within normal thresholds.</p>
+				</div>`;
+
+			const delayedHtml = dOps.length > 0
+				? `<div class="sd-delayed-ops-table-wrap">
+					<table class="sd-table sd-table-compact" aria-label="Delayed Operations">
+						<thead>
+							<tr>
+								<th>Operation</th>
+								<th>Work Order</th>
+								<th>Workstation</th>
+								<th>Days Overdue</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							${dOps.map((op) => `
+								<tr>
+									<td><strong>${this.esc(op.operation)}</strong></td>
+									<td><a href="javascript:void(0)" class="sd-wo-link" data-inspect-wo="${this.esc(op.work_order)}">${this.esc(op.work_order)}</a></td>
+									<td><span class="sd-badge-subtle">${this.esc(op.workstation || "—")}</span></td>
+									<td><span class="sd-pill sd-status-red">${op.days_overdue}d</span></td>
+									<td><a href="javascript:void(0)" class="sd-btn-xs" data-inspect-jc="${this.esc(op.job_card)}" title="Open Job Card">Open Card ↗</a></td>
+								</tr>
+							`).join("")}
+						</tbody>
+					</table>
+				</div>`
+				: `<div class="sd-success-state">
+					<span class="sd-pill sd-status-green">✓ 0 Overdue Operations</span>
+					<p>All active Job Cards are progressing on or ahead of schedule.</p>
+				</div>`;
+
+			bottlenecksContainer.innerHTML = `
+				<div class="sd-pipeline-insights-grid">
+					<div class="sd-insights-col">
+						<div class="sd-section-title">
+							<h3>Identified Operational Bottlenecks</h3>
+							<span class="sd-pill ${bList.length > 0 ? "sd-status-red" : "sd-status-green"}">${bList.length}</span>
+						</div>
+						${bottlenecksHtml}
+					</div>
+					<div class="sd-insights-col">
+						<div class="sd-section-title">
+							<h3>Delayed Operations & Job Cards</h3>
+							<span class="sd-pill ${dOps.length > 0 ? "sd-status-amber" : "sd-status-green"}">${dOps.length}</span>
+						</div>
+						${delayedHtml}
+					</div>
+				</div>
+			`;
+		}
+
+		// 3. Render Pipeline Work Orders & Operation Sequence Tracking
+		const jobsContainer = this.el("[data-pipeline-jobs]");
+		if (jobsContainer && pp.pipeline_jobs) {
+			const activeStage = this.pipelineSelectedStage || "All";
+			const filteredJobs = activeStage === "All"
+				? pp.pipeline_jobs
+				: pp.pipeline_jobs.filter((j) => j.stage === activeStage);
+
+			const jobsHtml = filteredJobs.length > 0
+				? `<div class="sd-pipeline-jobs-table-wrap">
+					<div class="sd-section-title">
+						<h3>Work Order Flow & Operation Sequences</h3>
+						<span class="sd-subtle-hint">Showing ${filteredJobs.length} of ${pp.pipeline_jobs.length} Work Orders</span>
+					</div>
+					<div class="sd-table-container">
+						<table class="sd-table sd-pipeline-jobs-table" aria-label="Work Order Pipeline and Sequence">
+							<thead>
+								<tr>
+									<th>Work Order & Item</th>
+									<th>Stage</th>
+									<th>Progress</th>
+									<th>Current Operation</th>
+									<th>Operation Sequence & Dependencies</th>
+									<th>Target Date</th>
+								</tr>
+							</thead>
+							<tbody>
+								${filteredJobs.map((job) => `
+									<tr class="${job.is_overdue ? "sd-row-overdue" : ""}">
+										<td>
+											<div class="sd-wo-ident-cell">
+												<div class="sd-wo-title-line">
+													<a href="javascript:void(0)" class="sd-wo-link" data-inspect-wo="${this.esc(job.work_order)}"><strong>${this.esc(job.work_order)}</strong></a>
+													${job.is_overdue ? `<span class="sd-pill sd-status-red">Overdue</span>` : ""}
+													${job.is_material_blocked ? `<span class="sd-pill sd-status-amber" title="Material transfer pending">Material Pending</span>` : ""}
+													${job.is_predecessor_blocked ? `<span class="sd-pill sd-status-orange" title="Waiting on predecessor operation">Waiting on Predecessor</span>` : ""}
+												</div>
+												<div class="sd-wo-item-name">${this.esc(job.item_name)} <span class="sd-item-sub">(${this.esc(job.production_item)})</span></div>
+												${job.customer ? `<div class="sd-wo-cust-sub">👤 ${this.esc(job.customer)}</div>` : ""}
+											</div>
+										</td>
+										<td>
+											<span class="sd-pill sd-stage-${this.stageClass(job.stage)}">${this.esc(job.stage)}</span>
+										</td>
+										<td>
+											<div class="sd-progress-cell">
+												<div class="sd-progress-bar">
+													<div class="sd-progress-fill ${job.completion_percent >= 90 ? "sd-bg-green" : job.completion_percent >= 50 ? "sd-bg-blue" : "sd-bg-amber"}" style="width: ${Math.min(100, job.completion_percent)}%"></div>
+												</div>
+												<span class="sd-progress-val">${job.produced_qty} / ${job.qty} (${job.completion_percent}%)</span>
+											</div>
+										</td>
+										<td>
+											${job.current_operation ? `
+												<div class="sd-current-op-cell">
+													<strong>${this.esc(job.current_operation)}</strong>
+													<span class="sd-badge-subtle">${this.esc(job.current_workstation || "Unassigned WS")}</span>
+													<span class="sd-op-status-mini sd-status-${this.opStatusClass(job.current_op_status)}">${this.esc(job.current_op_status)}</span>
+												</div>
+											` : `<span class="sd-subtle-hint">None</span>`}
+										</td>
+										<td>
+											<div class="sd-sequence-chain">
+												${job.operations && job.operations.length > 0 ? job.operations.map((op, oIdx) => `
+													<span class="sd-sequence-node sd-node-${this.opStatusClass(op.status)}" title="${this.esc(op.operation)} [${this.esc(op.status)}] ${op.waiting_on ? `(Waiting on: ${this.esc(op.waiting_on)})` : ""}">
+														<span class="sd-node-seq">${op.sequence}</span>
+														<span class="sd-node-name">${this.esc(op.operation)}</span>
+														<span class="sd-node-icon">${this.opStatusIcon(op.status)}</span>
+													</span>
+													${oIdx < job.operations.length - 1 ? `<span class="sd-chain-arrow">→</span>` : ""}
+												`).join("") : `<span class="sd-subtle-hint">No routing operations configured</span>`}
+											</div>
+										</td>
+										<td>
+											<div class="sd-target-cell">
+												<span>${this.esc(job.target_completion_date || "—")}</span>
+												${job.days_diff !== null && job.days_diff < 0 ? `
+													<span class="sd-pill sd-status-red">${Math.abs(job.days_diff)}d overdue</span>
+												` : job.days_diff !== null && job.days_diff <= 7 ? `
+													<span class="sd-pill sd-status-amber">${job.days_diff}d left</span>
+												` : ""}
+											</div>
+										</td>
+									</tr>
+								`).join("")}
+							</tbody>
+						</table>
+					</div>
+				</div>`
+				: `<div class="sd-empty-box">${this.empty("No Work Orders found for the selected stage and filters.")}</div>`;
+
+			jobsContainer.innerHTML = jobsHtml;
+		}
+	}
+
+	renderMaterialReadiness() {
+		const panel = this.el("[data-material-readiness-panel]");
+		if (!panel) return;
+		const mr = this.data?.material_readiness;
+		if (!mr || mr.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Material Readiness & Warehouse Shortages</h2>
+						<p>Component demand vs leaf warehouse available stock, deficit calculations, and Work Order readiness</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(mr?.reason || "Material readiness is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-material-readiness-badge]");
+		if (badge) {
+			badge.textContent = `As of ${mr.reference_date}`;
+		}
+
+		// 1. Render 4 KPI Cards
+		const kpisContainer = this.el("[data-material-kpis]");
+		if (kpisContainer && mr.summary) {
+			const s = mr.summary;
+			const cards = [
+				frappe.sarathiUI.kpi({
+					label: "Ready Work Orders",
+					value: this.num(s.ready_work_orders),
+					description: "100% component availability in leaf warehouses",
+					tone: s.ready_work_orders > 0 ? "positive" : "neutral",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Partially Ready Orders",
+					value: this.num(s.partially_ready_work_orders),
+					description: "Some materials staged, remaining components pending",
+					tone: s.partially_ready_work_orders > 0 ? "caution" : "neutral",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Material Shortages",
+					value: this.num(s.shortage_work_orders),
+					description: `${s.distinct_shortage_items} items facing inventory deficits (${s.total_shortage_units} units)`,
+					tone: s.shortage_work_orders > 0 ? "negative" : "positive",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Critical Shortages",
+					value: this.num(s.critical_shortage_orders),
+					description: "Shortages on overdue or imminent orders (due in 7d)",
+					tone: s.critical_shortage_orders > 0 ? "negative" : "positive",
+				}),
+			];
+			kpisContainer.innerHTML = cards.join("");
+		}
+
+		// 2. Render Material Readiness Distribution Filter Bar
+		const summaryContainer = this.el("[data-material-summary]");
+		if (summaryContainer && mr.readiness_distribution) {
+			const dist = mr.readiness_distribution;
+			const activeStatus = this.materialSelectedReadiness || "All";
+			const distHtml = `
+				<div class="sd-material-distribution-wrap">
+					<div class="sd-section-title">
+						<h3>Work Order Readiness Distribution</h3>
+						<span class="sd-subtle-hint">Filter components and orders by readiness status</span>
+					</div>
+					<div class="sd-material-status-grid" role="group" aria-label="Work Order Material Readiness Filters">
+						<button type="button" class="sd-status-pill-btn ${activeStatus === "All" ? "active" : ""}" data-action="filter-material-readiness" data-status="All">
+							<span class="sd-status-label">All Active Orders</span>
+							<span class="sd-pill sd-status-blue">${mr.summary.total_work_orders}</span>
+						</button>
+						<button type="button" class="sd-status-pill-btn ${activeStatus === "Ready" ? "active" : ""}" data-action="filter-material-readiness" data-status="Ready">
+							<span class="sd-status-label">✓ Ready</span>
+							<span class="sd-pill sd-status-green">${dist.Ready || 0}</span>
+						</button>
+						<button type="button" class="sd-status-pill-btn ${activeStatus === "Partially Ready" ? "active" : ""}" data-action="filter-material-readiness" data-status="Partially Ready">
+							<span class="sd-status-label">◐ Partially Ready</span>
+							<span class="sd-pill sd-status-blue">${dist["Partially Ready"] || 0}</span>
+						</button>
+						<button type="button" class="sd-status-pill-btn ${activeStatus === "Shortage" ? "active" : ""}" data-action="filter-material-readiness" data-status="Shortage">
+							<span class="sd-status-label">⚠ Shortage</span>
+							<span class="sd-pill sd-status-red">${dist.Shortage || 0}</span>
+						</button>
+						${dist.Unknown > 0 ? `
+							<button type="button" class="sd-status-pill-btn ${activeStatus === "Unknown" ? "active" : ""}" data-action="filter-material-readiness" data-status="Unknown">
+								<span class="sd-status-label">? Unconfigured Warehouse</span>
+								<span class="sd-pill sd-status-amber">${dist.Unknown}</span>
+							</button>
+						` : ""}
+					</div>
+				</div>
+			`;
+			summaryContainer.innerHTML = distHtml;
+		}
+
+		// 3. Render Aggregate Component Shortages by Item & Warehouse
+		const shortageItemsContainer = this.el("[data-material-shortage-items]");
+		if (shortageItemsContainer) {
+			const aggItems = mr.shortage_items_aggregate || [];
+			const aggHtml = aggItems.length > 0
+				? `<div class="sd-material-agg-table-wrap">
+					<div class="sd-section-title">
+						<h3>Component Deficits by Leaf Warehouse</h3>
+						<span class="sd-subtle-hint">Consolidated raw material demand vs physical available stock</span>
+					</div>
+					<div class="sd-table-container">
+						<table class="sd-table sd-table-compact" aria-label="Component Deficits by Warehouse">
+							<thead>
+								<tr>
+									<th>Raw Material Item</th>
+									<th>Leaf Warehouse</th>
+									<th>Total Demand</th>
+									<th>Available Stock</th>
+									<th>Physical / Reserved</th>
+									<th>Shortage Deficit</th>
+									<th>Affected Work Orders</th>
+								</tr>
+							</thead>
+							<tbody>
+								${aggItems.map((item) => `
+									<tr class="${item.net_shortage > 0 ? "sd-row-shortage" : ""}">
+										<td>
+											<div class="sd-item-ident-cell">
+												<a href="javascript:void(0)" class="sd-item-link" data-inspect-item="${this.esc(item.item_code)}"><strong>${this.esc(item.item_code)}</strong></a>
+												<span class="sd-subtle-hint">${this.esc(item.item_name)}</span>
+											</div>
+										</td>
+										<td>
+											<a href="javascript:void(0)" class="sd-warehouse-link" data-inspect-warehouse="${this.esc(item.warehouse)}" title="Open Warehouse">${this.esc(item.warehouse)}</a>
+										</td>
+										<td><strong>${this.num(item.total_remaining_demand)}</strong> <span class="sd-uom-tag">${this.esc(item.stock_uom)}</span></td>
+										<td><span class="${item.available_stock > 0 ? "sd-stock-ok" : "sd-stock-zero"}">${this.num(item.available_stock)}</span> ${this.esc(item.stock_uom)}</td>
+										<td><span class="sd-subtle-hint">${this.num(item.actual_stock)} act / ${this.num(item.reserved_stock)} res</span></td>
+										<td>
+											${item.net_shortage > 0 ? `
+												<span class="sd-pill sd-status-red sd-deficit-badge">-${this.num(item.net_shortage)} ${this.esc(item.stock_uom)}</span>
+											` : `<span class="sd-pill sd-status-green">Stock Covered</span>`}
+										</td>
+										<td>
+											<div class="sd-wo-tags">
+												${(item.affected_work_orders || []).slice(0, 4).map((wo) => `
+													<a href="javascript:void(0)" class="sd-wo-link" data-inspect-wo="${this.esc(wo)}" title="Open ${this.esc(wo)}">${this.esc(wo)}</a>
+												`).join(" ")}
+												${(item.affected_work_orders || []).length > 4 ? `<span class="sd-more-tag">+${item.affected_work_orders.length - 4} more</span>` : ""}
+											</div>
+										</td>
+									</tr>
+								`).join("")}
+							</tbody>
+						</table>
+					</div>
+				</div>`
+				: `<div class="sd-success-state">
+					<span class="sd-pill sd-status-green">✓ 0 Component Deficits</span>
+					<p>All active Work Orders have sufficient warehouse stock to fulfill current production demand.</p>
+				</div>`;
+			shortageItemsContainer.innerHTML = aggHtml;
+		}
+
+		// 4. Render Work Order Material Readiness & Component Breakdown Table
+		const linesContainer = this.el("[data-material-shortage-lines]");
+		if (linesContainer && mr.work_orders_readiness) {
+			const activeStatus = this.materialSelectedReadiness || "All";
+			const filteredWos = activeStatus === "All"
+				? mr.work_orders_readiness
+				: mr.work_orders_readiness.filter((w) => w.readiness_status === activeStatus);
+
+			const linesHtml = filteredWos.length > 0
+				? `<div class="sd-wo-readiness-table-wrap">
+					<div class="sd-section-title">
+						<h3>Work Order Component Readiness</h3>
+						<span class="sd-subtle-hint">Showing ${filteredWos.length} of ${mr.work_orders_readiness.length} Work Orders</span>
+					</div>
+					<div class="sd-table-container">
+						<table class="sd-table sd-material-lines-table" aria-label="Work Order Material Readiness">
+							<thead>
+								<tr>
+									<th>Work Order & Production Item</th>
+									<th>Target Completion</th>
+									<th>Readiness Status</th>
+									<th>Components Status</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								${filteredWos.map((wo) => `
+									<tr class="${wo.readiness_status === "Shortage" ? "sd-row-shortage" : ""}">
+										<td>
+											<div class="sd-wo-ident-cell">
+												<a href="javascript:void(0)" class="sd-wo-link" data-inspect-wo="${this.esc(wo.work_order)}"><strong>${this.esc(wo.work_order)}</strong></a>
+												<span class="sd-subtle-hint">${this.esc(wo.production_item_name)} (${this.num(wo.qty)} ${this.esc(wo.stock_uom)})</span>
+											</div>
+										</td>
+										<td>
+											<div class="sd-target-cell">
+												<span>${this.esc(wo.target_date || "—")}</span>
+												${wo.is_overdue ? `
+													<span class="sd-pill sd-status-red">${Math.abs(wo.days_to_target)}d overdue</span>
+												` : wo.is_due_soon ? `
+													<span class="sd-pill sd-status-amber">${wo.days_to_target}d left</span>
+												` : ""}
+											</div>
+										</td>
+										<td>
+											<span class="sd-pill sd-status-${this.readinessClass(wo.readiness_status)}">
+												${this.readinessIcon(wo.readiness_status)} ${this.esc(wo.readiness_status)}
+											</span>
+										</td>
+										<td>
+											<span class="sd-readiness-note">${this.esc(wo.readiness_note)}</span>
+											${wo.shortage_components_count > 0 ? `
+												<span class="sd-pill sd-status-red sd-mini-badge">${wo.shortage_components_count} short</span>
+											` : ""}
+										</td>
+										<td>
+											<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-wo="${this.esc(wo.work_order)}" title="Inspect Work Order">Inspect ↗</a>
+										</td>
+									</tr>
+								`).join("")}
+							</tbody>
+						</table>
+					</div>
+				</div>`
+				: `<div class="sd-empty-box">${this.empty("No Work Orders found for the selected readiness filter.")}</div>`;
+
+			linesContainer.innerHTML = linesHtml;
+		}
+	}
+
+	renderWorkstationDowntime() {
+		const panel = this.el("[data-workstation-downtime-panel]");
+		if (!panel) return;
+		const wsd = this.data?.workstation_downtime;
+		if (!wsd || wsd.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Workstations & Recorded Downtime</h2>
+						<p>Operational workstation activity, Job Card assignments, recorded downtime events, and schedule impacts</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(wsd?.reason || "Workstation and downtime view is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-workstation-downtime-badge]");
+		if (badge) {
+			badge.textContent = `As of ${wsd.reference_date}`;
+		}
+
+		// 1. Render 4 KPI Cards
+		const kpisContainer = this.el("[data-workstation-kpis]");
+		if (kpisContainer && wsd.summary) {
+			const s = wsd.summary;
+			const cards = [
+				frappe.sarathiUI.kpi({
+					label: "Total Workstations",
+					value: this.num(s.total_workstations),
+					description: `${s.workstations_with_active_jobs} active on shop floor with running jobs`,
+					tone: s.total_workstations > 0 ? "neutral" : "caution",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Running Operations",
+					value: this.num(s.recorded_running_jobs),
+					description: `${s.total_assigned_operations} total assigned operations across factory`,
+					tone: s.recorded_running_jobs > 0 ? "positive" : "neutral",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Recorded Downtime",
+					value: `${s.total_downtime_minutes} m`,
+					description: `${s.recorded_downtime_events} recorded stops in period (${s.total_downtime_minutes} mins)`,
+					tone: s.total_downtime_minutes > 0 ? "negative" : "positive",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Delayed Operations",
+					value: this.num(s.delayed_operations_count),
+					description: "Operations past expected completion date",
+					tone: s.delayed_operations_count > 0 ? "negative" : "positive",
+				}),
+			];
+			kpisContainer.innerHTML = cards.join("");
+		}
+
+		// 2. Render Workstation Overview Table
+		const overviewContainer = this.el("[data-workstation-overview]");
+		if (overviewContainer && wsd.workstations_overview) {
+			const wsList = wsd.workstations_overview;
+			const activeStatus = this.workstationSelectedStatus || "All";
+			const filteredWs = activeStatus === "All"
+				? wsList
+				: activeStatus === "Active"
+				? wsList.filter((w) => w.active_job_cards_count > 0)
+				: activeStatus === "Impacted"
+				? wsList.filter((w) => w.has_production_impact)
+				: wsList.filter((w) => w.recorded_status === activeStatus);
+
+			const overviewHtml = `
+				<div class="sd-ws-overview-wrap">
+					<div class="sd-section-header-flex">
+						<div>
+							<h3>Workstation Operations Overview</h3>
+							<span class="sd-subtle-hint">Recorded ERPNext status, job queue depths, and downtime interruptions</span>
+						</div>
+						<div class="sd-ws-filter-pills" role="group" aria-label="Workstation Status Filters">
+							<button type="button" class="sd-status-pill-btn ${activeStatus === "All" ? "active" : ""}" data-action="filter-workstation-status" data-status="All">
+								<span class="sd-status-label">All Stations</span>
+								<span class="sd-pill sd-status-blue">${wsList.length}</span>
+							</button>
+							<button type="button" class="sd-status-pill-btn ${activeStatus === "Active" ? "active" : ""}" data-action="filter-workstation-status" data-status="Active">
+								<span class="sd-status-label">⚙️ Running Jobs</span>
+								<span class="sd-pill sd-status-green">${wsList.filter((w) => w.active_job_cards_count > 0).length}</span>
+							</button>
+							<button type="button" class="sd-status-pill-btn ${activeStatus === "Impacted" ? "active" : ""}" data-action="filter-workstation-status" data-status="Impacted">
+								<span class="sd-status-label">⚠ Impacted / Delayed</span>
+								<span class="sd-pill sd-status-red">${wsList.filter((w) => w.has_production_impact).length}</span>
+							</button>
+						</div>
+					</div>
+					<div class="sd-telemetry-disclosure-card">
+						<span class="sd-disclosure-icon">ℹ️</span>
+						<div class="sd-disclosure-body">
+							<strong>Data Sourcing Notice:</strong> Machine status and operational times are derived from native ERPNext Job Cards and Downtime Entries. Machine-telemetry utilization and OEE are marked <em>Unavailable</em> pending IoT/PLC sensor and shift calendar integration.
+						</div>
+					</div>
+					<div class="sd-table-container">
+						<table class="sd-table sd-table-compact" aria-label="Workstation Overview Table">
+							<thead>
+								<tr>
+									<th>Workstation</th>
+									<th>Type</th>
+									<th>Recorded Status</th>
+									<th>Queue Breakdown</th>
+									<th>Recorded Downtime</th>
+									<th>Utilization & OEE</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								${filteredWs.map((ws) => `
+									<tr class="${ws.has_production_impact ? "sd-row-impact" : ""}">
+										<td>
+											<div class="sd-ws-ident-cell">
+												<a href="javascript:void(0)" class="sd-ws-link" data-inspect-workstation="${this.esc(ws.workstation)}"><strong>${this.esc(ws.workstation_name)}</strong></a>
+												<span class="sd-subtle-hint">${this.esc(ws.workstation)}</span>
+											</div>
+										</td>
+										<td><span class="sd-badge-subtle">${this.esc(ws.workstation_type || "General")}</span></td>
+										<td>
+											<span class="sd-pill sd-status-${this.wsStatusClass(ws.recorded_status)}">
+												${this.wsStatusIcon(ws.recorded_status)} ${this.esc(ws.derived_status)}
+											</span>
+										</td>
+										<td>
+											<div class="sd-queue-pill-group">
+												<span class="sd-pill sd-status-green" title="Active in Progress">${ws.active_job_cards_count} running</span>
+												<span class="sd-pill sd-status-blue" title="Queued / Open">${ws.queued_job_cards_count} queued</span>
+												${ws.delayed_job_cards_count > 0 ? `<span class="sd-pill sd-status-red" title="Delayed Operations">${ws.delayed_job_cards_count} delayed</span>` : ""}
+											</div>
+										</td>
+										<td>
+											${ws.total_downtime_minutes > 0 ? `
+												<span class="sd-pill sd-status-red"><strong>${ws.total_downtime_minutes} mins</strong> (${ws.downtime_events_count} stops)</span>
+											` : `<span class="sd-subtle-hint">0 mins</span>`}
+										</td>
+										<td>
+											<span class="sd-badge-unavailable" title="${this.esc(ws.utilization_note)}">Not Configured</span>
+										</td>
+										<td>
+											<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-workstation="${this.esc(ws.workstation)}" title="Open Workstation Record">Inspect ↗</a>
+										</td>
+									</tr>
+								`).join("")}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			`;
+			overviewContainer.innerHTML = overviewHtml;
+		}
+
+		// 3. Render Recorded Downtime Events Container
+		const downtimeContainer = this.el("[data-workstation-downtime-events]");
+		if (downtimeContainer) {
+			const events = wsd.downtime_events || [];
+			const dtHtml = `
+				<div class="sd-downtime-events-wrap">
+					<div class="sd-section-title">
+						<h3>Recorded Downtime Interruption Logs</h3>
+						<span class="sd-subtle-hint">Official interruption logs from ERPNext Downtime Entry DocType</span>
+					</div>
+					${events.length > 0 ? `
+						<div class="sd-table-container">
+							<table class="sd-table sd-table-compact" aria-label="Recorded Downtime Events Table">
+								<thead>
+									<tr>
+										<th>Entry ID</th>
+										<th>Workstation</th>
+										<th>From Time</th>
+										<th>To Time</th>
+										<th>Duration</th>
+										<th>Stop Reason & Remarks</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									${events.map((ev) => `
+										<tr>
+											<td>
+												<a href="javascript:void(0)" class="sd-dt-link" data-inspect-downtime="${this.esc(ev.downtime_entry)}"><strong>${this.esc(ev.downtime_entry)}</strong></a>
+											</td>
+											<td><span class="sd-badge-subtle">${this.esc(ev.workstation)}</span></td>
+											<td>${this.esc(ev.from_time)}</td>
+											<td>${ev.to_time ? this.esc(ev.to_time) : `<span class="sd-pill sd-status-amber">Open (Ongoing)</span>`}</td>
+											<td><strong>${ev.duration_minutes} mins</strong></td>
+											<td>
+												<span class="sd-dt-reason">${this.esc(ev.stop_reason)}</span>
+												${ev.remarks ? `<span class="sd-subtle-hint"> — ${this.esc(ev.remarks)}</span>` : ""}
+											</td>
+											<td>
+												<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-downtime="${this.esc(ev.downtime_entry)}">View ↗</a>
+											</td>
+										</tr>
+									`).join("")}
+								</tbody>
+							</table>
+						</div>
+					` : `
+						<div class="sd-empty-box sd-empty-bordered">
+							<span class="sd-empty-icon">✓</span>
+							<p>No machine downtime events recorded in the selected period.</p>
+							<span class="sd-subtle-hint">Downtime records are logged via ERPNext <strong>Downtime Entry</strong> records.</span>
+						</div>
+					`}
+				</div>
+			`;
+			downtimeContainer.innerHTML = dtHtml;
+		}
+
+		// 4. Render Production Impact Analysis
+		const impactContainer = this.el("[data-workstation-impact]");
+		if (impactContainer) {
+			const impactList = wsd.production_impact || [];
+			if (impactList.length > 0) {
+				const impactHtml = `
+					<div class="sd-impact-wrap">
+						<div class="sd-section-title">
+							<h3>Production Schedule Impact</h3>
+							<span class="sd-subtle-hint">Workstations with delays or downtime affecting scheduled operations</span>
+						</div>
+						<div class="sd-impact-cards-grid">
+							${impactList.map((imp) => `
+								<div class="sd-impact-card">
+									<div class="sd-impact-card-header">
+										<div>
+											<h4>${this.esc(imp.workstation_name)}</h4>
+											<span class="sd-badge-subtle">${this.esc(imp.workstation_type || "Station")}</span>
+										</div>
+										<div class="sd-impact-badges">
+											${imp.delayed_jobs_count > 0 ? `<span class="sd-pill sd-status-red">${imp.delayed_jobs_count} Delayed Jobs</span>` : ""}
+											${imp.downtime_minutes > 0 ? `<span class="sd-pill sd-status-orange">${imp.downtime_minutes}m Downtime</span>` : ""}
+										</div>
+									</div>
+									<div class="sd-affected-jobs-list">
+										<strong>Affected Operations & Jobs:</strong>
+										<ul>
+											${imp.affected_jobs.map((j) => `
+												<li>
+													<a href="javascript:void(0)" data-inspect-jc="${this.esc(j.job_card)}"><strong>${this.esc(j.job_card)}</strong></a>:
+													${this.esc(j.operation)} (${this.esc(j.production_item || "Item")})
+													${j.is_overdue ? `<span class="sd-pill sd-status-red sd-mini-badge">Overdue</span>` : ""}
+												</li>
+											`).join("")}
+										</ul>
+									</div>
+								</div>
+							`).join("")}
+						</div>
+					</div>
+				`;
+				impactContainer.innerHTML = impactHtml;
+			} else {
+				impactContainer.innerHTML = "";
+			}
+		}
+
+		// 5. Render Paginated Workstation Activity Lines
+		const activityContainer = this.el("[data-workstation-activity]");
+		if (activityContainer && wsd.workstation_activity) {
+			const actLines = wsd.workstation_activity;
+			const actHtml = `
+				<div class="sd-ws-activity-wrap">
+					<div class="sd-section-title">
+						<h3>Recorded Workstation Operation Activity</h3>
+						<span class="sd-subtle-hint">Showing ${actLines.length} of ${wsd.total_activity_lines} recorded operations</span>
+					</div>
+					${actLines.length > 0 ? `
+						<div class="sd-table-container">
+							<table class="sd-table sd-table-compact" aria-label="Workstation Activity Table">
+								<thead>
+									<tr>
+										<th>Job Card & Work Order</th>
+										<th>Operation & Workstation</th>
+										<th>Status</th>
+										<th>Planned / Actual Quantity</th>
+										<th>Target Completion</th>
+										<th>Time Spent</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									${actLines.map((row) => `
+										<tr class="${row.is_overdue ? "sd-row-overdue" : ""}">
+											<td>
+												<div class="sd-jc-ident-cell">
+													<a href="javascript:void(0)" data-inspect-jc="${this.esc(row.job_card)}"><strong>${this.esc(row.job_card)}</strong></a>
+													<span class="sd-subtle-hint">${this.esc(row.work_order || "Standalone")}</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-op-cell">
+													<strong>${this.esc(row.operation)}</strong>
+													<span class="sd-subtle-hint">📍 ${this.esc(row.workstation || "Unassigned")}</span>
+												</div>
+											</td>
+											<td>
+												<span class="sd-pill sd-status-${this.opStatusClass(row.status)}">
+													${this.opStatusIcon(row.status)} ${this.esc(row.status)}
+												</span>
+											</td>
+											<td>
+												<span class="sd-qty-val">${this.num(row.total_completed_qty)} / ${this.num(row.for_quantity)}</span>
+											</td>
+											<td>
+												<div class="sd-target-cell">
+													<span>${this.esc(row.target_completion_date || "—")}</span>
+													${row.is_overdue ? `
+														<span class="sd-pill sd-status-red">${Math.abs(row.days_to_target)}d overdue</span>
+													` : row.is_due_soon ? `
+														<span class="sd-pill sd-status-amber">${row.days_to_target}d left</span>
+													` : ""}
+												</div>
+											</td>
+											<td>
+												${row.time_spent_mins > 0 ? `<span>${row.time_spent_mins} mins</span>` : `<span class="sd-subtle-hint">0 mins</span>`}
+											</td>
+											<td>
+												<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-jc="${this.esc(row.job_card)}" title="Inspect Job Card">View ↗</a>
+											</td>
+										</tr>
+									`).join("")}
+								</tbody>
+							</table>
+						</div>
+					` : `
+						<div class="sd-empty-box">${this.empty("No recorded operations found matching the selected filters.")}</div>
+					`}
+				</div>
+			`;
+			activityContainer.innerHTML = actHtml;
+		}
+	}
+
+	renderQualityOverview() {
+		const panel = this.el("[data-quality-overview-panel]");
+		if (!panel) return;
+		const qo = this.data?.quality_overview;
+		if (!qo || qo.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Quality &amp; Inspection Overview</h2>
+						<p>Quality inspection results, pass/fail performance, sample sizes, and defect breakdown</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(qo?.reason || "Quality inspection view is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-quality-badge]");
+		if (badge) {
+			badge.textContent = `As of ${qo.reference_date}`;
+		}
+
+		// 1. Render Quality KPIs
+		const kpisContainer = this.el("[data-quality-kpis]");
+		if (kpisContainer && qo.summary) {
+			const s = qo.summary;
+			kpisContainer.replaceChildren(
+				frappe.sarathiUI.kpi({
+					label: "Total Inspections",
+					value: this.num(s.total_inspections),
+					description: "Submitted quality reports",
+					indicator: "blue",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Passed Inspections",
+					value: this.num(s.passed_inspections),
+					description: "Accepted without defects",
+					indicator: "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Failed Inspections",
+					value: this.num(s.failed_inspections),
+					description: s.distinct_rejected_items > 0 ? `${s.distinct_rejected_items} distinct defect item(s)` : "Rejections recorded",
+					indicator: s.failed_inspections > 0 ? "red" : "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Failure Rate",
+					value: `${s.failure_rate_percent}%`,
+					description: "Defect percentage",
+					indicator: s.failure_rate_percent > 5 ? "red" : s.failure_rate_percent > 0 ? "amber" : "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Draft Inspections",
+					value: this.num(s.pending_inspections),
+					description: "Pending formal submission",
+					indicator: s.pending_inspections > 0 ? "amber" : "gray",
+				})
+			);
+		}
+
+		// 2. Render Defect Breakdown & Status Filter Pills
+		const summaryContainer = this.el("[data-quality-summary]");
+		if (summaryContainer) {
+			const currentStatus = this.qualitySelectedStatus || "All";
+			const topDefects = qo.top_rejected_items || [];
+			summaryContainer.innerHTML = `
+				<div class="sd-quality-summary-card">
+					<div class="sd-table-web-toolbar">
+						<div class="sd-table-filter-pills">
+							<span class="sd-filter-label">Filter Status:</span>
+							<button type="button" class="sd-filter-pill ${currentStatus === "All" ? "active" : ""}" data-action="filter-quality-status" data-status="All">All (${qo.total_inspections_count})</button>
+							<button type="button" class="sd-filter-pill ${currentStatus === "Accepted" ? "active" : ""}" data-action="filter-quality-status" data-status="Accepted">✓ Accepted (${qo.summary.passed_inspections})</button>
+							<button type="button" class="sd-filter-pill ${currentStatus === "Rejected" ? "active" : ""}" data-action="filter-quality-status" data-status="Rejected">✕ Rejected (${qo.summary.failed_inspections})</button>
+							<button type="button" class="sd-filter-pill ${currentStatus === "Draft" ? "active" : ""}" data-action="filter-quality-status" data-status="Draft">✎ Draft (${qo.summary.pending_inspections})</button>
+						</div>
+					</div>
+					${topDefects.length > 0 ? `
+						<div class="sd-defect-breakdown-bar">
+							<span class="sd-defect-bar-title">⚠️ Defect Rejection Breakdown:</span>
+							<div class="sd-defect-badges">
+								${topDefects.map(d => `
+									<span class="sd-pill sd-status-red" title="${this.esc(d.item_name)}: ${d.rejections_count} rejections (${this.num(d.sample_units)} units)">
+										<strong>${this.esc(d.item_code)}</strong>: ${d.rejections_count} rejected (${this.num(d.sample_units)} units)
+									</span>
+								`).join("")}
+							</div>
+						</div>
+					` : ""}
+				</div>
+			`;
+		}
+
+		// 3. Render Quality Inspections Table
+		const inspectionsContainer = this.el("[data-quality-inspections]");
+		if (inspectionsContainer) {
+			const currentStatus = this.qualitySelectedStatus || "All";
+			let inspList = qo.inspections || [];
+			if (currentStatus !== "All") {
+				inspList = inspList.filter(row => row.status === currentStatus);
+			}
+
+			inspectionsContainer.innerHTML = `
+				<div class="sd-table-section">
+					<div class="sd-table-header-row">
+						<h3>Quality Inspection Records</h3>
+						<span class="sd-subtle-hint">Showing ${inspList.length} of ${qo.total_inspections_count} inspections</span>
+					</div>
+					${inspList.length > 0 ? `
+						<div class="sd-table-container">
+							<table class="sd-table sd-table-compact" aria-label="Quality Inspections Table">
+								<thead>
+									<tr>
+										<th>Inspection ID &amp; Date</th>
+										<th>Type &amp; Reference Document</th>
+										<th>Item Inspected</th>
+										<th>Inspection Result</th>
+										<th>Sample Size</th>
+										<th>Inspector</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									${inspList.map(row => `
+										<tr class="${row.is_rejected ? "sd-row-rejected" : ""}">
+											<td>
+												<div class="sd-qi-ident-cell">
+													<a href="javascript:void(0)" data-inspect-qi="${this.esc(row.name)}"><strong>${this.esc(row.name)}</strong></a>
+													<span class="sd-subtle-hint">${this.esc(row.report_date || "—")}</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-ref-cell">
+													<span class="sd-badge sd-badge-azure">${this.esc(row.inspection_type)}</span>
+													${row.reference_name ? `<span class="sd-subtle-hint">${this.esc(row.reference_type || "")}: ${this.esc(row.reference_name)}</span>` : `<span class="sd-subtle-hint">Standalone</span>`}
+												</div>
+											</td>
+											<td>
+												<div class="sd-item-cell">
+													<a href="javascript:void(0)" data-inspect-item="${this.esc(row.item_code)}"><strong>${this.esc(row.item_code)}</strong></a>
+													<span class="sd-subtle-hint" title="${this.esc(row.item_name)}">${this.esc(row.item_name)}</span>
+												</div>
+											</td>
+											<td>
+												<span class="sd-pill sd-status-${row.status === "Accepted" ? "green" : row.status === "Rejected" ? "red" : "amber"}">
+													${row.status === "Accepted" ? "✓" : row.status === "Rejected" ? "✕" : "✎"} ${this.esc(row.status)}
+												</span>
+											</td>
+											<td>
+												<span class="sd-qty-val">${this.num(row.sample_size)} ${this.esc(row.stock_uom)}</span>
+											</td>
+											<td>
+												<span class="sd-subtle-hint">${this.esc(row.inspected_by)}</span>
+											</td>
+											<td>
+												<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-qi="${this.esc(row.name)}" title="Inspect Quality Record">View ↗</a>
+											</td>
+										</tr>
+									`).join("")}
+								</tbody>
+							</table>
+						</div>
+					` : `
+						<div class="sd-empty-box">${this.empty("No quality inspection records found matching the selected filter.")}</div>
+					`}
+				</div>
+			`;
+		}
+	}
+
+	renderReworkOverview() {
+		const panel = this.el("[data-rework-overview-panel]");
+		if (!panel) return;
+		const ro = this.data?.rework_overview;
+		if (!ro || ro.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Rework &amp; Corrective Actions</h2>
+						<p>Corrective Job Cards, rework operations, parent job linkages, and defect resolution status</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(ro?.reason || "Rework and corrective action view is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		if (ro.rework_configured === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Rework &amp; Corrective Actions</h2>
+						<p>Corrective Job Cards, rework operations, parent job linkages, and defect resolution status</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-gray">Feature Not Configured</span>
+					</div>
+				</div>
+				<div class="sd-notice-box">
+					<div class="sd-notice-icon">ℹ️</div>
+					<div class="sd-notice-content">
+						<strong>Rework tracking is not configured</strong>
+						<p>${this.esc(ro.rework_note || "ERPNext Job Card is not configured with the corrective rework field (is_corrective_job_card). Rework tracking requires corrective Job Cards linked via for_job_card.")}</p>
+					</div>
+				</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-rework-badge]");
+		if (badge) {
+			badge.textContent = `As of ${ro.reference_date}`;
+		}
+
+		// 1. Render Rework KPIs
+		const kpisContainer = this.el("[data-rework-kpis]");
+		if (kpisContainer && ro.summary) {
+			const s = ro.summary;
+			kpisContainer.replaceChildren(
+				frappe.sarathiUI.kpi({
+					label: "Total Rework Jobs",
+					value: this.num(s.total_rework_jobs),
+					description: "Corrective Job Cards created",
+					indicator: "blue",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "In Progress Rework",
+					value: this.num(s.in_progress_rework),
+					description: "Currently being rectified",
+					indicator: s.in_progress_rework > 0 ? "blue" : "gray",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Queued Rework",
+					value: this.num(s.queued_rework),
+					description: "Awaiting shop-floor start",
+					indicator: s.queued_rework > 0 ? "amber" : "gray",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Completed Rework",
+					value: this.num(s.completed_rework),
+					description: "Successfully rectified",
+					indicator: "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Delayed Rework",
+					value: this.num(s.delayed_rework),
+					description: "Past target schedule",
+					indicator: s.delayed_rework > 0 ? "red" : "green",
+				})
+			);
+		}
+
+		// 2. Render Status Filters
+		const summaryContainer = this.el("[data-rework-summary]");
+		if (summaryContainer) {
+			const currentStatus = this.reworkSelectedStatus || "All";
+			summaryContainer.innerHTML = `
+				<div class="sd-table-web-toolbar">
+					<div class="sd-table-filter-pills">
+						<span class="sd-filter-label">Filter Status:</span>
+						<button type="button" class="sd-filter-pill ${currentStatus === "All" ? "active" : ""}" data-action="filter-rework-status" data-status="All">All (${ro.total_rework_count})</button>
+						<button type="button" class="sd-filter-pill ${currentStatus === "Open" ? "active" : ""}" data-action="filter-rework-status" data-status="Open">Open (${ro.summary.queued_rework})</button>
+						<button type="button" class="sd-filter-pill ${currentStatus === "Work In Progress" ? "active" : ""}" data-action="filter-rework-status" data-status="Work In Progress">In Progress (${ro.summary.in_progress_rework})</button>
+						<button type="button" class="sd-filter-pill ${currentStatus === "Completed" ? "active" : ""}" data-action="filter-rework-status" data-status="Completed">Completed (${ro.summary.completed_rework})</button>
+					</div>
+				</div>
+			`;
+		}
+
+		// 3. Render Rework Table
+		const jobsContainer = this.el("[data-rework-jobs]");
+		if (jobsContainer) {
+			const currentStatus = this.reworkSelectedStatus || "All";
+			let jobList = ro.rework_jobs || [];
+			if (currentStatus !== "All") {
+				jobList = jobList.filter(row => row.status === currentStatus);
+			}
+
+			jobsContainer.innerHTML = `
+				<div class="sd-table-section">
+					<div class="sd-table-header-row">
+						<h3>Corrective Rework Jobs</h3>
+						<span class="sd-subtle-hint">Showing ${jobList.length} of ${ro.total_rework_count} rework jobs</span>
+					</div>
+					${jobList.length > 0 ? `
+						<div class="sd-table-container">
+							<table class="sd-table sd-table-compact" aria-label="Rework Jobs Table">
+								<thead>
+									<tr>
+										<th>Corrective Job Card</th>
+										<th>Root Cause / Linked Records</th>
+										<th>Work Order &amp; Item</th>
+										<th>Operation &amp; Workstation</th>
+										<th>Status</th>
+										<th>Rework Qty</th>
+										<th>Target Date</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									${jobList.map(row => `
+										<tr class="${row.is_overdue ? "sd-row-overdue" : ""}">
+											<td>
+												<div class="sd-jc-ident-cell">
+													<a href="javascript:void(0)" data-inspect-jc="${this.esc(row.job_card)}"><strong>${this.esc(row.job_card)}</strong></a>
+													<span class="sd-badge sd-badge-purple">Corrective Job</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-linked-records-cell">
+													${row.original_job_card ? `<span>Original Job: <a href="javascript:void(0)" data-inspect-jc="${this.esc(row.original_job_card)}">${this.esc(row.original_job_card)}</a></span>` : ""}
+													${row.quality_inspection ? `<span>Defect QI: <a href="javascript:void(0)" data-inspect-qi="${this.esc(row.quality_inspection)}">${this.esc(row.quality_inspection)}</a></span>` : ""}
+													${!row.original_job_card && !row.quality_inspection ? `<span class="sd-subtle-hint">—</span>` : ""}
+												</div>
+											</td>
+											<td>
+												<div class="sd-wo-cell">
+													${row.work_order ? `<a href="javascript:void(0)" data-inspect-wo="${this.esc(row.work_order)}"><strong>${this.esc(row.work_order)}</strong></a>` : "—"}
+													<span class="sd-subtle-hint" title="${this.esc(row.production_item_name)}">${this.esc(row.production_item || "—")}</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-op-cell">
+													<strong>${this.esc(row.operation)}</strong>
+													<span class="sd-subtle-hint">📍 ${this.esc(row.workstation || "Unassigned")}</span>
+												</div>
+											</td>
+											<td>
+												<span class="sd-pill sd-status-${row.status === "Completed" ? "green" : row.status === "Work In Progress" ? "blue" : "amber"}">
+													${row.status === "Completed" ? "✓" : row.status === "Work In Progress" ? "⚙" : "•"} ${this.esc(row.status)}
+												</span>
+											</td>
+											<td>
+												<span class="sd-qty-val">${this.num(row.completed_quantity)} / ${this.num(row.rework_quantity)}</span>
+											</td>
+											<td>
+												<div class="sd-target-cell">
+													<span>${this.esc(row.target_completion_date || "—")}</span>
+													${row.is_overdue ? `<span class="sd-pill sd-status-red">${Math.abs(row.days_to_target)}d overdue</span>` : ""}
+												</div>
+											</td>
+											<td>
+												<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-jc="${this.esc(row.job_card)}" title="Inspect Job Card">View ↗</a>
+											</td>
+										</tr>
+									`).join("")}
+								</tbody>
+							</table>
+						</div>
+					` : `
+						<div class="sd-empty-box">${this.empty("No rework or corrective Job Cards match the selected filter.")}</div>
+					`}
+				</div>
+			`;
+		}
+	}
+
+	renderSubcontractingOverview() {
+		const panel = this.el("[data-subcontracting-overview-panel]");
+		if (!panel) return;
+		const sco = this.data?.subcontracting_overview;
+		if (!sco || sco.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Subcontracting Operations &amp; Receipts</h2>
+						<p>Outsourced production orders, supplier fulfillment, material reconciliation, and overdue receipts</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(sco?.reason || "Subcontracting Order view is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-subcontracting-badge]");
+		if (badge) {
+			badge.textContent = `As of ${sco.reference_date}`;
+		}
+
+		// 1. Render Subcontracting KPIs
+		const kpisContainer = this.el("[data-subcontracting-kpis]");
+		if (kpisContainer && sco.summary) {
+			const s = sco.summary;
+			kpisContainer.replaceChildren(
+				frappe.sarathiUI.kpi({
+					label: "Total Subcontract Orders",
+					value: this.num(s.total_subcontract_orders),
+					description: "Subcontracting orders recorded",
+					indicator: "blue",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Active Subcontracts",
+					value: this.num(s.active_subcontracts),
+					description: "In progress with suppliers",
+					indicator: "blue",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Awaiting Receipt",
+					value: this.num(s.awaiting_receipt_orders),
+					description: "Pending delivery from vendor",
+					indicator: s.awaiting_receipt_orders > 0 ? "amber" : "gray",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Overdue Subcontracts",
+					value: this.num(s.overdue_subcontracts),
+					description: "Past schedule date",
+					indicator: s.overdue_subcontracts > 0 ? "red" : "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Outstanding Units",
+					value: this.num(s.total_outstanding_units),
+					description: `Ordered: ${this.num(s.total_ordered_units)} · Received: ${this.num(s.total_received_units)}`,
+					indicator: s.total_outstanding_units > 0 ? "amber" : "green",
+				})
+			);
+		}
+
+		// 2. Render Subcontracting Orders Table
+		const ordersContainer = this.el("[data-subcontracting-orders]");
+		if (ordersContainer) {
+			const currentStatus = this.subcontractingSelectedStatus || "All";
+			let orderList = sco.orders || [];
+			if (currentStatus !== "All") {
+				orderList = orderList.filter(row => row.status === currentStatus);
+			}
+
+			ordersContainer.innerHTML = `
+				<div class="sd-table-section">
+					<div class="sd-table-header-row">
+						<div>
+							<h3>Subcontracting Orders &amp; Receipts</h3>
+							<span class="sd-subtle-hint">Showing ${orderList.length} of ${sco.total_orders_count} subcontracting orders</span>
+						</div>
+						<div class="sd-table-filter-pills">
+							<span class="sd-filter-label">Filter:</span>
+							<button type="button" class="sd-filter-pill ${currentStatus === "All" ? "active" : ""}" data-action="filter-subcontracting-status" data-status="All">All (${sco.total_orders_count})</button>
+							<button type="button" class="sd-filter-pill ${currentStatus === "Open" ? "active" : ""}" data-action="filter-subcontracting-status" data-status="Open">Open</button>
+							<button type="button" class="sd-filter-pill ${currentStatus === "Partially Received" ? "active" : ""}" data-action="filter-subcontracting-status" data-status="Partially Received">Partially Received</button>
+							<button type="button" class="sd-filter-pill ${currentStatus === "Completed" ? "active" : ""}" data-action="filter-subcontracting-status" data-status="Completed">Completed</button>
+						</div>
+					</div>
+					${orderList.length > 0 ? `
+						<div class="sd-table-container">
+							<table class="sd-table sd-table-compact" aria-label="Subcontracting Orders Table">
+								<thead>
+									<tr>
+										<th>Subcontracting Order &amp; PO</th>
+										<th>Supplier</th>
+										<th>Target Item</th>
+										<th>Quantities (Ordered / Recv / Outst)</th>
+										<th>Fulfillment Progress</th>
+										<th>Status</th>
+										<th>Target Date</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									${orderList.map(row => `
+										<tr class="${row.is_overdue ? "sd-row-overdue" : ""}">
+											<td>
+												<div class="sd-sco-ident-cell">
+													<a href="javascript:void(0)" data-inspect-sco="${this.esc(row.subcontracting_order)}"><strong>${this.esc(row.subcontracting_order)}</strong></a>
+													${row.purchase_order ? `<span class="sd-subtle-hint">PO: <a href="javascript:void(0)" data-inspect-po="${this.esc(row.purchase_order)}">${this.esc(row.purchase_order)}</a></span>` : ""}
+												</div>
+											</td>
+											<td>
+												<div class="sd-supplier-cell">
+													<a href="javascript:void(0)" data-inspect-supplier="${this.esc(row.supplier)}"><strong>${this.esc(row.supplier_name)}</strong></a>
+													<span class="sd-subtle-hint">${this.esc(row.supplier)}</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-item-cell">
+													<a href="javascript:void(0)" data-inspect-item="${this.esc(row.item_code)}"><strong>${this.esc(row.item_code)}</strong></a>
+													<span class="sd-subtle-hint" title="${this.esc(row.item_name)}">${this.esc(row.item_name)}</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-qty-cell">
+													<span>Ord: <b>${this.num(row.ordered_qty)}</b> ${this.esc(row.stock_uom)}</span>
+													<span class="sd-subtle-hint">Rec: ${this.num(row.received_qty)} · Out: ${this.num(row.outstanding_qty)}</span>
+												</div>
+											</td>
+											<td>
+												<div class="sd-progress-wrap">
+													<div class="sd-progress-bar">
+														<div class="sd-progress-fill" style="width: ${Math.min(100, Math.max(0, row.per_received))}%;"></div>
+													</div>
+													<span class="sd-progress-label">${row.per_received}%</span>
+												</div>
+											</td>
+											<td>
+												<span class="sd-pill sd-status-${row.status === "Completed" ? "green" : row.status === "Partially Received" ? "blue" : row.is_overdue ? "red" : "amber"}">
+													${row.status === "Completed" ? "✓" : row.status === "Partially Received" ? "◐" : "•"} ${this.esc(row.status)}
+												</span>
+											</td>
+											<td>
+												<div class="sd-target-cell">
+													<span>${this.esc(row.schedule_date || "—")}</span>
+													${row.is_overdue ? `<span class="sd-pill sd-status-red">${Math.abs(row.days_to_target)}d overdue</span>` : ""}
+												</div>
+											</td>
+											<td>
+												<a href="javascript:void(0)" class="sd-btn-xs" data-inspect-sco="${this.esc(row.subcontracting_order)}" title="Inspect Subcontracting Order">View ↗</a>
+											</td>
+										</tr>
+									`).join("")}
+								</tbody>
+							</table>
+						</div>
+					` : `
+						<div class="sd-empty-box">${this.empty("No Subcontracting Orders found matching the selected filter.")}</div>
+					`}
+				</div>
+			`;
+		}
+	}
+
+	renderProductionExceptions() {
+		const panel = this.el("[data-production-exceptions-panel]");
+		if (!panel) return;
+		const pe = this.data?.production_exceptions;
+		if (!pe || pe.available === false) {
+			panel.innerHTML = `
+				<div class="sd-panel-heading">
+					<div>
+						<h2>Production Exception &amp; Escalation Queue</h2>
+						<p>Prioritized operational bottlenecks, material shortages, machine downtime, quality defects, and vendor delays</p>
+					</div>
+					<div class="sd-panel-actions">
+						<span class="sd-pill sd-status-amber">Restricted Scope</span>
+					</div>
+				</div>
+				<div class="sd-empty-box">${this.empty(pe?.reason || "Production exception queue is unavailable for your permission scope.")}</div>
+			`;
+			return;
+		}
+
+		// Update badge
+		const badge = this.el("[data-exceptions-badge]");
+		if (badge) {
+			const critCount = pe.summary?.critical_exceptions || 0;
+			const totalOpen = pe.summary?.total_open_exceptions || 0;
+			badge.textContent = `${totalOpen} Open Exceptions (${critCount} Critical)`;
+			badge.className = `sd-pill sd-status-${critCount > 0 ? "red" : totalOpen > 0 ? "amber" : "green"}`;
+		}
+
+		// 1. Render Exception KPIs
+		const kpisContainer = this.el("[data-exceptions-kpis]");
+		if (kpisContainer && pe.summary) {
+			const s = pe.summary;
+			const otherCount = (s.quality_exceptions || 0) + (s.subcontracting_exceptions || 0) + (s.workstation_exceptions || 0);
+			kpisContainer.replaceChildren(
+				frappe.sarathiUI.kpi({
+					label: "Total Open Exceptions",
+					value: this.num(s.total_open_exceptions),
+					description: `${s.distinct_affected_documents} distinct document(s)`,
+					indicator: s.total_open_exceptions > 0 ? "red" : "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Critical Escalations",
+					value: this.num(s.critical_exceptions),
+					description: "Immediate action required",
+					indicator: s.critical_exceptions > 0 ? "red" : "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "High Priority",
+					value: this.num(s.high_exceptions),
+					description: "Significant production risk",
+					indicator: s.high_exceptions > 0 ? "amber" : "gray",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Production Delays",
+					value: this.num(s.production_exceptions),
+					description: "Overdue WOs & Job Cards",
+					indicator: s.production_exceptions > 0 ? "blue" : "gray",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Material Shortages",
+					value: this.num(s.material_exceptions),
+					description: "Deficits blocking production",
+					indicator: s.material_exceptions > 0 ? "red" : "green",
+				}),
+				frappe.sarathiUI.kpi({
+					label: "Quality & Subcontracts",
+					value: this.num(otherCount),
+					description: "Defects, downtime & vendor delays",
+					indicator: otherCount > 0 ? "purple" : "gray",
+				})
+			);
+		}
+
+		// 2. Render Toolbar (Category Pills, Severity Pills, Search Box)
+		const toolbarContainer = this.el("[data-exceptions-toolbar]");
+		if (toolbarContainer) {
+			const activeCat = this.exceptionSelectedCategory || "All";
+			const activeSev = this.exceptionSelectedSeverity || "All";
+			const searchVal = this.exceptionSearch || "";
+
+			toolbarContainer.innerHTML = `
+				<div class="sd-exc-toolbar">
+					<div class="sd-exc-filter-row">
+						<div class="sd-table-filter-pills">
+							<span class="sd-filter-label">Category:</span>
+							<button type="button" class="sd-filter-pill ${activeCat === "All" ? "active" : ""}" data-action="filter-exception-category" data-category="All">All (${pe.total_exceptions_count})</button>
+							<button type="button" class="sd-filter-pill ${activeCat === "Production" ? "active" : ""}" data-action="filter-exception-category" data-category="Production">🏭 Production (${pe.summary.production_exceptions})</button>
+							<button type="button" class="sd-filter-pill ${activeCat === "Material" ? "active" : ""}" data-action="filter-exception-category" data-category="Material">📦 Material (${pe.summary.material_exceptions})</button>
+							<button type="button" class="sd-filter-pill ${activeCat === "Workstation" ? "active" : ""}" data-action="filter-exception-category" data-category="Workstation">⚙️ Downtime (${pe.summary.workstation_exceptions})</button>
+							<button type="button" class="sd-filter-pill ${activeCat === "Quality" ? "active" : ""}" data-action="filter-exception-category" data-category="Quality">🔍 Quality (${pe.summary.quality_exceptions})</button>
+							<button type="button" class="sd-filter-pill ${activeCat === "Subcontracting" ? "active" : ""}" data-action="filter-exception-category" data-category="Subcontracting">🚚 Subcontracting (${pe.summary.subcontracting_exceptions})</button>
+						</div>
+					</div>
+					<div class="sd-exc-filter-row sd-exc-subrow">
+						<div class="sd-table-filter-pills">
+							<span class="sd-filter-label">Severity:</span>
+							<button type="button" class="sd-filter-pill ${activeSev === "All" ? "active" : ""}" data-action="filter-exception-severity" data-severity="All">All Severities</button>
+							<button type="button" class="sd-filter-pill sd-pill-sev-critical ${activeSev === "Critical" ? "active" : ""}" data-action="filter-exception-severity" data-severity="Critical">🔴 Critical (${pe.summary.critical_exceptions})</button>
+							<button type="button" class="sd-filter-pill sd-pill-sev-high ${activeSev === "High" ? "active" : ""}" data-action="filter-exception-severity" data-severity="High">🟠 High (${pe.summary.high_exceptions})</button>
+							<button type="button" class="sd-filter-pill sd-pill-sev-medium ${activeSev === "Medium" ? "active" : ""}" data-action="filter-exception-severity" data-severity="Medium">🔵 Medium (${pe.summary.medium_exceptions})</button>
+							<button type="button" class="sd-filter-pill sd-pill-sev-low ${activeSev === "Low" ? "active" : ""}" data-action="filter-exception-severity" data-severity="Low">⚪ Low (${pe.summary.low_exceptions})</button>
+						</div>
+						<div class="sd-table-search-wrap">
+							<input type="search" class="sd-table-search-input" data-exception-search placeholder="Search exceptions (ID, Item, WO, Supplier)..." value="${this.esc(searchVal)}" aria-label="Search exceptions">
+							${(activeCat !== "All" || activeSev !== "All" || searchVal) ? `<button type="button" class="sd-button sd-btn-xs" data-action="clear-exception-filters">Reset Filters</button>` : ""}
+						</div>
+					</div>
+				</div>
+			`;
+		}
+
+		// 3. Render Exception Table
+		this.renderExceptionTable();
+	}
+
+	renderExceptionTable() {
+		const tableContainer = this.el("[data-exceptions-table]");
+		if (!tableContainer) return;
+		const pe = this.data?.production_exceptions;
+		if (!pe || !pe.exceptions) return;
+
+		const activeCat = this.exceptionSelectedCategory || "All";
+		const activeSev = this.exceptionSelectedSeverity || "All";
+		const search = (this.exceptionSearch || "").toLowerCase();
+
+		let list = pe.exceptions;
+		if (activeCat !== "All") {
+			list = list.filter(e => e.category === activeCat);
+		}
+		if (activeSev !== "All") {
+			list = list.filter(e => e.severity === activeSev);
+		}
+		if (search) {
+			list = list.filter(e =>
+				(e.title || "").toLowerCase().includes(search) ||
+				(e.description || "").toLowerCase().includes(search) ||
+				(e.source_document || "").toLowerCase().includes(search) ||
+				(e.work_order || "").toLowerCase().includes(search) ||
+				(e.item_code || "").toLowerCase().includes(search) ||
+				(e.workstation || "").toLowerCase().includes(search) ||
+				(e.supplier_name || "").toLowerCase().includes(search)
+			);
+		}
+
+		const sevClass = (sev) => {
+			if (sev === "Critical") return "sd-sev-critical";
+			if (sev === "High") return "sd-sev-high";
+			if (sev === "Medium") return "sd-sev-medium";
+			return "sd-sev-low";
+		};
+
+		const catIcon = (cat) => {
+			if (cat === "Production") return "🏭";
+			if (cat === "Material") return "📦";
+			if (cat === "Workstation") return "⚙️";
+			if (cat === "Quality") return "🔍";
+			if (cat === "Subcontracting") return "🚚";
+			return "⚠️";
+		};
+
+		tableContainer.innerHTML = `
+			<div class="sd-table-section">
+				<div class="sd-table-header-row">
+					<div>
+						<h3>Prioritized Exception Queue</h3>
+						<span class="sd-subtle-hint">Showing ${list.length} of ${pe.total_exceptions_count} detected exceptions · Ranked by severity and duration</span>
+					</div>
+				</div>
+				${list.length > 0 ? `
+					<div class="sd-table-container">
+						<table class="sd-table sd-table-compact sd-exceptions-queue-table" aria-label="Production Exceptions Table">
+							<thead>
+								<tr>
+									<th>Severity</th>
+									<th>Exception &amp; Problem Details</th>
+									<th>Category &amp; Type</th>
+									<th>Source Document</th>
+									<th>Related Item / Station</th>
+									<th>Due Date &amp; Delay</th>
+									<th>Recommended Action</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								${list.map(e => `
+									<tr class="sd-exc-row ${sevClass(e.severity)}">
+										<td>
+											<span class="sd-pill ${sevClass(e.severity)}">
+												${e.severity === "Critical" ? "🔴 " : e.severity === "High" ? "🟠 " : e.severity === "Medium" ? "🔵 " : "⚪ "}
+												${this.esc(e.severity)}
+											</span>
+										</td>
+										<td>
+											<div class="sd-exc-problem-cell">
+												<strong>${this.esc(e.title)}</strong>
+												<p class="sd-exc-desc">${this.esc(e.description)}</p>
+												<span class="sd-badge sd-badge-azure">${this.esc(e.impact_summary)}</span>
+											</div>
+										</td>
+										<td>
+											<div class="sd-exc-type-cell">
+												<span class="sd-badge sd-badge-purple">${catIcon(e.category)} ${this.esc(e.category)}</span>
+												<span class="sd-subtle-hint">${this.esc(e.exception_type)}</span>
+											</div>
+										</td>
+										<td>
+											<div class="sd-exc-doc-cell">
+												${this.link(e.source_doctype, e.source_document)}
+												<span class="sd-subtle-hint">${this.esc(e.source_doctype)}</span>
+											</div>
+										</td>
+										<td>
+											<div class="sd-exc-context-cell">
+												${e.item_code ? `<span>Item: <a href="javascript:void(0)" data-inspect-item="${this.esc(e.item_code)}"><strong>${this.esc(e.item_code)}</strong></a></span>` : ""}
+												${e.workstation ? `<span>Station: <a href="javascript:void(0)" data-inspect-workstation="${this.esc(e.workstation)}"><strong>${this.esc(e.workstation)}</strong></a></span>` : ""}
+												${e.supplier ? `<span>Supplier: <a href="javascript:void(0)" data-inspect-supplier="${this.esc(e.supplier)}"><strong>${this.esc(e.supplier_name || e.supplier)}</strong></a></span>` : ""}
+												${!e.item_code && !e.workstation && !e.supplier ? `<span class="sd-subtle-hint">—</span>` : ""}
+											</div>
+										</td>
+										<td>
+											<div class="sd-target-cell">
+												<span>${this.esc(e.due_date || "—")}</span>
+												${e.delay_days !== null && e.delay_days > 0 ? `
+													<span class="sd-pill sd-status-red">${e.delay_days}d overdue</span>
+												` : e.delay_days === 0 ? `
+													<span class="sd-pill sd-status-amber">Due today</span>
+												` : ""}
+											</div>
+										</td>
+										<td>
+											<div class="sd-exc-rec-cell">
+												<p>${this.esc(e.recommended_action)}</p>
+											</div>
+										</td>
+										<td>
+											<a href="javascript:void(0)" class="sd-btn-xs" data-inspect="${this.esc(e.source_document)}" data-doctype="${this.esc(e.source_doctype)}" title="Inspect ${this.esc(e.source_doctype)}">Inspect ↗</a>
+										</td>
+									</tr>
+								`).join("")}
+							</tbody>
+						</table>
+					</div>
+				` : `
+					<div class="sd-empty-box">${this.empty("No open production exceptions found matching the selected category and severity filters.")}</div>
+				`}
+			</div>
+		`;
+	}
+
+	filterExceptionTable() {
+		this.renderExceptionTable();
+	}
+
+	wsStatusClass(status) {
+		const map = {
+			"Production": "green",
+			"Active": "green",
+			"Idle": "blue",
+			"Off": "gray",
+			"Problem": "red",
+			"Maintenance": "amber",
+			"Setup": "purple",
+		};
+		return map[status] || "blue";
+	}
+
+	wsStatusIcon(status) {
+		const map = {
+			"Production": "⚙️",
+			"Active": "⚙️",
+			"Idle": "⏸",
+			"Off": "⏹",
+			"Problem": "⚠",
+			"Maintenance": "🔧",
+			"Setup": "🛠",
+		};
+		return map[status] || "•";
+	}
+
+	readinessClass(status) {
+		const map = {
+			"Ready": "green",
+			"Partially Ready": "blue",
+			"Shortage": "red",
+			"Unknown": "amber",
+			"Not Applicable": "gray",
+		};
+		return map[status] || "gray";
+	}
+
+	readinessIcon(status) {
+		const map = {
+			"Ready": "✓",
+			"Partially Ready": "◐",
+			"Shortage": "⚠",
+			"Unknown": "?",
+			"Not Applicable": "—",
+		};
+		return map[status] || "•";
+	}
+
+	stageClass(stage) {
+		const map = {
+			"Material Staging": "amber",
+			"In Production": "blue",
+			"Manufacture Receipt": "purple",
+			"Completed": "green",
+			"Draft": "gray",
+			"Cancelled": "red",
+		};
+		return map[stage] || "subtle";
+	}
+
+	opStatusClass(status) {
+		const map = {
+			"Completed": "completed",
+			"In Progress": "in-progress",
+			"Waiting on Predecessor": "waiting",
+			"Ready to Start": "ready",
+			"Cancelled": "cancelled",
+		};
+		return map[status] || "ready";
+	}
+
+	opStatusIcon(status) {
+		const map = {
+			"Completed": "✓",
+			"In Progress": "⚙",
+			"Waiting on Predecessor": "⏳",
+			"Ready to Start": "•",
+			"Cancelled": "✕",
+		};
+		return map[status] || "•";
+	}
+
 	renderSubcontractingCard() {
 		const container = this.el("[data-subcontracting-cards]");
 		if (!container) return;
@@ -3019,10 +5052,7 @@ frappe.SarathiIndustrialDashboard = class {
         <p><b>${s.active_subcontracts}</b> Active Subcontracts · <b>${
 			s.pending_subcontracts
 		}</b> Pending Delivery</p>
-        <p class="sd-sub-card-mat">Material with Suppliers: <b>${this.formatCompact(
-			s.material_with_suppliers,
-			sym
-		)}</b></p>
+        <p class="sd-sub-card-mat">Material with Suppliers: <b>${s.material_with_suppliers === undefined ? __("Restricted") : this.formatCompact(s.material_with_suppliers, sym)}</b></p>
         <small>Open Subcontracting Control Tower →</small>
       </button>
     `;
@@ -3034,6 +5064,14 @@ frappe.SarathiIndustrialDashboard = class {
 			".sd-controls",
 			".sd-breadcrumb",
 			".sd-scope-note",
+			"[data-factory-overview-panel]",
+			"[data-production-pipeline-panel]",
+			"[data-material-readiness-panel]",
+			"[data-workstation-downtime-panel]",
+			"[data-quality-overview-panel]",
+			"[data-rework-overview-panel]",
+			"[data-subcontracting-overview-panel]",
+			"[data-production-exceptions-panel]",
 			".sd-kpis",
 			"[data-live-projects]",
 			"[data-subcontracting-card-panel]",
@@ -3063,6 +5101,14 @@ frappe.SarathiIndustrialDashboard = class {
 			".sd-controls",
 			".sd-breadcrumb",
 			".sd-scope-note",
+			"[data-factory-overview-panel]",
+			"[data-production-pipeline-panel]",
+			"[data-material-readiness-panel]",
+			"[data-workstation-downtime-panel]",
+			"[data-quality-overview-panel]",
+			"[data-rework-overview-panel]",
+			"[data-subcontracting-overview-panel]",
+			"[data-production-exceptions-panel]",
 			".sd-kpis",
 			"[data-live-projects]",
 			"[data-subcontracting-card-panel]",
@@ -3195,24 +5241,41 @@ frappe.SarathiIndustrialDashboard = class {
 		if (!silent && !this.subData) {
 			viewEl.innerHTML = `<div class="sd-sub-loading"><div class="sd-sub-spinner"></div><span>Loading Subcontracting Control Tower…</span></div>`;
 		}
+		const request = (this.subRequest = (this.subRequest || 0) + 1);
 		try {
 			const res = await frappe.call({
 				method: "sarathi_visibility.api.subcontracting.get_subcontracting_dashboard",
 				args: { filters: JSON.stringify(this.subFilters) },
 				silent: true,
 			});
+			if (request !== this.subRequest || this.view !== "subcontracting") return;
 			this.subData = res.message;
+			this.lastSubSuccessfulRefresh = new Date().toISOString();
 			this.renderSubcontractingDetailView();
 		} catch (err) {
+			if (request !== this.subRequest || this.view !== "subcontracting") return;
 			console.error("Subcontracting load error:", err);
-			viewEl.innerHTML = `
-        <div class="sd-sub-error">
-          <h3>Unable to load Subcontracting Control Tower</h3>
-          <p>Please ensure you have read permissions for Subcontracting Order and Stock Entry.</p>
-          <button class="sd-button" data-action="close-subcontracting">← Back to Dashboard</button>
-          <button class="sd-button sd-primary" data-action="refresh-subcontracting">↻ Try Again</button>
-        </div>
-      `;
+			if (this.subData && this.lastSubSuccessfulRefresh) {
+				const timeStr = window.frappe?.sarathiUI?.formatTimestamp ? frappe.sarathiUI.formatTimestamp(this.lastSubSuccessfulRefresh) : frappe.datetime.str_to_user(this.lastSubSuccessfulRefresh);
+				const existingBanner = viewEl.querySelector(".sui-stale-banner");
+				if (!existingBanner) {
+					const banner = document.createElement("div");
+					banner.className = "sui-stale-banner";
+					banner.setAttribute("role", "alert");
+					banner.style.margin = "12px 16px";
+					banner.innerHTML = `<p style="margin:0;">Subcontracting refresh failed. Showing data from last update (${timeStr}).</p><button type="button" class="sd-button sd-primary" data-action="refresh-subcontracting" style="margin-left:auto;">Retry</button>`;
+					viewEl.prepend(banner);
+				}
+			} else {
+				viewEl.innerHTML = `
+					<div class="sd-sub-error" role="alert">
+						<h3>Unable to load Subcontracting Control Tower</h3>
+						<p>Please ensure you have read permissions for Subcontracting Order and Stock Entry.</p>
+						<button class="sd-button" data-action="close-subcontracting">← Back to Dashboard</button>
+						<button class="sd-button sd-primary" data-action="refresh-subcontracting">↻ Try Again</button>
+					</div>
+				`;
+			}
 		}
 	}
 
@@ -3352,7 +5415,7 @@ frappe.SarathiIndustrialDashboard = class {
         </div>
         <div class="sd-kpi sd-tone-2">
           <span>Material Value at Subcontractors</span>
-          <strong>${this.formatCompact(k.material_value_at_subcontractors, sym)}</strong>
+          <strong>${k.material_value_at_subcontractors === undefined ? __("Restricted") : this.formatCompact(k.material_value_at_subcontractors, sym)}</strong>
           <small>Raw material in supplier field</small>
         </div>
         <div class="sd-kpi sd-tone-3">
@@ -3497,7 +5560,7 @@ frappe.SarathiIndustrialDashboard = class {
                     <td>${sa.orders}</td>
                     <td><span class="sd-pill sd-status-green">${sa.completed}</span></td>
                     <td>${sa.overdue ? `<span class="sd-pill sd-status-red">${sa.overdue}</span>` : "0"}</td>
-                    <td>${this.formatCompact(sa.material_value, sym)}</td>
+                    <td>${sa.material_value === undefined ? __("Restricted") : this.formatCompact(sa.material_value, sym)}</td>
                     <td>${this.formatCompact(sa.service_cost, sym)}</td>
                     <td><strong>${this.formatCompact(sa.total_cost, sym)}</strong></td>
                   </tr>
@@ -3884,7 +5947,7 @@ frappe.SarathiIndustrialDashboard = class {
                 <td>${this.num(m.consumed_quantity)} ${this.esc(m.uom)}</td>
                 <td><strong>${this.num(m.remaining_quantity)} ${this.esc(m.uom)}</strong></td>
                 <td>${this.formatCompact(m.rate, sym)}</td>
-                <td><strong>${this.formatCompact(m.material_value, sym)}</strong></td>
+                <td><strong>${m.material_value === undefined ? __("Restricted") : this.formatCompact(m.material_value, sym)}</strong></td>
                 <td>${this.link("Subcontracting Order", m.subcontracting_order)}</td>
                 <td><span class="sd-pill sd-status-${m.remaining_quantity > 0 ? "blue" : "green"}">${this.esc(
 							m.status
@@ -4044,6 +6107,10 @@ frappe.SarathiIndustrialDashboard = class {
 	renderAccountingCard() {
 		const container = this.el("[data-accounting-cards]");
 		if (!container) return;
+		if (this.data?.accounting_summary?.restricted) {
+			container.innerHTML = '<div class="sd-empty">Financial information is restricted by your permissions.</div>';
+			return;
+		}
 		const a = this.data?.accounting_summary || {
 			currency: "INR",
 			revenue: 0,
@@ -4122,6 +6189,14 @@ frappe.SarathiIndustrialDashboard = class {
 			".sd-controls",
 			".sd-breadcrumb",
 			".sd-scope-note",
+			"[data-factory-overview-panel]",
+			"[data-production-pipeline-panel]",
+			"[data-material-readiness-panel]",
+			"[data-workstation-downtime-panel]",
+			"[data-quality-overview-panel]",
+			"[data-rework-overview-panel]",
+			"[data-subcontracting-overview-panel]",
+			"[data-production-exceptions-panel]",
 			".sd-kpis",
 			"[data-live-projects]",
 			"[data-subcontracting-card-panel]",
@@ -4151,6 +6226,14 @@ frappe.SarathiIndustrialDashboard = class {
 			".sd-controls",
 			".sd-breadcrumb",
 			".sd-scope-note",
+			"[data-factory-overview-panel]",
+			"[data-production-pipeline-panel]",
+			"[data-material-readiness-panel]",
+			"[data-workstation-downtime-panel]",
+			"[data-quality-overview-panel]",
+			"[data-rework-overview-panel]",
+			"[data-subcontracting-overview-panel]",
+			"[data-production-exceptions-panel]",
 			".sd-kpis",
 			"[data-live-projects]",
 			"[data-subcontracting-card-panel]",
@@ -4275,6 +6358,9 @@ frappe.SarathiIndustrialDashboard = class {
 			});
 			if (request !== this.accountingRequest || this.view !== "accounting") return;
 			this.accData = r.message;
+			this.lastAccSuccessfulRefresh = new Date().toISOString();
+			const staleBanner = viewEl.querySelector(".sui-stale-banner");
+			if (staleBanner) staleBanner.remove();
 			if (hasContainer) {
 				this.renderAccountingDetailView();
 			} else {
@@ -4287,14 +6373,27 @@ frappe.SarathiIndustrialDashboard = class {
 		} catch (e) {
 			console.error("Failed to load accounting data:", e);
 			if (request === this.accountingRequest && this.view === "accounting") {
-				viewEl.innerHTML = `
-          <div class="sd-sub-error">
-            <h3>Accounting Data Unavailable</h3>
-            <p>Could not fetch accounting intelligence records. Check permissions for General Ledger and accounts.</p>
-            <button class="sd-button" data-action="refresh-accounting">Retry</button>
-            <button class="sd-button" data-action="close-accounting">← Return to Dashboard</button>
-          </div>
-        `;
+				if (this.accData && this.lastAccSuccessfulRefresh) {
+					const timeStr = window.frappe?.sarathiUI?.formatTimestamp ? frappe.sarathiUI.formatTimestamp(this.lastAccSuccessfulRefresh) : frappe.datetime.str_to_user(this.lastAccSuccessfulRefresh);
+					const existingBanner = viewEl.querySelector(".sui-stale-banner");
+					if (!existingBanner) {
+						const banner = document.createElement("div");
+						banner.className = "sui-stale-banner";
+						banner.setAttribute("role", "alert");
+						banner.style.margin = "12px 16px";
+						banner.innerHTML = `<p style="margin:0;">Accounting refresh failed. Showing data from last update (${timeStr}).</p><button type="button" class="sd-button sd-primary" data-action="refresh-accounting" style="margin-left:auto;">Retry</button>`;
+						viewEl.prepend(banner);
+					}
+				} else {
+					viewEl.innerHTML = `
+						<div class="sd-sub-error" role="alert">
+							<h3>Accounting Data Unavailable</h3>
+							<p>Could not fetch accounting intelligence records. Check permissions for General Ledger and accounts.</p>
+							<button class="sd-button" data-action="refresh-accounting">Retry</button>
+							<button class="sd-button" data-action="close-accounting">← Return to Dashboard</button>
+						</div>
+					`;
+				}
 			}
 		}
 	}
@@ -6066,958 +8165,10 @@ frappe.SarathiIndustrialDashboard = class {
     `;
 	}
 
-	/* ==========================================================================
-     Sarathi Industrial AI Agent Chatbot Methods (Ultra-Modern Live UI)
-     ========================================================================== */
 	initAiAssistant() {
-		if (document.getElementById("sarathiAiFab")) return;
-
-		// 1. Create Top Real-time Live Banner on Dashboard
-		if (!document.getElementById("sarathiLiveBanner")) {
-			const banner = document.createElement("div");
-			banner.className = "sd-live-banner";
-			banner.id = "sarathiLiveBanner";
-			banner.innerHTML = `
-        <span class="sd-live-beacon"></span>
-        <span class="sd-live-banner-title">⚡ Real-time Live Change:</span>
-        <span class="sd-live-banner-text" id="sarathiLiveBannerText">Record synchronized</span>
-        <button type="button" class="sd-live-banner-btn" id="sarathiLiveBannerBtn">Inspect in Dashboard</button>
-        <button type="button" class="sd-live-banner-close" id="sarathiLiveBannerClose">✕</button>
-      `;
-			document.body.appendChild(banner);
-			document.getElementById("sarathiLiveBannerClose")?.addEventListener("click", () => {
-				banner.classList.remove("active");
-			});
-		}
-
-		// 2. Create Floating Action Button (FAB)
-		const fab = document.createElement("button");
-		fab.className = "sd-ai-fab";
-		fab.id = "sarathiAiFab";
-		fab.title = "Open Sarathi AI Assistant (Autonomous ERPNext v16)";
-		fab.innerHTML = `
-      <div class="sd-ai-fab-pulse"></div>
-      <span class="sd-ai-fab-icon">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h2a5 5 0 0 1 5 5v1h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v1a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-1H3a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h1v-1a5 5 0 0 1 5-5h2V5.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2z" fill="#00f2fe"/>
-          <circle cx="8.5" cy="13.5" r="1.5" fill="#0b1320"/>
-          <circle cx="15.5" cy="13.5" r="1.5" fill="#0b1320"/>
-          <path d="M9 17.5c1 .8 2 .8 3 .8s2 0 3-.8" stroke="#0b1320" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <span class="sd-ai-fab-text">✨ AI Agent</span>
-      <span class="sd-ai-fab-status-dot"></span>
-    `;
-		document.body.appendChild(fab);
-
-		// 3. Create Chat Window
-		const win = document.createElement("div");
-		win.className = "sd-ai-chat-window";
-		win.id = "sarathiAiChatWindow";
-		win.style.display = "none";
-		win.innerHTML = `
-      <div class="sd-ai-chat-header">
-        <div class="sd-ai-chat-header-title">
-          <div class="sd-ai-avatar">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h2a5 5 0 0 1 5 5v1h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v1a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-1H3a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h1v-1a5 5 0 0 1 5-5h2V5.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2z" fill="#00f2fe"/>
-              <circle cx="8.5" cy="13.5" r="1.5" fill="#0b1320"/>
-              <circle cx="15.5" cy="13.5" r="1.5" fill="#0b1320"/>
-              <path d="M9 17.5c1 .8 2 .8 3 .8s2 0 3-.8" stroke="#0b1320" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="sd-ai-header-text">
-            <h3>Sarathi Industrial AI Agent</h3>
-            <p><span class="sd-ai-online-dot"></span> Online · ERPNext v16 Engine</p>
-          </div>
-        </div>
-        <div class="sd-ai-chat-actions">
-          <button class="sd-ai-btn-icon" id="sarathiAiClearBtn" title="Clear Conversation">🗑️</button>
-          <button class="sd-ai-btn-icon" id="sarathiAiResetBtn" title="Reset Session">🔄</button>
-          <button class="sd-ai-btn-icon" id="sarathiAiExpandBtn" title="Toggle Wide View">⛶</button>
-          <button class="sd-ai-btn-icon" id="sarathiAiCloseBtn" title="Close">✕</button>
-        </div>
-      </div>
-      <div class="sd-ai-chat-body" id="sarathiAiChatBody">
-        <div class="sd-ai-msg sd-ai-msg-bot">
-          👋 Hello! I am your <strong>Sarathi Industrial AI Agent</strong>.<br><br>
-          I provide real-time execution across all 13 ERPNext modules and 98 sections:
-          <ul class="sd-ai-ul">
-            <li class="sd-ai-li"><strong>🚀 Create Entities:</strong> <em>'Create a project'</em>, <em>'New account setup'</em>, <em>'Add customer'</em>, <em>'New Work Order'</em></li>
-            <li class="sd-ai-li"><strong>⚡ Live Changes:</strong> <em>'Show live changes'</em> to see real-time database activity</li>
-            <li class="sd-ai-li"><strong>📦 Inventory & Stock:</strong> <em>'Check stock in Stores'</em></li>
-          </ul>
-          Click a quick action below or type your instruction!
-        </div>
-      </div>
-      <div class="sd-ai-chips" id="sarathiAiChips"></div>
-      <div class="sd-ai-chat-footer">
-        <textarea class="sd-ai-input" id="sarathiAiInput" rows="1" placeholder="Ask AI... (e.g. 'Create a project', 'Show live changes')"></textarea>
-        <button class="sd-ai-send-btn" id="sarathiAiSendBtn" title="Send Instruction">➤</button>
-      </div>
-    `;
-		document.body.appendChild(win);
-
-		// Event listeners
-		fab.addEventListener("click", () => this.toggleAiChat());
-		document
-			.getElementById("sarathiAiCloseBtn")
-			?.addEventListener("click", () => this.toggleAiChat(false));
-		document.getElementById("sarathiAiClearBtn")?.addEventListener("click", () => {
-			this.clearAiConversation();
-		});
-		document.getElementById("sarathiAiResetBtn")?.addEventListener("click", () => {
-			this.sendAiMessage("reset");
-		});
-		document.getElementById("sarathiAiExpandBtn")?.addEventListener("click", () => {
-			win.classList.toggle("sd-ai-expanded");
-		});
-
-		const input = document.getElementById("sarathiAiInput");
-		const sendBtn = document.getElementById("sarathiAiSendBtn");
-
-		const doSend = () => {
-			const txt = input.value.trim();
-			if (!txt) return;
-			input.value = "";
-			this.sendAiMessage(txt);
-		};
-
-		sendBtn?.addEventListener("click", doSend);
-		input?.addEventListener("keydown", (e) => {
-			if (e.key === "Enter" && !e.shiftKey) {
-				e.preventDefault();
-				doSend();
-			}
-		});
-
-		this.refreshAiChips();
-	}
-
-	clearAiConversation() {
-		frappe.call({
-			method: "sarathi_visibility.api.agent_chat.send_message",
-			args: { message: "reset" },
-			callback: () => {},
-		});
-		const body = document.getElementById("sarathiAiChatBody");
-		if (body) {
-			body.innerHTML = `
-        <div class="sd-ai-msg sd-ai-msg-bot">
-          👋 Hello! I am your <strong>Sarathi Industrial AI Agent</strong>.<br><br>
-          ✨ <strong>Conversation cleared.</strong> Ready for your next instruction across all 13 ERPNext modules:
-          <ul class="sd-ai-ul">
-            <li class="sd-ai-li"><strong>🏢 Create Company:</strong> <em>'I want to create a new company'</em></li>
-            <li class="sd-ai-li"><strong>🚀 Create Project:</strong> <em>'I want to create a project'</em></li>
-            <li class="sd-ai-li"><strong>⚡ Live Changes:</strong> <em>'Show live changes'</em> to see real-time database activity</li>
-            <li class="sd-ai-li"><strong>📦 Inventory & Stock:</strong> <em>'Check stock in Stores'</em></li>
-          </ul>
-          Click a quick action below or type your instruction!
-        </div>
-      `;
-		}
-		const input = document.getElementById("sarathiAiInput");
-		if (input) {
-			input.value = "";
-			input.focus();
-		}
-		frappe.show_alert({ message: "Conversation history cleared", indicator: "blue" }, 2);
-	}
-
-	toggleAiChat(open) {
-		const win = document.getElementById("sarathiAiChatWindow");
-		if (!win) return;
-		const isVisible = win.style.display !== "none";
-		const nextState = open !== undefined ? open : !isVisible;
-		win.style.display = nextState ? "flex" : "none";
-		if (nextState) {
-			document.getElementById("sarathiAiInput")?.focus();
-			this.refreshAiChips();
-		}
-	}
-
-	triggerLiveBanner(doctype, name, title = "") {
-		const banner = document.getElementById("sarathiLiveBanner");
-		const textEl = document.getElementById("sarathiLiveBannerText");
-		const btn = document.getElementById("sarathiLiveBannerBtn");
-		if (!banner || !textEl) return;
-
-		textEl.innerHTML = `Created <strong>${this.esc(
-			doctype
-		)}</strong> <code style="background:#022c22;color:#6ee7b7;padding:2px 6px;border-radius:4px;">${this.esc(
-			name
-		)}</code> ${title ? `(${this.esc(title)})` : ""} · Dashboard Synchronized`;
-		banner.classList.add("active");
-
-		if (btn) {
-			btn.onclick = () => {
-				this.highlightDashboardEntity(doctype);
-			};
-		}
-
-		clearTimeout(this._liveBannerTimer);
-		this._liveBannerTimer = setTimeout(() => {
-			banner.classList.remove("active");
-		}, 8000);
-	}
-
-	highlightDashboardEntity(doctype) {
-		let target = null;
-		const dt = String(doctype || "").toLowerCase();
-		if (dt.includes("company") || dt.includes("organization")) {
-			target = this.el('[data-filter="company"]');
-		} else if (dt.includes("project")) {
-			target = this.el("[data-project-panel]") || this.el("[data-projects]");
-		} else if (dt.includes("customer")) {
-			target = this.el("[data-customer-panel]") || this.el("[data-customers]");
-		} else if (dt.includes("account") || dt.includes("cost center")) {
-			target = this.el("[data-accounting-card-panel]") || this.el("[data-accounting-cards]");
-		} else if (dt.includes("work order") || dt.includes("production")) {
-			target = this.el("[data-live-projects]");
-		}
-
-		if (target) {
-			target.scrollIntoView({ behavior: "smooth", block: "center" });
-			target.classList.remove("sd-live-highlight-pulse");
-			void target.offsetWidth; // trigger reflow
-			target.classList.add("sd-live-highlight-pulse");
-			setTimeout(() => {
-				target.classList.remove("sd-live-highlight-pulse");
-			}, 3000);
-		}
-	}
-
-	refreshAiChips() {
-		const chipsContainer = document.getElementById("sarathiAiChips");
-		if (!chipsContainer) return;
-		const chips = [
-			{ label: "🏢 Create Company", query: "I want to create a new company" },
-			{ label: "🚀 Create Project", query: "I want to create a project" },
-			{ label: "⚡ Live Changes", query: "Show live changes" },
-			{ label: "💼 New Account Setup", query: "I want to create new Account setup" },
-			{ label: "👥 Add Customer", query: "Create a new customer" },
-			{ label: "📦 Check Stock", query: "Check stock in Stores" },
-			{ label: "🏭 List Work Orders", query: "Show all Work Orders" },
-		];
-		if (this.filters.project) {
-			chips.unshift({
-				label: `📊 Status of ${this.filters.project}`,
-				query: `Check status of ${this.filters.project}`,
-			});
-		} else if (this.filters.customer) {
-			chips.unshift({
-				label: `📂 Projects for ${this.filters.customer}`,
-				query: `Show projects for ${this.filters.customer}`,
-			});
-		}
-		chipsContainer.innerHTML = chips
-			.map(
-				(c) =>
-					`<button class="sd-ai-chip" data-ai-query="${this.esc(c.query)}">${this.esc(
-						c.label
-					)}</button>`
-			)
-			.join("");
-
-		chipsContainer.querySelectorAll("[data-ai-query]").forEach((el) => {
-			el.addEventListener("click", () => {
-				this.sendAiMessage(el.dataset.aiQuery);
-			});
-		});
-	}
-
-	appendAiMessage(sender, text, payload = null) {
-		const body = document.getElementById("sarathiAiChatBody");
-		if (!body) return;
-		const msg = document.createElement("div");
-		msg.className = `sd-ai-msg ${sender === "user" ? "sd-ai-msg-user" : "sd-ai-msg-bot"}`;
-
-		if (sender === "user") {
-			msg.innerHTML = `<div class="sd-ai-user-bubble">${this.esc(text)}</div>`;
-		} else if (payload && payload.status === "COMPLETED" && payload.verified === true) {
-			// 1. MASTERPIECE COLORFUL SUCCESS CARD (STRICT READ-BACK VERIFIED)
-			const dt = payload.doctype || "Document";
-			const name = payload.name || "Record";
-			const dtUrl = `/app/${dt.toLowerCase().replace(/\s+/g, "-")}/${encodeURIComponent(name)}`;
-			const fields = payload.fields || {};
-
-			let attrGrid = "";
-			const fieldKeys = Object.keys(fields);
-			if (fieldKeys.length) {
-				attrGrid = `
-          <div class="sd-ai-attr-grid">
-            ${fieldKeys
-				.slice(0, 6)
-				.map(
-					(k) => `
-              <div class="sd-ai-attr-pill">
-                <span>${this.esc(k)}</span>
-                <strong>${this.esc(fields[k])}</strong>
-              </div>
-            `
-				)
-				.join("")}
-          </div>
-        `;
-			}
-
-			msg.innerHTML = `
-        <div class="sd-ai-card sd-ai-card-success">
-          <div class="sd-ai-card-header">
-            <span class="sd-ai-card-badge-live">● LIVE IN ERPNEXT</span>
-            <span class="sd-ai-card-badge-verified">✓ READ-BACK VERIFIED</span>
-            <h4>✨ ${this.esc(dt)} Created!</h4>
-          </div>
-          <div class="sd-ai-card-body">
-            <div class="sd-ai-id-row">
-              <span class="sd-ai-id-label">Record ID:</span>
-              <code class="sd-ai-id-code">${this.esc(name)}</code>
-            </div>
-            ${attrGrid}
-            <div class="sd-ai-card-text">${this.renderMarkdownLite(text)}</div>
-          </div>
-          <div class="sd-ai-card-actions">
-            <a href="${dtUrl}" target="_blank" rel="noopener" class="sd-ai-action-btn sd-ai-btn-primary">
-              🚀 Open ${this.esc(dt)} in Desk ↗
-            </a>
-            <button type="button" class="sd-ai-action-btn sd-ai-btn-secondary" data-ai-refresh>
-              ↻ Refresh Dashboard
-            </button>
-            <button type="button" class="sd-ai-action-btn sd-ai-btn-secondary" data-ai-highlight>
-              ⚡ Highlight in Dashboard
-            </button>
-          </div>
-        </div>
-      `;
-
-			msg.querySelector("[data-ai-refresh]")?.addEventListener("click", (e) => {
-				const aiBtn = e.currentTarget || msg.querySelector("[data-ai-refresh]");
-				if (aiBtn) aiBtn.classList.add("sd-spinning", "sod-spinning");
-				const p = this.load();
-				Promise.resolve(p).finally(() => {
-					if (aiBtn) setTimeout(() => aiBtn.classList.remove("sd-spinning", "sod-spinning"), 600);
-				});
-				frappe.show_alert(
-					{ message: "Dashboard reloaded with latest live records!", indicator: "green" },
-					3
-				);
-			});
-			msg.querySelector("[data-ai-highlight]")?.addEventListener("click", () => {
-				this.highlightDashboardEntity(dt);
-			});
-		} else if (payload && payload.status === "COLLECTING_SLOTS") {
-			// 2. INTERACTIVE QUESTIONNAIRE INTAKE CARD
-			const dt = payload.doctype || payload.target_doctype || "Record";
-			const missingDetails = payload.missing_details || [];
-			const primaryMissing = missingDetails[0] ? missingDetails[0].label : "Name";
-			const templateVal = `${primaryMissing}: `;
-
-			const CURRENCY_LIST = [
-				"INR",
-				"USD",
-				"EUR",
-				"GBP",
-				"AED",
-				"SAR",
-				"JPY",
-				"CAD",
-				"AUD",
-				"SGD",
-				"CHF",
-				"CNY",
-				"KWD",
-				"QAR",
-				"BHD",
-				"OMR",
-			];
-			const COUNTRY_LIST = [
-				"India",
-				"United States",
-				"United Kingdom",
-				"United Arab Emirates",
-				"Saudi Arabia",
-				"Germany",
-				"Canada",
-				"Australia",
-				"Singapore",
-				"Japan",
-				"France",
-				"China",
-				"Brazil",
-				"South Africa",
-			];
-
-			const KNOWN_OPTIONS = {
-				default_currency: CURRENCY_LIST,
-				currency: CURRENCY_LIST,
-				country: COUNTRY_LIST,
-				company: ["SarathiAILabs"],
-				customer_type: ["Company", "Individual"],
-				supplier_type: ["Company", "Individual"],
-				customer_group: [
-					"All Customer Groups",
-					"Commercial",
-					"Individual",
-					"Non Profit",
-					"Government",
-				],
-				territory: ["All Territories", "India", "Rest Of The World"],
-				supplier_group: [
-					"All Supplier Groups",
-					"Distributor",
-					"Manufacturer",
-					"Raw Material",
-					"Services",
-				],
-				item_group: [
-					"Products",
-					"All Item Groups",
-					"Raw Material",
-					"Services",
-					"Sub Assemblies",
-					"Consumables",
-				],
-				stock_uom: ["Nos", "Box", "Kg", "Meter", "Unit", "Pair", "Set", "Hour"],
-				uom: ["Nos", "Box", "Kg", "Meter", "Unit", "Pair", "Set", "Hour"],
-				priority: ["Medium", "Low", "High", "Urgent"],
-				status: ["Open", "Working", "Pending Review", "Overdue", "Completed", "Cancelled"],
-				order_type: ["Sales", "Maintenance", "Shopping Cart"],
-				material_request_type: [
-					"Purchase",
-					"Material Transfer",
-					"Material Issue",
-					"Manufacture",
-					"Customer Provided",
-				],
-				stock_entry_type: [
-					"Material Receipt",
-					"Material Issue",
-					"Material Transfer",
-					"Manufacture",
-					"Repack",
-				],
-				inspection_type: ["Incoming", "In Process", "Outgoing"],
-				reference_type: [
-					"Stock Entry",
-					"Purchase Receipt",
-					"Purchase Invoice",
-					"Delivery Note",
-					"Sales Invoice",
-				],
-				voucher_type: [
-					"Journal Entry",
-					"Bank Entry",
-					"Cash Entry",
-					"Credit Card Entry",
-					"Debit Note",
-					"Credit Note",
-				],
-				payment_type: ["Receive", "Pay", "Internal Transfer"],
-				party_type: ["Customer", "Supplier", "Employee"],
-				root_type: ["Expense", "Asset", "Liability", "Equity", "Income"],
-				default_letter_head: ["", "Company Letterhead - Grey", "Standard Letterhead"],
-				letter_head: ["", "Company Letterhead - Grey", "Standard Letterhead"],
-				valuation_method: ["FIFO", "Moving Average", "LIFO"],
-			};
-
-			const formRowsHtml = missingDetails
-				.map((m) => {
-					const fieldKey = m.field;
-					const fieldLabel = m.label || fieldKey.replace(/_/g, " ").toUpperCase();
-					const isReqd = m.reqd !== false;
-					const defaultVal = m.default !== undefined && m.default !== null ? m.default : "";
-					let placeholder = m.hint || `Enter ${fieldLabel}`;
-
-					const reqdBadge = isReqd
-						? `<span style="color:#ef4444;font-weight:bold;margin-left:3px;">*</span>`
-						: `<span style="color:#94a3b8;font-size:10.5px;font-weight:normal;margin-left:4px;">(Optional)</span>`;
-
-					// Parse options (Array, newline-delimited string, or fallback to KNOWN_OPTIONS)
-					let opts = null;
-					if (Array.isArray(m.options) && m.options.length > 0) {
-						opts = m.options;
-					} else if (typeof m.options === "string" && m.options.trim()) {
-						opts = m.options
-							.split("\n")
-							.map((s) => s.trim())
-							.filter(Boolean);
-					} else if (KNOWN_OPTIONS[fieldKey]) {
-						opts = KNOWN_OPTIONS[fieldKey];
-					}
-
-					// 1. Dropdown select
-					if (opts && opts.length > 0) {
-						return `
-            <div class="sd-ai-intake-form-row">
-              <label class="sd-ai-intake-label">📌 ${this.esc(fieldLabel)} ${reqdBadge}</label>
-              <select class="sd-ai-intake-input sd-ai-intake-select" data-intake-field="${this.esc(
-					fieldKey
-				)}" data-intake-reqd="${isReqd}" data-intake-label="${this.esc(fieldLabel)}">
-                ${opts
-					.map(
-						(opt) =>
-							`<option value="${this.esc(opt)}" ${
-								String(opt).toLowerCase() === String(defaultVal).toLowerCase()
-									? "selected"
-									: ""
-							}>${this.esc(opt === "" ? "-- None --" : opt)}</option>`
-					)
-					.join("")}
-              </select>
-            </div>
-          `;
-					}
-
-					// 2. Checkbox input
-					if (m.fieldtype === "Check") {
-						const isChecked = defaultVal == "1" || defaultVal === 1 || defaultVal === true;
-						return `
-            <div class="sd-ai-intake-form-row" style="margin-top:4px;">
-              <label class="sd-ai-intake-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                <input type="checkbox" class="sd-ai-intake-checkbox" data-intake-field="${this.esc(
-					fieldKey
-				)}" data-intake-reqd="${isReqd}" data-intake-label="${this.esc(fieldLabel)}" ${
-							isChecked ? "checked" : ""
-						} />
-                <span>📌 ${this.esc(fieldLabel)} ${reqdBadge}</span>
-              </label>
-            </div>
-          `;
-					}
-
-					// 3. Date input
-					if (m.fieldtype === "Date") {
-						return `
-            <div class="sd-ai-intake-form-row">
-              <label class="sd-ai-intake-label">📌 ${this.esc(fieldLabel)} ${reqdBadge}</label>
-              <input type="date" class="sd-ai-intake-input" data-intake-field="${this.esc(
-					fieldKey
-				)}" data-intake-reqd="${isReqd}" data-intake-label="${this.esc(
-							fieldLabel
-						)}" value="${this.esc(defaultVal)}" />
-            </div>
-          `;
-					}
-
-					// 4. Number / Float / Int / Currency input
-					if (["Float", "Int", "Currency", "Percent"].includes(m.fieldtype)) {
-						return `
-            <div class="sd-ai-intake-form-row">
-              <label class="sd-ai-intake-label">📌 ${this.esc(fieldLabel)} ${reqdBadge}</label>
-              <input type="number" step="${
-					m.fieldtype === "Int" ? "1" : "0.01"
-				}" class="sd-ai-intake-input" data-intake-field="${this.esc(
-							fieldKey
-						)}" data-intake-reqd="${isReqd}" data-intake-label="${this.esc(
-							fieldLabel
-						)}" placeholder="${this.esc(placeholder)}" value="${this.esc(defaultVal)}" />
-            </div>
-          `;
-					}
-
-					// 5. Standard Text Inputs
-					if (fieldKey === "company_name")
-						placeholder = "e.g. Gaurav Manufacture private limited company";
-					else if (fieldKey === "abbr") placeholder = "Auto-generated (e.g. GMplc or gmpl)";
-					else if (fieldKey === "project_name") placeholder = "e.g. Office Furniture 2026";
-					else if (fieldKey === "customer_name") placeholder = "e.g. Zenith Robotics Ltd";
-					else if (fieldKey === "supplier_name") placeholder = "e.g. Precision Fasteners Ltd";
-					else if (fieldKey === "item_code") placeholder = "e.g. ITEM-MOTOR-01";
-					else if (fieldKey === "warehouse_name") placeholder = "e.g. Finished Goods Pune";
-
-					return `
-          <div class="sd-ai-intake-form-row">
-            <label class="sd-ai-intake-label">📌 ${this.esc(fieldLabel)} ${reqdBadge}</label>
-            <input type="text" class="sd-ai-intake-input" data-intake-field="${this.esc(
-				fieldKey
-			)}" data-intake-reqd="${isReqd}" data-intake-label="${this.esc(
-						fieldLabel
-					)}" placeholder="${this.esc(placeholder)}" value="${this.esc(defaultVal)}" />
-          </div>
-        `;
-				})
-				.join("");
-
-			msg.innerHTML = `
-        <div class="sd-ai-card sd-ai-card-intake">
-          <div class="sd-ai-intake-header">
-            <h4>📋 Requirements Needed for ${this.esc(dt)}</h4>
-            <span class="sd-ai-intake-badge">Slot Intake</span>
-          </div>
-          <div class="sd-ai-intake-desc">
-            ${this.renderMarkdownLite(text)}
-          </div>
-          <div class="sd-ai-intake-form">
-            ${formRowsHtml}
-            <div class="sd-ai-intake-actions">
-              <button type="button" class="sd-ai-action-btn sd-ai-btn-primary" data-intake-submit>
-                🚀 Apply & Proceed
-              </button>
-              <button type="button" class="sd-ai-action-btn sd-ai-btn-secondary" data-intake-cancel>
-                ✕ Cancel
-              </button>
-            </div>
-          </div>
-          <div style="margin-top:12px;font-size:11px;color:#94a3b8;">
-            💬 <em>Or type directly in the chatbox below (e.g. <code>${this.esc(templateVal)}</code>)</em>
-          </div>
-        </div>
-      `;
-
-			// Auto-generate Abbreviation in real-time when user types company name (e.g. GMplc or gmpl)
-			const compInp = msg.querySelector('[data-intake-field="company_name"]');
-			const abbrInp = msg.querySelector('[data-intake-field="abbr"]');
-			if (compInp && abbrInp) {
-				compInp.addEventListener("input", () => {
-					const raw = compInp.value.trim();
-					if (raw) {
-						const words = raw.split(/[\s\-_]+/).filter(Boolean);
-						const genAbbr = words.map((w) => w.charAt(0)).join("");
-						abbrInp.value = genAbbr;
-					} else {
-						abbrInp.value = "";
-					}
-				});
-			}
-
-			msg.querySelector("[data-intake-submit]")?.addEventListener("click", () => {
-				const inputs = msg.querySelectorAll("[data-intake-field]");
-				const vals = [];
-				let missingReqd = false;
-				let missingLabel = "";
-				let primaryVal = "";
-				const summaryParts = [];
-
-				inputs.forEach((inp) => {
-					let val = "";
-					if (inp.type === "checkbox") {
-						val = inp.checked ? "1" : "0";
-					} else {
-						val = inp.value.trim();
-					}
-					const fKey = inp.dataset.intakeField;
-					const isReqd = inp.dataset.intakeReqd === "true";
-					const fLabel = inp.dataset.intakeLabel || fKey;
-
-					if (isReqd && !val) {
-						missingReqd = true;
-						if (!missingLabel) missingLabel = fLabel;
-						inp.style.borderColor = "#ef4444";
-					} else {
-						inp.style.borderColor = "";
-					}
-
-					if (val) {
-						vals.push(`${fKey}: ${val}`);
-						if (
-							!primaryVal &&
-							[
-								"company_name",
-								"project_name",
-								"customer_name",
-								"supplier_name",
-								"item_code",
-								"warehouse_name",
-								"subject",
-								"email",
-							].includes(fKey)
-						) {
-							primaryVal = val;
-						} else if (fKey !== "doctype" && fKey !== "name") {
-							summaryParts.push(`${fLabel}: ${val}`);
-						}
-					}
-				});
-
-				if (missingReqd) {
-					frappe.show_alert(
-						{ message: `Please enter mandatory field: ${missingLabel}`, indicator: "orange" },
-						3
-					);
-					return;
-				}
-
-				if (vals.length > 0) {
-					let displayText = vals.join(", ");
-					if (primaryVal) {
-						displayText =
-							summaryParts.length > 0
-								? `${primaryVal} (${summaryParts.slice(0, 3).join(", ")})`
-								: primaryVal;
-					}
-					this.sendAiMessage(vals.join(", "), displayText);
-				} else {
-					frappe.show_alert(
-						{
-							message: "Please fill in the required field(s) or type in the chatbox below",
-							indicator: "orange",
-						},
-						3
-					);
-				}
-			});
-
-			msg.querySelector("[data-intake-cancel]")?.addEventListener("click", () => {
-				this.sendAiMessage("Cancel");
-			});
-		} else if (payload && payload.status === "AWAITING_CONFIRMATION") {
-			// 3. INTERACTIVE PRE-MUTATION CONFIRMATION CARD
-			const dt = payload.doctype || payload.target_doctype || "Record";
-			const pValues = payload.pending_values || {};
-			const actionSteps = payload.action_steps || [
-				`${payload.module || dt} Skill loaded`,
-				`${dt} DocType identified`,
-				"Required fields available",
-				"Permission checked",
-				"Duplicate check completed",
-			];
-
-			const EXCLUDE_KEYS = new Set([
-				"doctype",
-				"name",
-				"is_group",
-				"allow_account_creation_against_child_company",
-				"book_advance_payments_in_separate_party_account",
-				"reconcile_on_advance_payment_date",
-				"reconciliation_takes_effect_on",
-				"auto_exchange_rate_revaluation",
-				"submit_err_jv",
-				"enable_perpetual_inventory",
-				"enable_item_wise_inventory_account",
-				"enable_provisional_accounting_for_non_stock_items",
-				"valuation_method",
-				"idx",
-				"docstatus",
-				"naming_series",
-				"lft",
-				"rgt",
-				"old_parent",
-				"disabled",
-			]);
-
-			let summaryHtml = "";
-			const valKeys = Object.keys(pValues).filter(
-				(k) =>
-					!EXCLUDE_KEYS.has(k.toLowerCase()) &&
-					pValues[k] !== undefined &&
-					pValues[k] !== null &&
-					pValues[k] !== ""
-			);
-			if (valKeys.length) {
-				summaryHtml = `
-          <div class="sd-ai-attr-grid" style="margin-top:10px;">
-            ${valKeys
-				.map(
-					(k) => `
-              <div class="sd-ai-attr-pill">
-                <span>${this.esc(k.replace(/_/g, " ").toUpperCase())}</span>
-                <strong>${this.esc(pValues[k])}</strong>
-              </div>
-            `
-				)
-				.join("")}
-          </div>
-        `;
-			}
-
-			msg.innerHTML = `
-        <div class="sd-ai-card sd-ai-card-confirmation">
-          <div class="sd-ai-confirm-header">
-            <h4>📋 Ready to Create: ${this.esc(dt)}</h4>
-            <span class="sd-ai-card-badge-confirm">⚡ Validation Complete</span>
-          </div>
-          <div class="sd-ai-confirm-body">
-            <div class="sd-ai-validation-checklist">
-              ${actionSteps
-					.map(
-						(step) => `
-                <div class="sd-ai-check-item">
-                  <span class="sd-ai-check-icon">✓</span>
-                  <span>${this.esc(step)}</span>
-                </div>
-              `
-					)
-					.join("")}
-            </div>
-            ${summaryHtml}
-            <div class="sd-ai-confirm-callout">
-              Ready to create the <strong>${this.esc(dt)}</strong> in ERPNext. Please confirm to proceed.
-            </div>
-          </div>
-          <div class="sd-ai-card-actions">
-            <button type="button" class="sd-ai-action-btn sd-ai-btn-confirm" data-ai-confirm>
-              ✓ Confirm & Create
-            </button>
-            <button type="button" class="sd-ai-action-btn sd-ai-btn-cancel" data-ai-cancel>
-              ✕ Cancel
-            </button>
-          </div>
-        </div>
-      `;
-
-			msg.querySelector("[data-ai-confirm]")?.addEventListener("click", () => {
-				this.sendAiMessage("Confirm");
-			});
-			msg.querySelector("[data-ai-cancel]")?.addEventListener("click", () => {
-				this.sendAiMessage("Cancel");
-			});
-		} else if (payload && payload.status === "LIVE_CHANGES") {
-			// 3. REAL-TIME ACTIVITY STREAM CARD
-			const changes = payload.changes || [];
-			msg.innerHTML = `
-        <div class="sd-ai-card sd-ai-card-changes">
-          <div class="sd-ai-changes-header">
-            <h4>⚡ Live System Activity</h4>
-            <span class="sd-ai-card-badge-live">● REAL-TIME FEED</span>
-          </div>
-          <div class="sd-ai-changes-list">
-            ${
-				changes
-					.map(
-						(c) => `
-              <div class="sd-ai-change-item">
-                <div>
-                  <a href="${c.url}" target="_blank" rel="noopener">${this.esc(c.doctype)}: ${this.esc(
-							c.name
-						)}</a>
-                  <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${this.esc(c.title)}</div>
-                </div>
-                <span class="sd-pill sd-status-blue">${this.esc(c.status)}</span>
-              </div>
-            `
-					)
-					.join("") || '<div class="sd-empty">No recent changes found.</div>'
-			}
-          </div>
-        </div>
-      `;
-		} else {
-			// Default formatted bubble
-			msg.innerHTML = `
-        <div class="sd-ai-bot-bubble">
-          ${this.renderMarkdownLite(text)}
-        </div>
-      `;
-		}
-
-		body.appendChild(msg);
-		body.scrollTop = body.scrollHeight;
-	}
-
-	sendAiMessage(text, displayText = null) {
-		this.appendAiMessage("user", displayText || text);
-		const body = document.getElementById("sarathiAiChatBody");
-
-		// Add animated Live Multi-Step Execution Indicator
-		const typing = document.createElement("div");
-		typing.className = "sd-ai-typing-indicator";
-		typing.id = "sarathiAiTyping";
-		typing.innerHTML = `
-      <div class="sd-ai-typing-top">
-        <div class="sd-ai-live-spinner"></div>
-        <span class="sd-ai-step-text" id="sarathiAiStepText">🔮 Analyzing intent & scanning 13 modules…</span>
-      </div>
-      <div class="sd-ai-progress-track">
-        <div class="sd-ai-progress-bar"></div>
-      </div>
-    `;
-		body.appendChild(typing);
-		body.scrollTop = body.scrollHeight;
-
-		// Dynamic step text cycle while server computes
-		const stepEl = typing.querySelector("#sarathiAiStepText");
-		const steps = [
-			"⚙️ Checking schema prerequisites & dependencies…",
-			"🚀 Executing ERPNext database transaction…",
-			"📊 Auto-synchronizing live dashboard data…",
-		];
-		let stepIdx = 0;
-		const stepTimer = setInterval(() => {
-			if (stepEl && steps[stepIdx]) {
-				stepEl.textContent = steps[stepIdx];
-				stepIdx = (stepIdx + 1) % steps.length;
-			}
-		}, 1200);
-
-		frappe.call({
-			method: "sarathi_visibility.api.agent_chat.send_message",
-			args: {
-				message: text,
-				company: this.filters.company || "SarathiAILabs",
-				customer: this.filters.customer || "",
-				project: this.filters.project || "",
-			},
-			callback: (r) => {
-				clearInterval(stepTimer);
-				typing.remove();
-				if (r.message && r.message.message) {
-					this.appendAiMessage("bot", r.message.message, r.message);
-
-					// LIVE REAL-TIME DASHBOARD SYNCHRONIZATION (ONLY WHEN BACKEND VERIFIED === TRUE)
-					if (r.message.status === "COMPLETED" && r.message.verified === true) {
-						const dt = r.message.doctype || "Record";
-						const name = r.message.name || "";
-
-						// 1. Show Top Floating Live Banner on Dashboard!
-						this.triggerLiveBanner(dt, name);
-
-						// 2. Flash Glowing Border on Dashboard Section!
-						this.highlightDashboardEntity(dt);
-
-						// 3. Show Native Frappe Alert!
-						frappe.show_alert(
-							{
-								message: `<span style="font-weight:700;">⚡ Real-time Live Change:</span> ${dt} <strong>${name}</strong> created. Dashboard synchronized!`,
-								indicator: "green",
-							},
-							5
-						);
-
-						// 4. Reload Dashboard Data Immediately!
-						this.load();
-					}
-				} else {
-					this.appendAiMessage("bot", "Received response from agent.");
-				}
-			},
-			error: (err) => {
-				clearInterval(stepTimer);
-				typing.remove();
-				this.appendAiMessage(
-					"bot",
-					"⚠️ Communication error with Sarathi AI Agent. Please check server logs."
-				);
-			},
-		});
-	}
-
-	renderMarkdownLite(md) {
-		if (!md) return "";
-		let html = md.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-		// Bold
-		html = html.replace(/\*\*(.+?)\*\*/g, "<strong class='sd-ai-bold'>$1</strong>");
-		// Italic
-		html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
-		// Inline code
-		html = html.replace(/`([^`]+)`/g, "<code class='sd-ai-code'>$1</code>");
-		// Markdown links [text](url)
-		html = html.replace(
-			/\[([^\]]+)\]\(([^)]+)\)/g,
-			'<a href="$2" target="_blank" rel="noopener" class="sd-ai-link">$1 ↗</a>'
-		);
-		// Blockquotes
-		html = html.replace(/^>\s*(.+)$/gm, "<div class='sd-ai-quote'>$1</div>");
-		// Lists
-		html = html.replace(/^\s*-\s+(.+)$/gm, "<li class='sd-ai-li'>$1</li>");
-		html = html.replace(/(<li class='sd-ai-li'>.+<\/li>)/gs, "<ul class='sd-ai-ul'>$1</ul>");
-		// Numbered lists
-		html = html.replace(
-			/^\s*(\d+)\.\s+(.+)$/gm,
-			"<div class='sd-ai-num-step'><span class='sd-ai-step-badge'>$1</span><span>$2</span></div>"
-		);
-		// Line breaks
-		html = html.replace(/\n\n/g, "<div class='sd-ai-gap'></div>").replace(/\n/g, "<br>");
-		return html;
-	}
+        frappe.SarathiDashboardAssistant.attach(this);
+    }
+    toggleAiChat(open) {
+        frappe.sarathiDashboardAssistant?.toggleAiChat(open);
+    }
 };

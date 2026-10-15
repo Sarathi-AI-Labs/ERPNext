@@ -1,0 +1,29 @@
+{
+  "doctype": "Page",
+  "name": "sarathishopfloor",
+  "page_name": "sarathishopfloor",
+  "title": "Shop-Floor Workboard",
+  "module": "Sarathi Visibility",
+  "standard": "Yes",
+  "system_page": 0,
+  "roles": [
+    {
+      "role": "Sarathi Operator"
+    },
+    {
+      "role": "Sarathi Supervisor"
+    },
+    {
+      "role": "Manufacturing Manager"
+    },
+    {
+      "role": "System Manager"
+    },
+    {
+      "role": "Sarathi Super Admin"
+    },
+    {
+      "role": "Sarathi Owner"
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import json
 from urllib.parse import quote, urlencode, urlsplit
 
 import frappe
+from sarathi_visibility.api.access import check_record, authorized, FINANCIAL_DOCTYPES, MONEY_FIELDS, can_finance, deny
 from frappe.utils import cint, now
 
 SCALAR_TYPES = {
@@ -228,6 +229,7 @@ def _modules():
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_catalog(known_revision=None):
 	_require_desk()
 	revision = _revision()
@@ -271,6 +273,7 @@ def _fields(meta, parenttype=None):
 		for f in meta.fields
 		if f.fieldname in permitted
 		and not f.hidden
+		and (can_finance() or (f.fieldtype != "Currency" and f.fieldname not in MONEY_FIELDS))
 		and not f.get("mask")
 		and f.fieldtype in SCALAR_TYPES | {"Table", "Table MultiSelect"}
 	]
@@ -304,12 +307,15 @@ def _schema(meta):
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_entry(module, entry, name=None, search="", start=0):
 	item = _entry(module, entry)
 	response = {"entry": item, "updated_at": now()}
 	if item["kind"] != "DocType":
 		return response
 	dt = item["target"]
+	if dt in FINANCIAL_DOCTYPES and not can_finance():
+		deny()
 	if not frappe.has_permission(dt, "read"):
 		frappe.throw("Read access is required.", frappe.PermissionError)
 	meta = frappe.get_meta(dt)
@@ -325,8 +331,7 @@ def get_entry(module, entry, name=None, search="", start=0):
 	if meta.is_virtual:
 		return response
 	if name or meta.issingle:
-		doc = frappe.get_doc(dt, name or dt)
-		doc.check_permission("read")
+		doc = check_record(dt, name or dt)
 		doc.apply_fieldlevel_read_permissions()
 		response["name"] = doc.name
 		response["values"] = {

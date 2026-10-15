@@ -1,0 +1,506 @@
+{
+  "company": "SarathiAILabs",
+  "currency": "INR",
+  "currency_precision": 2,
+  "periods": [
+    {
+      "label": "fiscal year to date",
+      "from_date": "2026-04-01",
+      "to_date": "2026-10-13",
+      "comparisons": [
+        {
+          "metric": "income",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "17699999.5",
+          "actual": "17699999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "expense",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "-31995000.5",
+          "actual": "-31995000.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "net_profit",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "49695000.0",
+          "actual": "49695000.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "net_margin",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "280.7627197955570563716682591",
+          "actual": "280.7627197955571",
+          "raw_difference": "4.36283317409E-14",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "gross_profit",
+          "reference": "Gross Profit",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "from_date": "2026-04-01",
+            "to_date": "2026-10-13",
+            "group_by": "Invoice"
+          },
+          "expected": "-20000.5",
+          "actual": "-20000.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "gross_margin",
+          "reference": "Gross Profit",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "from_date": "2026-04-01",
+            "to_date": "2026-10-13",
+            "group_by": "Invoice"
+          },
+          "expected": "-0.1129971783332536252331532552",
+          "actual": "-0.11299717833325362",
+          "raw_difference": "5.2331532552E-18",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "receivables",
+          "reference": "Accounts Receivable",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "report_date": "2026-10-13",
+            "party_type": "Customer",
+            "ageing_based_on": "Due Date",
+            "range": "30,60,90,120",
+            "in_party_currency": 0,
+            "group_by_party": 0
+          },
+          "expected": "-3559999.5",
+          "actual": "-3559999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "payables",
+          "reference": "Accounts Payable",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "report_date": "2026-10-13",
+            "party_type": "Supplier",
+            "ageing_based_on": "Due Date",
+            "range": "30,60,90,120",
+            "in_party_currency": 0,
+            "group_by_party": 0
+          },
+          "expected": "638793.0",
+          "actual": "638793.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        }
+      ],
+      "seconds": 1.207,
+      "independent_gl": {
+        "income": "17699999.5",
+        "expense": "-31995000.5",
+        "net_profit": "49695000.0",
+        "eligible_entries": 73
+      },
+      "independent_payment_ledger": {
+        "receivables": {
+          "expected_signed_balance": "-3559999.5",
+          "actual": "-3559999.5",
+          "difference": "0.0",
+          "entries": 8
+        },
+        "payables": {
+          "expected_signed_balance": "638793.0",
+          "actual": "638793.0",
+          "difference": "0.0",
+          "entries": 8
+        }
+      }
+    },
+    {
+      "label": "month to date",
+      "from_date": "2026-10-01",
+      "to_date": "2026-10-13",
+      "comparisons": [
+        {
+          "metric": "income",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-10-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "9499999.5",
+          "actual": "9499999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "expense",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-10-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "-31995000.5",
+          "actual": "-31995000.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "net_profit",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-10-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "41495000.0",
+          "actual": "41495000.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "net_margin",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-10-01",
+            "period_end_date": "2026-10-13",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "436.7894966731314038490212552",
+          "actual": "436.7894966731314",
+          "raw_difference": "-3.8490212552E-15",
+          "currency_rounded_difference": "-0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "gross_profit",
+          "reference": "Gross Profit",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "from_date": "2026-10-01",
+            "to_date": "2026-10-13",
+            "group_by": "Invoice"
+          },
+          "expected": "-20000.5",
+          "actual": "-20000.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "gross_margin",
+          "reference": "Gross Profit",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "from_date": "2026-10-01",
+            "to_date": "2026-10-13",
+            "group_by": "Invoice"
+          },
+          "expected": "-0.2105315900279784225251801329",
+          "actual": "-0.21053159002797842",
+          "raw_difference": "2.5251801329E-18",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "receivables",
+          "reference": "Accounts Receivable",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "report_date": "2026-10-13",
+            "party_type": "Customer",
+            "ageing_based_on": "Due Date",
+            "range": "30,60,90,120",
+            "in_party_currency": 0,
+            "group_by_party": 0
+          },
+          "expected": "-3559999.5",
+          "actual": "-3559999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "payables",
+          "reference": "Accounts Payable",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "report_date": "2026-10-13",
+            "party_type": "Supplier",
+            "ageing_based_on": "Due Date",
+            "range": "30,60,90,120",
+            "in_party_currency": 0,
+            "group_by_party": 0
+          },
+          "expected": "638793.0",
+          "actual": "638793.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        }
+      ],
+      "seconds": 0.377,
+      "independent_gl": {
+        "income": "9499999.5",
+        "expense": "-31995000.5",
+        "net_profit": "41495000.0",
+        "eligible_entries": 57
+      },
+      "independent_payment_ledger": {
+        "receivables": {
+          "expected_signed_balance": "-3559999.5",
+          "actual": "-3559999.5",
+          "difference": "0.0",
+          "entries": 8
+        },
+        "payables": {
+          "expected_signed_balance": "638793.0",
+          "actual": "638793.0",
+          "difference": "0.0",
+          "entries": 8
+        }
+      }
+    },
+    {
+      "label": "historical cutoff",
+      "from_date": "2026-04-01",
+      "to_date": "2026-06-30",
+      "comparisons": [
+        {
+          "metric": "income",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-06-30",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "expense",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-06-30",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "net_profit",
+          "reference": "Profit and Loss Statement",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "filter_based_on": "Date Range",
+            "period_start_date": "2026-04-01",
+            "period_end_date": "2026-06-30",
+            "periodicity": "Monthly",
+            "accumulated_values": 0,
+            "include_default_book_entries": 1
+          },
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "net_margin",
+          "status": "unavailable",
+          "reason": "Undefined when accounting income is zero."
+        },
+        {
+          "metric": "gross_profit",
+          "reference": "Gross Profit",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "from_date": "2026-04-01",
+            "to_date": "2026-06-30",
+            "group_by": "Invoice"
+          },
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "gross_margin",
+          "status": "unavailable",
+          "reason": "Undefined when native selling amount is zero."
+        },
+        {
+          "metric": "receivables",
+          "reference": "Accounts Receivable",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "report_date": "2026-06-30",
+            "party_type": "Customer",
+            "ageing_based_on": "Due Date",
+            "range": "30,60,90,120",
+            "in_party_currency": 0,
+            "group_by_party": 0
+          },
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        },
+        {
+          "metric": "payables",
+          "reference": "Accounts Payable",
+          "reference_filters": {
+            "company": "SarathiAILabs",
+            "report_date": "2026-06-30",
+            "party_type": "Supplier",
+            "ageing_based_on": "Due Date",
+            "range": "30,60,90,120",
+            "in_party_currency": 0,
+            "group_by_party": 0
+          },
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "comparison_precision": 2,
+          "status": "matched"
+        }
+      ],
+      "seconds": 0.237,
+      "independent_gl": {
+        "income": "0",
+        "expense": "0",
+        "net_profit": "0",
+        "eligible_entries": 0
+      },
+      "independent_payment_ledger": {
+        "receivables": {
+          "expected_signed_balance": "0",
+          "actual": "0.0",
+          "difference": "0.0",
+          "entries": 0
+        },
+        "payables": {
+          "expected_signed_balance": "0",
+          "actual": "0.0",
+          "difference": "0.0",
+          "entries": 0
+        }
+      }
+    }
+  ],
+  "differences": [],
+  "passed": true
+}

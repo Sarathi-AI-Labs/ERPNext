@@ -1,4 +1,4 @@
-name: frappe_docker
+name: frappe_docker_main
 
 services:
   backend:

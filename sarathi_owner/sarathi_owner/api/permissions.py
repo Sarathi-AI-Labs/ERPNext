@@ -1,10 +1,11 @@
 import frappe
 
+from sarathi_visibility.api.access import has_capability
+
 OWNER_ROLES = {
 	"Sarathi Owner",
 	"System Manager",
 	"Administrator",
-	"Manufacturing Manager",
 }
 FINANCE_ROLES = {
 	"Accounts Manager",
@@ -20,8 +21,7 @@ def can_access_owner(user: str | None = None) -> bool:
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return True
-	roles = set(frappe.get_roles(user))
-	return bool(OWNER_ROLES.intersection(roles))
+	return has_capability("owner", user)
 
 
 def can_view_finance(user: str | None = None) -> bool:
@@ -30,10 +30,7 @@ def can_view_finance(user: str | None = None) -> bool:
 		return False
 	if user == "Administrator":
 		return True
-	roles = set(frappe.get_roles(user))
-	if FINANCE_ROLES.intersection(roles):
-		return True
-	return frappe.has_permission("GL Entry", "read", user=user) and frappe.has_permission(
+	return has_capability("finance", user) and frappe.has_permission("GL Entry", "read", user=user) and frappe.has_permission(
 		"Sales Invoice", "read", user=user
 	)
 

@@ -6,6 +6,10 @@ import frappe
 from frappe.model import get_permitted_fields
 from frappe.utils import flt, getdate, today
 
+from sarathi_visibility.api.access import (
+	FINANCIAL_DOCTYPES, can_finance, require_capability, scoped_rows, validate_filters,
+)
+
 UNASSIGNED = "__unassigned__"
 PROJECT_FIELDS = [
 	"name",
@@ -42,6 +46,8 @@ WO_FIELDS = [
 
 
 def readable(doctype):
+	if doctype in FINANCIAL_DOCTYPES and not can_finance():
+		return False
 	return frappe.db.exists("DocType", doctype) and frappe.has_permission(doctype, "read")
 
 
@@ -50,7 +56,7 @@ def rows(doctype, fields, filters=None):
 		return []
 	meta = frappe.get_meta(doctype)
 	valid = [f for f in fields if f in {"name", "docstatus", "creation", "modified"} or meta.has_field(f)]
-	return frappe.get_list(
+	return scoped_rows(
 		doctype,
 		fields=valid,
 		filters=filters or {},
@@ -82,7 +88,7 @@ def children(doctype, parents, fields):
 	}
 	permitted = set(get_permitted_fields(doctype, parenttype=parent_types[doctype]))
 	valid = [f for f in fields if f in permitted and (f in {"name", "parent", "idx"} or meta.has_field(f))]
-	return frappe.get_all(
+	return scoped_rows(
 		doctype,
 		filters={"parent": ["in", list(parents)]},
 		fields=valid,
@@ -97,7 +103,7 @@ def check_link(doctype, name):
 
 
 def parse_filters(filters=None):
-	raw = frappe.parse_json(filters) if isinstance(filters, str) else filters
+	raw = validate_filters(filters)
 	result = {
 		key: (raw or {}).get(key) or ""
 		for key in ("company", "customer", "project", "from_date", "to_date", "status")
@@ -172,6 +178,7 @@ def in_period(value, filters, fallback=None):
 
 
 def load(filters=None):
+	require_capability("production")
 	f = parse_filters(filters)
 	companies = rows("Company", ["name", "company_name", "default_currency"])
 	company_names = {r.name for r in companies}

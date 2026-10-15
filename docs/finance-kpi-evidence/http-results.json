@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "check": "authorized finance",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "unexpected query field",
+      "status": 417,
+      "passed": true
+    },
+    {
+      "check": "identity filter injection",
+      "status": 417,
+      "passed": true
+    },
+    {
+      "check": "guest finance denied",
+      "status": 403,
+      "passed": true
+    },
+    {
+      "check": "POST denied",
+      "status": 403,
+      "passed": true
+    },
+    {
+      "check": "direct API denied after owner role removal",
+      "status": 403,
+      "passed": true
+    }
+  ],
+  "temporary_user_permissions_and_session_removed": true
+}

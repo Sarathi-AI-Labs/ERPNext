@@ -9,6 +9,8 @@ import datetime
 import json
 
 import frappe
+
+from sarathi_visibility.api.access import (authorized, check_record, scoped_rows, scoped_sql, scoped_value, scoped_count, validate_filters)
 from frappe.utils import flt, getdate, pretty_date, today
 
 from sarathi_owner.api.permissions import get_permission_context
@@ -21,7 +23,8 @@ def broadcast_live_event(doc, method=None):
 		frappe.publish_realtime(event, message={}, room="all", after_commit=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("admin")
 def clear_owner_cache(**kwargs):
 	"""Purges cached metadata and redis entries for Sarathi Owner."""
 	try:
@@ -82,18 +85,19 @@ def _get_date_bounds(date_range_str, manual_from=None, manual_to=None):
 
 
 @frappe.whitelist()
+@authorized("owner")
 def get_owner_context(company=None, **kwargs):
 	"""Returns baseline metadata for filters and user authorization."""
 	perm = get_permission_context()
 	if not perm["can_access_owner"]:
 		frappe.throw("Access Restricted: Sarathi Owner role required.", frappe.PermissionError)
 
-	companies = frappe.get_all("Company", fields=["name", "company_name"], order_by="name asc")
-	customers = frappe.get_all("Customer", fields=["name", "customer_name"], order_by="name asc", limit=100)
+	companies = scoped_rows("Company", fields=["name", "company_name"], order_by="name asc")
+	customers = scoped_rows("Customer", fields=["name", "customer_name"], order_by="name asc", limit=100)
 	proj_filters = {"docstatus": ["!=", 2]}
 	if company:
 		proj_filters["company"] = company
-	projects = frappe.get_all(
+	projects = scoped_rows(
 		"Project",
 		filters=proj_filters,
 		fields=["name", "project_name", "company", "status"],
@@ -110,6 +114,7 @@ def get_owner_context(company=None, **kwargs):
 
 
 @frappe.whitelist()
+@authorized("owner")
 def get_owner_summary(filters=None, **kwargs):
 	"""Aggregates executive metrics, live charts, activity, and pipelines for the Owner Home view."""
 	if isinstance(filters, str):
@@ -166,7 +171,7 @@ def get_owner_summary(filters=None, **kwargs):
 			project_conditions["status"] = status
 	if project_filter:
 		project_conditions["name"] = project_filter
-	projects = frappe.get_all(
+	projects = scoped_rows(
 		"Project",
 		filters=project_conditions,
 		fields=[
@@ -231,7 +236,7 @@ def get_owner_summary(filters=None, **kwargs):
 	if from_date and to_date:
 		so_filters["transaction_date"] = ["between", [from_date, to_date]]
 
-	sales_orders = frappe.get_all(
+	sales_orders = scoped_rows(
 		"Sales Order",
 		filters=so_filters,
 		fields=[
@@ -271,7 +276,7 @@ def get_owner_summary(filters=None, **kwargs):
 	if from_date and to_date:
 		si_filters["posting_date"] = ["between", [from_date, to_date]]
 
-	sales_invoices = frappe.get_all(
+	sales_invoices = scoped_rows(
 		"Sales Invoice",
 		filters=si_filters,
 		fields=[
@@ -311,11 +316,11 @@ def get_owner_summary(filters=None, **kwargs):
 	if frappe.db.table_exists("Bin"):
 		bin_filters = {}
 		if company:
-			company_whs = frappe.get_all("Warehouse", filters={"company": company}, pluck="name")
+			company_whs = scoped_rows("Warehouse", filters={"company": company}, pluck="name")
 			if company_whs:
 				bin_filters["warehouse"] = ["in", company_whs]
 
-		bins = frappe.get_all(
+		bins = scoped_rows(
 			"Bin",
 			filters=bin_filters,
 			fields=[
@@ -327,7 +332,7 @@ def get_owner_summary(filters=None, **kwargs):
 			],
 		)
 
-		item_groups = frappe.get_all(
+		item_groups = scoped_rows(
 			"Item",
 			filters={"disabled": 0},
 			fields=["name", "item_name", "item_group", "safety_stock"],
@@ -374,14 +379,14 @@ def get_owner_summary(filters=None, **kwargs):
 
 	if financials_allowed and frappe.db.table_exists("GL Entry"):
 		# Cash & Bank Balance
-		cb_res = frappe.db.sql(
+		cb_res = scoped_sql(
 			"""
             SELECT SUM(debit - credit) as total
             FROM `tabGL Entry`
             WHERE is_cancelled = 0
             AND account IN (SELECT name FROM `tabAccount` WHERE account_type IN ('Bank', 'Cash'))
             """
-			+ (f" AND company = '{company}'" if company else ""),
+			+ (" AND company = " + frappe.db.escape(company) if company else ""),
 			as_dict=True,
 		)
 		if cb_res and cb_res[0].total:
@@ -391,7 +396,7 @@ def get_owner_summary(filters=None, **kwargs):
 			f" AND posting_date BETWEEN '{from_date}' AND '{to_date}'" if from_date and to_date else ""
 		)
 
-		income_entries = frappe.db.sql(
+		income_entries = scoped_sql(
 			"""
             SELECT SUM(credit - debit) as total
             FROM `tabGL Entry`
@@ -399,14 +404,14 @@ def get_owner_summary(filters=None, **kwargs):
             AND voucher_type in ('Sales Invoice', 'Journal Entry')
             AND account IN (SELECT name FROM `tabAccount` WHERE root_type = 'Income')
             """
-			+ (f" AND company = '{company}'" if company else "")
+			+ (" AND company = " + frappe.db.escape(company) if company else "")
 			+ date_clause,
 			as_dict=True,
 		)
 		if income_entries and income_entries[0].total:
 			total_income = flt(income_entries[0].total)
 
-		expense_entries = frappe.db.sql(
+		expense_entries = scoped_sql(
 			"""
             SELECT SUM(debit - credit) as total
             FROM `tabGL Entry`
@@ -414,7 +419,7 @@ def get_owner_summary(filters=None, **kwargs):
             AND voucher_type in ('Purchase Invoice', 'Journal Entry', 'Stock Entry')
             AND account IN (SELECT name FROM `tabAccount` WHERE root_type = 'Expense')
             """
-			+ (f" AND company = '{company}'" if company else "")
+			+ (" AND company = " + frappe.db.escape(company) if company else "")
 			+ date_clause,
 			as_dict=True,
 		)
@@ -465,7 +470,7 @@ def get_owner_summary(filters=None, **kwargs):
 		delayed_wos_query += " AND project = %s"
 		params.append(project_filter)
 	delayed_wos_query += " ORDER BY planned_end_date ASC LIMIT 5"
-	delayed_wos = frappe.db.sql(delayed_wos_query, tuple(params), as_dict=True)
+	delayed_wos = scoped_sql(delayed_wos_query, tuple(params), as_dict=True)
 	if delayed_wos:
 		action_alerts.append(
 			{
@@ -505,12 +510,12 @@ def get_owner_summary(filters=None, **kwargs):
 		else [p for p in projects if p.status in ("Open", "Ongoing", "Active", "On Hold", "On hold", "Hold")]
 	)
 	for p in target_p_list:
-		so = frappe.db.get_value(
+		so = scoped_value(
 			"Sales Order",
 			{"project": p.name, "docstatus": ["!=", 2]},
 			"name",
 		)
-		wo_stats = frappe.db.sql(
+		wo_stats = scoped_sql(
 			"""
             SELECT SUM(qty) as planned, SUM(produced_qty) as produced
             FROM `tabWork Order`
@@ -716,7 +721,7 @@ def _get_live_activity(company=None, customer=None, project=None, search=None, l
 		proj_filters["customer"] = customer
 	if project:
 		proj_filters["name"] = project
-	projects = frappe.get_all(
+	projects = scoped_rows(
 		"Project",
 		filters=proj_filters,
 		fields=[
@@ -750,7 +755,7 @@ def _get_live_activity(company=None, customer=None, project=None, search=None, l
 		wo_filters = {"docstatus": ["!=", 2]}
 		if company:
 			wo_filters["company"] = company
-		work_orders = frappe.get_all(
+		work_orders = scoped_rows(
 			"Work Order",
 			filters=wo_filters,
 			fields=[
@@ -786,7 +791,7 @@ def _get_live_activity(company=None, customer=None, project=None, search=None, l
 		so_filters = {"docstatus": ["!=", 2]}
 		if company:
 			so_filters["company"] = company
-		orders = frappe.get_all(
+		orders = scoped_rows(
 			"Sales Order",
 			filters=so_filters,
 			fields=[
@@ -820,7 +825,7 @@ def _get_live_activity(company=None, customer=None, project=None, search=None, l
 		si_filters = {"docstatus": ["!=", 2]}
 		if company:
 			si_filters["company"] = company
-		invoices = frappe.get_all(
+		invoices = scoped_rows(
 			"Sales Invoice",
 			filters=si_filters,
 			fields=[
@@ -855,7 +860,7 @@ def _get_live_activity(company=None, customer=None, project=None, search=None, l
 		pe_filters = {"docstatus": 1}
 		if company:
 			pe_filters["company"] = company
-		payments = frappe.get_all(
+		payments = scoped_rows(
 			"Payment Entry",
 			filters=pe_filters,
 			fields=[
@@ -889,7 +894,7 @@ def _get_live_activity(company=None, customer=None, project=None, search=None, l
 		se_filters = {"docstatus": 1}
 		if company:
 			se_filters["company"] = company
-		stock_entries = frappe.get_all(
+		stock_entries = scoped_rows(
 			"Stock Entry",
 			filters=se_filters,
 			fields=["name", "purpose", "work_order", "posting_date", "modified"],
@@ -1247,6 +1252,7 @@ REPORT_COLUMNS_FALLBACK = {
 
 
 @frappe.whitelist()
+@authorized("owner")
 def get_live_report_data(report_name, filters=None):
 	"""Executes native ERPNext Query Report in-memory and returns structured dataset.
 
@@ -1292,10 +1298,24 @@ def get_live_report_data(report_name, filters=None):
 
 	company = filters.get("company")
 	if not company:
-		company = frappe.db.get_single_value("Global Defaults", "default_company")
-		if not company:
-			cos = frappe.get_all("Company", limit=1, pluck="name")
-			company = cos[0] if cos else None
+		cos = scoped_rows("Company", pluck="name")
+		preferred = frappe.db.get_single_value("Global Defaults", "default_company")
+		company = preferred if preferred in cos else (cos[0] if cos else None)
+	if not company:
+		frappe.throw("This resource or action is not available for your permissions.", frappe.PermissionError)
+	validate_filters({"company": company})
+	# Native report scripts can aggregate without get_list row predicates. Do not
+	# embed them for users with additional record scopes until that report's
+	# handling of those scopes has been independently verified.
+	if frappe.session.user != "Administrator":
+		permissions = frappe.permissions.get_user_permissions(frappe.session.user)
+		if any(rows for dt, rows in permissions.items() if dt != "Company"):
+			frappe.throw("This report requires verified support for your record restrictions.", frappe.PermissionError)
+		ref_doctype = frappe.db.get_value("Report", report_name, "ref_doctype")
+		if ref_doctype:
+			role_rules = [p for p in frappe.get_meta(ref_doctype).permissions if p.role in frappe.get_roles() and p.read]
+			if not role_rules or all(p.if_owner for p in role_rules):
+				frappe.throw("This report requires verified support for your record restrictions.", frappe.PermissionError)
 	if company:
 		filters["company"] = company
 
@@ -1481,6 +1501,7 @@ def _get_dynamic_module_sections(page_name: str) -> list[dict]:
 
 
 @frappe.whitelist()
+@authorized("owner")
 def get_page_data(page_name: str, filters=None, **kwargs):
 	"""Server loader for each dedicated Owner page with integrated charts."""
 	if isinstance(filters, str):
@@ -1598,7 +1619,7 @@ def _get_financial_chart_data(company=None):
 			if company:
 				s_q += " AND company = %s"
 				params.append(company)
-			r = frappe.db.sql(s_q, tuple(params), as_dict=True)
+			r = scoped_sql(s_q, tuple(params), as_dict=True)
 			if r and r[0].tot:
 				rev_val = flt(r[0].tot)
 
@@ -1614,7 +1635,7 @@ def _get_financial_chart_data(company=None):
 			if company:
 				e_q += " AND company = %s"
 				params.append(company)
-			e_res = frappe.db.sql(e_q, tuple(params), as_dict=True)
+			e_res = scoped_sql(e_q, tuple(params), as_dict=True)
 			if e_res and e_res[0].tot:
 				exp_val = flt(e_res[0].tot)
 
@@ -1685,7 +1706,7 @@ def _get_order_book_chart_data(company=None):
 			if company:
 				q += " AND company = %s"
 				params.append(company)
-			r = frappe.db.sql(q, tuple(params), as_dict=True)
+			r = scoped_sql(q, tuple(params), as_dict=True)
 			if r and r[0].tot:
 				b_val = flt(r[0].tot)
 			if r and r[0].deliv:
@@ -1749,7 +1770,7 @@ def _get_production_chart_data(company=None):
 			if company:
 				q += " AND company = %s"
 				params.append(company)
-			r = frappe.db.sql(q, tuple(params), as_dict=True)
+			r = scoped_sql(q, tuple(params), as_dict=True)
 			if r and r[0].planned:
 				p_qty = flt(r[0].planned)
 			if r and r[0].produced:
@@ -1783,7 +1804,7 @@ def _get_ar_aging_chart_data(company=None):
 		if company:
 			q += " AND company = %s"
 			params.append(company)
-		invoices = frappe.db.sql(q, tuple(params), as_dict=True)
+		invoices = scoped_sql(q, tuple(params), as_dict=True)
 		for inv in invoices:
 			out = flt(inv.outstanding_amount)
 			if not inv.due_date or getdate(inv.due_date) >= today_dt:
@@ -1841,7 +1862,7 @@ def _get_projects_page(filters, perm) -> dict:
 			cond["status"] = status
 	if project:
 		cond["name"] = project
-	all_projects = frappe.get_all(
+	all_projects = scoped_rows(
 		"Project",
 		filters=cond,
 		fields=[
@@ -1896,7 +1917,7 @@ def _get_projects_page(filters, perm) -> dict:
 
 	table_rows = []
 	for p in all_projects:
-		so = frappe.db.get_value("Sales Order", {"project": p.name, "docstatus": ["!=", 2]}, "name")
+		so = scoped_value("Sales Order", {"project": p.name, "docstatus": ["!=", 2]}, "name")
 		budget = flt(p.estimated_costing)
 		actual = flt(p.total_costing_amount)
 		billed = flt(p.total_billed_amount)
@@ -1990,7 +2011,7 @@ def _get_project_detail_page(filters, perm) -> dict:
 			proj_filters["status"] = "Cancelled"
 		else:
 			proj_filters["status"] = status
-	all_projects = frappe.get_all(
+	all_projects = scoped_rows(
 		"Project",
 		filters=proj_filters,
 		fields=["name", "project_name", "company", "status"],
@@ -1998,7 +2019,7 @@ def _get_project_detail_page(filters, perm) -> dict:
 		limit=100,
 	)
 	if not all_projects and company:
-		all_projects = frappe.get_all(
+		all_projects = scoped_rows(
 			"Project",
 			filters={"docstatus": ["!=", 2]},
 			fields=["name", "project_name", "company", "status"],
@@ -2025,14 +2046,14 @@ def _get_project_detail_page(filters, perm) -> dict:
 		}
 
 	pipe = get_project_pipeline(project_name)
-	tasks = frappe.get_all(
+	tasks = scoped_rows(
 		"Task",
 		filters={"project": project_name, "docstatus": ["!=", 2]},
 		fields=["name", "subject", "status", "exp_end_date"],
 		order_by="creation asc",
 		limit=50,
 	)
-	p_doc = frappe.get_doc("Project", project_name)
+	p_doc = check_record("Project", project_name)
 	can_finance = perm["can_view_finance"]
 	fmt = lambda v: f"₹{flt(v):,.2f}" if can_finance else "Restricted"
 
@@ -2045,7 +2066,7 @@ def _get_project_detail_page(filters, perm) -> dict:
 	# Linked Sales Orders
 	so_rows = []
 	if frappe.db.table_exists("Sales Order"):
-		sos = frappe.get_all(
+		sos = scoped_rows(
 			"Sales Order",
 			filters={"project": project_name, "docstatus": ["!=", 2]},
 			fields=[
@@ -2076,7 +2097,7 @@ def _get_project_detail_page(filters, perm) -> dict:
 	# Linked Work Orders
 	wo_rows = []
 	if frappe.db.table_exists("Work Order"):
-		wos = frappe.get_all(
+		wos = scoped_rows(
 			"Work Order",
 			filters={"project": project_name, "docstatus": ["!=", 2]},
 			fields=[
@@ -2216,7 +2237,7 @@ def _get_customers_page(filters, perm) -> dict:
 	if customer_filter:
 		cust_cond["name"] = customer_filter
 
-	customers = frappe.get_all("Customer", filters=cust_cond, fields=["name", "customer_name"], limit=100)
+	customers = scoped_rows("Customer", filters=cust_cond, fields=["name", "customer_name"], limit=100)
 	if search:
 		customers = [
 			c
@@ -2233,7 +2254,7 @@ def _get_customers_page(filters, perm) -> dict:
 		so_cond = {"customer": c.name, "docstatus": ["!=", 2]}
 		if company:
 			so_cond["company"] = company
-		sos = frappe.get_all(
+		sos = scoped_rows(
 			"Sales Order",
 			filters=so_cond,
 			fields=["name", "grand_total"],
@@ -2249,7 +2270,7 @@ def _get_customers_page(filters, perm) -> dict:
 			inv_query += " AND company = %s"
 			params.append(company)
 
-		inv_data = frappe.db.sql(inv_query, tuple(params), as_dict=True)
+		inv_data = scoped_sql(inv_query, tuple(params), as_dict=True)
 		out = flt(inv_data[0].outstanding) if inv_data and inv_data[0].outstanding else 0.0
 		total_billed = flt(inv_data[0].total_billed) if inv_data and inv_data[0].total_billed else 0.0
 		total_receivable_sum += out
@@ -2336,7 +2357,7 @@ def _get_sales_orders_page(filters, perm) -> dict:
 	if from_date and to_date:
 		cond["transaction_date"] = ["between", [from_date, to_date]]
 
-	orders = frappe.get_all(
+	orders = scoped_rows(
 		"Sales Order",
 		filters=cond,
 		fields=[
@@ -2454,7 +2475,7 @@ def _get_manufacturing_page(filters) -> dict:
 	if from_date and to_date:
 		cond["planned_start_date"] = ["between", [from_date, to_date]]
 
-	work_orders = frappe.get_all(
+	work_orders = scoped_rows(
 		"Work Order",
 		filters=cond,
 		fields=[
@@ -2472,8 +2493,8 @@ def _get_manufacturing_page(filters) -> dict:
 		limit=50,
 	)
 	if customer:
-		cust_projects = set(frappe.get_all("Project", filters={"customer": customer}, pluck="name"))
-		cust_sos = set(frappe.get_all("Sales Order", filters={"customer": customer}, pluck="name"))
+		cust_projects = set(scoped_rows("Project", filters={"customer": customer}, pluck="name"))
+		cust_sos = set(scoped_rows("Sales Order", filters={"customer": customer}, pluck="name"))
 		work_orders = [
 			w
 			for w in work_orders
@@ -2568,7 +2589,7 @@ def _get_stock_quality_page(filters, perm) -> dict:
 	if company:
 		cond["company"] = company
 
-	wh_list = frappe.get_all(
+	wh_list = scoped_rows(
 		"Warehouse",
 		filters=cond,
 		fields=["name", "warehouse_name", "company"],
@@ -2586,7 +2607,7 @@ def _get_stock_quality_page(filters, perm) -> dict:
 	total_val = 0.0
 	rows = []
 	for w in wh_list:
-		bins = frappe.get_all(
+		bins = scoped_rows(
 			"Bin",
 			filters={"warehouse": w.name},
 			fields=["stock_value", "actual_qty", "valuation_rate"],
@@ -2694,7 +2715,7 @@ def _get_invoicing_page(filters, perm) -> dict:
 	if from_date and to_date:
 		cond["posting_date"] = ["between", [from_date, to_date]]
 
-	invoices = frappe.get_all(
+	invoices = scoped_rows(
 		"Sales Invoice",
 		filters=cond,
 		fields=[
@@ -2878,7 +2899,7 @@ def _get_payments_page(filters, perm) -> dict:
 	if from_date and to_date:
 		cond["posting_date"] = ["between", [from_date, to_date]]
 
-	payments = frappe.get_all(
+	payments = scoped_rows(
 		"Payment Entry",
 		filters=cond,
 		fields=[
@@ -3133,15 +3154,15 @@ def _get_financial_reports_page(filters, perm) -> dict:
 
 def _get_accounts_setup_page(filters, perm) -> dict:
 	company = filters.get("company")
-	coa_count = frappe.db.count("Account")
-	cc_count = frappe.db.count("Cost Center")
-	co_count = frappe.db.count("Company")
-	fy_count = frappe.db.count("Fiscal Year")
+	coa_count = scoped_count("Account")
+	cc_count = scoped_count("Cost Center")
+	co_count = scoped_count("Company")
+	fy_count = scoped_count("Fiscal Year")
 
 	cond = {"is_group": 1}
 	if company:
 		cond["company"] = company
-	root_accounts = frappe.get_all(
+	root_accounts = scoped_rows(
 		"Account",
 		filters=cond,
 		fields=["name", "account_name", "root_type", "account_currency", "company"],
@@ -3222,12 +3243,12 @@ def _get_accounts_setup_page(filters, perm) -> dict:
 
 
 def _get_taxes_page(filters, perm) -> dict:
-	st_count = frappe.db.count("Sales Taxes and Charges Template")
-	pt_count = frappe.db.count("Purchase Taxes and Charges Template")
-	tds_count = frappe.db.count("Tax Withholding Category")
-	rule_count = frappe.db.count("Tax Rule")
+	st_count = scoped_count("Sales Taxes and Charges Template")
+	pt_count = scoped_count("Purchase Taxes and Charges Template")
+	tds_count = scoped_count("Tax Withholding Category")
+	rule_count = scoped_count("Tax Rule")
 
-	templates = frappe.get_all(
+	templates = scoped_rows(
 		"Sales Taxes and Charges Template",
 		fields=["name", "title", "company", "is_default", "disabled"],
 		limit=20,
@@ -3309,7 +3330,7 @@ def _get_taxes_page(filters, perm) -> dict:
 
 
 def _get_banking_page(filters, perm) -> dict:
-	accounts = frappe.get_all(
+	accounts = scoped_rows(
 		"Bank Account",
 		fields=[
 			"name",
@@ -3323,11 +3344,11 @@ def _get_banking_page(filters, perm) -> dict:
 		limit=20,
 	)
 	clearance_count = len(
-		frappe.get_all("Payment Entry", filters={"clearance_date": ["is", "set"]}, limit=50)
+		scoped_rows("Payment Entry", filters={"clearance_date": ["is", "set"]}, limit=50)
 	)
-	guarantee_count = frappe.db.count("Bank Guarantee") if frappe.db.table_exists("Bank Guarantee") else 0
+	guarantee_count = scoped_count("Bank Guarantee") if frappe.db.table_exists("Bank Guarantee") else 0
 	reconciliation_count = (
-		frappe.db.count("Bank Transaction") if frappe.db.table_exists("Bank Transaction") else 0
+		scoped_count("Bank Transaction") if frappe.db.table_exists("Bank Transaction") else 0
 	)
 
 	rows = []
@@ -3408,7 +3429,7 @@ def _get_banking_page(filters, perm) -> dict:
 
 
 def _get_budget_page(filters, perm) -> dict:
-	budgets = frappe.get_all(
+	budgets = scoped_rows(
 		"Budget",
 		fields=[
 			"name",
@@ -3423,7 +3444,7 @@ def _get_budget_page(filters, perm) -> dict:
 		limit=20,
 	)
 	alloc_count = (
-		frappe.db.count("Cost Center Allocation") if frappe.db.table_exists("Cost Center Allocation") else 0
+		scoped_count("Cost Center Allocation") if frappe.db.table_exists("Cost Center Allocation") else 0
 	)
 
 	rows = []
@@ -3502,8 +3523,8 @@ def _get_budget_page(filters, perm) -> dict:
 
 
 def _get_share_management_page(filters, perm) -> dict:
-	holders = frappe.get_all("Shareholder", fields=["name", "title", "folio_no", "company"], limit=20)
-	transfers = frappe.db.count("Share Transfer")
+	holders = scoped_rows("Shareholder", fields=["name", "title", "folio_no", "company"], limit=20)
+	transfers = scoped_count("Share Transfer")
 
 	rows = []
 	for h in holders:
@@ -3586,7 +3607,7 @@ def _get_share_management_page(filters, perm) -> dict:
 
 
 def _get_subscription_page(filters, perm) -> dict:
-	subs = frappe.get_all(
+	subs = scoped_rows(
 		"Subscription",
 		fields=[
 			"name",
@@ -3598,7 +3619,7 @@ def _get_subscription_page(filters, perm) -> dict:
 		],
 		limit=20,
 	)
-	plans = frappe.db.count("Subscription Plan")
+	plans = scoped_count("Subscription Plan")
 
 	rows = []
 	for s in subs:

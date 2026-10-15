@@ -1,0 +1,326 @@
+{
+  "company": "SarathiAILabs",
+  "verified_at": "2026-10-14",
+  "periods": [
+    {
+      "label": "fiscal year to date",
+      "from_date": "2026-04-01",
+      "to_date": "2026-10-14",
+      "currency": "INR",
+      "reference_filters": {
+        "company": "SarathiAILabs",
+        "filter_based_on": "Date Range",
+        "period_start_date": "2026-04-01",
+        "period_end_date": "2026-10-14",
+        "periodicity": "Monthly",
+        "accumulated_values": 0,
+        "include_default_book_entries": 1
+      },
+      "checks": [
+        {
+          "check": "Included accounting income vs native P&L",
+          "expected": "17699999.5",
+          "actual": "17699999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Trend sum vs native P&L",
+          "expected": "17699999.5",
+          "actual": "17699999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Customer breakdown plus unattributed vs native P&L",
+          "expected": "17699999.5",
+          "actual": "17699999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Delivery backlog vs source order net rates",
+          "expected": "27400000.000",
+          "actual": "27400000.0",
+          "raw_difference": "0.000",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Held demand vs source orders",
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Detail sum vs executable plus held commitments",
+          "expected": "27400000.000",
+          "actual": "27400000.0",
+          "raw_difference": "0.000",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Stock quantity AERO-MOUNT-01 / Nos",
+          "expected": "10.00",
+          "actual": "10.0",
+          "raw_difference": "0.00",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Stock quantity DIE-FIXTURE-01 / Nos",
+          "expected": "10.00",
+          "actual": "10.0",
+          "raw_difference": "0.00",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Stock quantity EV-BATTPACK-01 / Nos",
+          "expected": "68.00",
+          "actual": "68.0",
+          "raw_difference": "0.00",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Stock quantity EV-CHASSIS-01 / Nos",
+          "expected": "50.00",
+          "actual": "50.0",
+          "raw_difference": "0.00",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Stock quantity ROBOT-ARM-01 / Nos",
+          "expected": "20.00",
+          "actual": "20.0",
+          "raw_difference": "0.00",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Native Sales Order Analysis remaining line 7rpa6snc5d",
+          "expected": "10.0",
+          "actual": "10.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Native Sales Order Analysis remaining line 7rv670n330",
+          "expected": "10.0",
+          "actual": "10.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Native Sales Order Analysis remaining line 7sad6rg3ca",
+          "expected": "50.0",
+          "actual": "50.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Native Sales Order Analysis remaining line 7sfa5r1c8l",
+          "expected": "30.0",
+          "actual": "30.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Native Sales Order Analysis remaining line 7sq9h09b5u",
+          "expected": "20.0",
+          "actual": "20.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Native Sales Order Analysis remaining line 7t4c097s0n",
+          "expected": "38.0",
+          "actual": "38.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        }
+      ],
+      "top_customers": [
+        {
+          "customer": "ISRO Propulsion Complex Vendor",
+          "customer_name": "ISRO Propulsion Complex Vendor",
+          "amount": 9499999.5,
+          "rank": 1,
+          "share": 53.672315075489124
+        },
+        {
+          "customer": "Larsen & Toubro Heavy Engineering",
+          "customer_name": "Larsen & Toubro Heavy Engineering",
+          "amount": 8200000.0,
+          "rank": 2,
+          "share": 46.327684924510876
+        }
+      ],
+      "unattributed": 0.0,
+      "backlog_lines": 6,
+      "seconds": 1.463
+    },
+    {
+      "label": "month to date",
+      "from_date": "2026-10-01",
+      "to_date": "2026-10-14",
+      "currency": "INR",
+      "reference_filters": {
+        "company": "SarathiAILabs",
+        "filter_based_on": "Date Range",
+        "period_start_date": "2026-10-01",
+        "period_end_date": "2026-10-14",
+        "periodicity": "Monthly",
+        "accumulated_values": 0,
+        "include_default_book_entries": 1
+      },
+      "checks": [
+        {
+          "check": "Included accounting income vs native P&L",
+          "expected": "9499999.5",
+          "actual": "9499999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Trend sum vs native P&L",
+          "expected": "9499999.5",
+          "actual": "9499999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Customer breakdown plus unattributed vs native P&L",
+          "expected": "9499999.5",
+          "actual": "9499999.5",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Delivery backlog vs source order net rates",
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Held demand vs source orders",
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Detail sum vs executable plus held commitments",
+          "expected": "0",
+          "actual": "0",
+          "raw_difference": "0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        }
+      ],
+      "top_customers": [
+        {
+          "customer": "ISRO Propulsion Complex Vendor",
+          "customer_name": "ISRO Propulsion Complex Vendor",
+          "amount": 9499999.5,
+          "rank": 1,
+          "share": 100.0
+        }
+      ],
+      "unattributed": 0.0,
+      "backlog_lines": 0,
+      "seconds": 0.28
+    },
+    {
+      "label": "historical empty cohort",
+      "from_date": "2026-04-01",
+      "to_date": "2026-06-30",
+      "currency": "INR",
+      "reference_filters": {
+        "company": "SarathiAILabs",
+        "filter_based_on": "Date Range",
+        "period_start_date": "2026-04-01",
+        "period_end_date": "2026-06-30",
+        "periodicity": "Monthly",
+        "accumulated_values": 0,
+        "include_default_book_entries": 1
+      },
+      "checks": [
+        {
+          "check": "Included accounting income vs native P&L",
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Trend sum vs native P&L",
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Customer breakdown plus unattributed vs native P&L",
+          "expected": "0.0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Delivery backlog vs source order net rates",
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Held demand vs source orders",
+          "expected": "0",
+          "actual": "0.0",
+          "raw_difference": "0.0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        },
+        {
+          "check": "Detail sum vs executable plus held commitments",
+          "expected": "0",
+          "actual": "0",
+          "raw_difference": "0",
+          "currency_rounded_difference": "0.00",
+          "passed": true
+        }
+      ],
+      "top_customers": [],
+      "unattributed": 0.0,
+      "backlog_lines": 0,
+      "seconds": 0.218
+    }
+  ],
+  "differences": [],
+  "passed": true
+}

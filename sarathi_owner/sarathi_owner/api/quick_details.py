@@ -3,6 +3,8 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 import frappe
 
+from sarathi_visibility.api.access import authorized, check_record
+
 from sarathi_owner.api.detail_analytics import describe
 from sarathi_owner.api.owner_dashboard import _get_date_bounds
 from sarathi_owner.api.permissions import get_permission_context
@@ -145,6 +147,7 @@ SAFE_TYPES = {
 
 
 @frappe.whitelist()
+@authorized("owner")
 def get_details(
 	route=None, filters=None, search="", start=0, name=None, label=None, kind=None, target=None, entry_id=None
 ):
@@ -267,8 +270,7 @@ def get_details(
 	if date_field and lower and upper:
 		query_filters[date_field] = ["between", [lower, upper]]
 	if name or meta.issingle:
-		doc = frappe.get_doc(doctype, name or doctype)
-		doc.check_permission("read")
+		doc = check_record(doctype, name or doctype)
 		if (
 			name
 			and not meta.issingle

@@ -2,17 +2,37 @@
 
 import csv
 import io
+import hashlib
 from collections import defaultdict
 
 import frappe
+
+from sarathi_visibility.api.access import (authorized, can_finance, check_record)
 from frappe.utils import cint, flt, now_datetime
 
 from sarathi_visibility.api.accounting import get_accounting_card_summary
 from sarathi_visibility.api.dashboard_data import grouped, load, readable
+from sarathi_visibility.api.factory_overview import get_factory_overview
+from sarathi_visibility.api.material_readiness import get_material_readiness
+from sarathi_visibility.api.production_pipeline import get_production_pipeline
 from sarathi_visibility.api.subcontracting import get_subcontracting_card_summary
+from sarathi_visibility.api.work_orders import (
+	get_job_card_detail,
+	get_job_cards,
+	get_work_order_detail,
+	get_work_orders,
+)
+from sarathi_visibility.api.workstations import get_workstation_downtime
+from sarathi_visibility.api.quality_rework import (
+	get_quality_overview,
+	get_rework_overview,
+	get_subcontracting_overview,
+)
+from sarathi_visibility.api.production_exceptions import get_production_exceptions
 
 
 @frappe.whitelist(methods=["POST"])
+@authorized("production")
 def associate_customer(company, customer):
 	for doctype, name in (("Company", company), ("Customer", customer)):
 		frappe.get_doc(doctype, name).check_permission("read")
@@ -23,9 +43,12 @@ def associate_customer(company, customer):
 	existing = frappe.db.exists("Sarathi Customer Organization", {"company": company, "customer": customer})
 
 	if existing:
+		check_record("Sarathi Customer Organization", existing)
 		return existing
 
-	return (
+	name = "SCO-" + hashlib.sha256(f"{company}\0{customer}".encode()).hexdigest()[:40]
+	try:
+		return (
 		frappe.get_doc(
 			{
 				"doctype": "Sarathi Customer Organization",
@@ -33,9 +56,12 @@ def associate_customer(company, customer):
 				"customer": customer,
 			}
 		)
-		.insert()
+		.insert(set_name=name)
 		.name
-	)
+		)
+	except frappe.DuplicateEntryError:
+		check_record("Sarathi Customer Organization", name)
+		return name
 
 
 def col(field, label, kind="Data", options=None, width=150):
@@ -1052,8 +1078,15 @@ def report_data(data, report, subset="", search=""):
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_summary(filters=None):
-	data = load(filters)
+	raw_filters = frappe.parse_json(filters) if isinstance(filters, str) else dict(filters or {})
+	legacy_filters = dict(raw_filters)
+	project_statuses = {"", "Active", "Ongoing", "Completed", "Delayed", "Cancelled", "On hold"}
+	if legacy_filters.get("status") not in project_statuses:
+		legacy_filters["status"] = ""
+
+	data = load(legacy_filters)
 
 	projects = data["projects"]
 
@@ -1289,7 +1322,7 @@ def get_summary(filters=None):
 		),
 	]
 
-	for currency, months in sales.items():
+	for currency, months in (sales.items() if can_finance() else []):
 		charts.append(
 			dict(
 				title=f"Submitted sales orders · {currency}",
@@ -1447,7 +1480,105 @@ def get_summary(filters=None):
 			)
 		)
 
+	factory_overview = None
+	try:
+		f_filters = dict(raw_filters)
+		if not f_filters.get("company") and data.get("filters", {}).get("company"):
+			f_filters["company"] = data["filters"]["company"]
+		factory_overview = get_factory_overview(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing factory overview: {err}")
+		factory_overview = {
+			"available": False,
+			"reason": "Factory overview is currently unavailable.",
+		}
+
+	production_pipeline = None
+	try:
+		production_pipeline = get_production_pipeline(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing production pipeline: {err}")
+		production_pipeline = {
+			"available": False,
+			"reason": "Production pipeline is currently unavailable.",
+		}
+
+	material_readiness = None
+	try:
+		material_readiness = get_material_readiness(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing material readiness: {err}")
+		material_readiness = {
+			"available": False,
+			"reason": "Material readiness is currently unavailable.",
+		}
+
+	workstation_downtime = None
+	try:
+		workstation_downtime = get_workstation_downtime(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing workstation downtime: {err}")
+		workstation_downtime = {
+			"available": False,
+			"reason": "Workstation and downtime view is currently unavailable.",
+		}
+
+	quality_overview = None
+	try:
+		quality_overview = get_quality_overview(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing quality overview: {err}")
+		quality_overview = {
+			"available": False,
+			"reason": "Quality overview is currently unavailable.",
+		}
+
+	rework_overview = None
+	try:
+		rework_overview = get_rework_overview(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing rework overview: {err}")
+		rework_overview = {
+			"available": False,
+			"reason": "Rework overview is currently unavailable.",
+		}
+
+	subcontracting_overview = None
+	try:
+		subcontracting_overview = get_subcontracting_overview(f_filters)
+	except Exception as err:
+		frappe.log_error(f"Error computing subcontracting overview: {err}")
+		subcontracting_overview = {
+			"available": False,
+			"reason": "Subcontracting overview is currently unavailable.",
+		}
+
+	production_exceptions = None
+	try:
+		production_exceptions = get_production_exceptions(
+			f_filters,
+			material_readiness=material_readiness,
+			workstation_downtime=workstation_downtime,
+			quality_overview=quality_overview,
+			rework_overview=rework_overview,
+			subcontracting_overview=subcontracting_overview,
+		)
+	except Exception as err:
+		frappe.log_error(f"Error computing production exceptions: {err}")
+		production_exceptions = {
+			"available": False,
+			"reason": "Production exception queue is currently unavailable.",
+		}
+
 	return dict(
+		factory_overview=factory_overview,
+		production_pipeline=production_pipeline,
+		material_readiness=material_readiness,
+		workstation_downtime=workstation_downtime,
+		quality_overview=quality_overview,
+		rework_overview=rework_overview,
+		subcontracting_overview=subcontracting_overview,
+		production_exceptions=production_exceptions,
 		accounting_summary=get_accounting_card_summary(data["filters"]),
 		subcontracting_summary=get_subcontracting_card_summary(data["filters"]),
 		project_health=project_health,
@@ -1498,6 +1629,8 @@ def get_summary(filters=None):
 				"Purchase Invoice",
 				"Delivery Note",
 				"Sales Invoice",
+				"Quality Inspection",
+				"Subcontracting Order",
 			)
 		},
 		restricted=[
@@ -1526,14 +1659,14 @@ def get_summary(filters=None):
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_report(filters=None, report="projects", subset="", search="", start=0, page_length=25):
+	from sarathi_visibility.api.data_helpers import pagination
+
+	start, length = pagination(start, page_length)
 	data = load(filters)
 
 	result = report_data(data, report, subset, search)
-
-	start = max(cint(start), 0)
-
-	length = min(max(cint(page_length), 1), 100)
 
 	return dict(
 		title=REPORTS[report][0],
@@ -1546,6 +1679,7 @@ def get_report(filters=None, report="projects", subset="", search="", start=0, p
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_record(filters, doctype, name):
 	data = load(filters)
 
@@ -1655,6 +1789,7 @@ def export_allowed(report, result=None):
 
 
 @frappe.whitelist()
+@authorized("production")
 def export_report(filters=None, report="projects", subset="", search=""):
 	data = load(filters)
 

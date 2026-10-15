@@ -1,0 +1,1102 @@
+/* ==========================================================================
+   Sarathi Industrial AI Agent Chatbot Widget
+   ========================================================================== */
+/* Header Action Button */
+.sd-ai-header-btn {
+	background: linear-gradient(135deg, #0d6771, #10b981) !important;
+	color: white !important;
+	border: 1px solid rgba(255, 255, 255, 0.25) !important;
+	box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+	font-weight: 700 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	transition: all 0.2s ease !important;
+}
+.sd-ai-header-btn:hover {
+	transform: translateY(-1px) scale(1.03) !important;
+	box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45) !important;
+}
+.sd-ai-sparkle {
+	font-size: 14px;
+}
+
+/* Floating Action Button (FAB) */
+.sd-ai-fab {
+	position: fixed;
+	bottom: 28px;
+	right: 28px;
+	z-index: 1050;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 22px;
+	background: linear-gradient(135deg, #0f2b3c 0%, #087e8b 100%);
+	color: white;
+	border: 1px solid rgba(0, 242, 254, 0.4);
+	border-radius: 35px;
+	box-shadow: 0 10px 30px rgba(8, 126, 139, 0.45), 0 0 15px rgba(0, 242, 254, 0.2);
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 0.3px;
+	transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sd-ai-fab:hover {
+	transform: translateY(-3px) scale(1.03);
+	box-shadow: 0 16px 36px rgba(8, 126, 139, 0.6), 0 0 25px rgba(0, 242, 254, 0.35);
+	border-color: #00f2fe;
+}
+.sd-ai-fab-pulse {
+	position: absolute;
+	top: -4px;
+	left: -4px;
+	right: -4px;
+	bottom: -4px;
+	border-radius: 40px;
+	border: 2px solid rgba(0, 242, 254, 0.6);
+	animation: pulse-ring 2.5s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+	pointer-events: none;
+}
+@keyframes pulse-ring {
+	0% {
+		transform: scale(0.95);
+		opacity: 0.8;
+	}
+	50% {
+		transform: scale(1.06);
+		opacity: 0.2;
+	}
+	100% {
+		transform: scale(0.95);
+		opacity: 0.8;
+	}
+}
+
+.sd-ai-fab-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+}
+.sd-ai-fab-status-dot {
+	width: 8px;
+	height: 8px;
+	background: #10b981;
+	border-radius: 50%;
+	box-shadow: 0 0 8px #10b981;
+}
+
+.sd-ai-avatar {
+	width: 32px;
+	height: 32px;
+	background: rgba(255, 255, 255, 0.12);
+	border: 1px solid rgba(0, 242, 254, 0.3);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.sd-ai-chat-window {
+	position: fixed;
+	bottom: 92px;
+	right: 28px;
+	width: 440px;
+	max-width: calc(100vw - 36px);
+	height: 600px;
+	max-height: calc(100vh - 120px);
+	z-index: 1060;
+	display: flex;
+	flex-direction: column;
+	background: rgba(15, 23, 42, 0.95);
+	backdrop-filter: blur(28px);
+	-webkit-backdrop-filter: blur(28px);
+	border: 1px solid rgba(0, 242, 254, 0.35);
+	border-radius: 20px;
+	box-shadow: 0 25px 70px -10px rgba(0, 0, 0, 0.75), 0 0 35px rgba(0, 242, 254, 0.25),
+		0 0 15px rgba(16, 185, 129, 0.15);
+	overflow: hidden;
+	animation: sd-chat-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes sd-chat-enter {
+	from {
+		opacity: 0;
+		transform: translateY(20px) scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.sd-ai-chat-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px;
+	background: linear-gradient(135deg, #091e2f 0%, #0d3b4c 50%, #0a525d 100%);
+	border-bottom: 1px solid rgba(0, 242, 254, 0.25);
+	color: white;
+}
+.sd-ai-chat-header-title {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.sd-ai-avatar {
+	width: 36px;
+	height: 36px;
+	background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(16, 185, 129, 0.25));
+	border: 1.5px solid #00f2fe;
+	box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.sd-ai-header-text h3 {
+	font-size: 15px;
+	font-weight: 800;
+	margin: 0;
+	background: linear-gradient(90deg, #ffffff 0%, #a5f3fc 60%, #6ee7b7 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	letter-spacing: 0.3px;
+}
+.sd-ai-header-text p {
+	font-size: 11px;
+	margin: 2px 0 0 0;
+	color: #94a3b8;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.sd-ai-online-dot {
+	width: 8px;
+	height: 8px;
+	background: #10b981;
+	border-radius: 50%;
+	box-shadow: 0 0 10px #10b981;
+	display: inline-block;
+}
+
+.sd-ai-chat-actions {
+	display: flex;
+	gap: 8px;
+}
+.sd-ai-btn-icon {
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	color: #e2e8f0;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	transition: all 0.2s;
+}
+.sd-ai-btn-icon:hover {
+	background: rgba(0, 242, 254, 0.2);
+	color: #00f2fe;
+	border-color: #00f2fe;
+}
+
+.sd-ai-chat-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	background: radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 45%), #0b1320;
+}
+
+.sd-ai-msg {
+	display: flex;
+	flex-direction: column;
+	max-width: 90%;
+	font-size: 13px;
+	line-height: 1.55;
+	animation: sd-msg-in 0.25s ease-out;
+}
+@keyframes sd-msg-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.sd-ai-msg-user {
+	align-self: flex-end;
+}
+.sd-ai-user-bubble {
+	background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+	color: #ffffff;
+	padding: 11px 16px;
+	border-radius: 18px 18px 4px 18px;
+	border: 1px solid rgba(56, 189, 248, 0.4);
+	box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+	font-weight: 500;
+	font-size: 13px;
+}
+
+.sd-ai-msg-bot {
+	align-self: flex-start;
+	width: 100%;
+}
+.sd-ai-bot-bubble {
+	background: rgba(30, 41, 59, 0.85);
+	color: #f1f5f9;
+	padding: 14px 18px;
+	border-radius: 18px 18px 18px 4px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(10px);
+}
+.sd-ai-bold {
+	color: #38bdf8;
+	font-weight: 700;
+}
+.sd-ai-code {
+	background: rgba(0, 242, 254, 0.12);
+	color: #38ef7d;
+	border: 1px solid rgba(0, 242, 254, 0.25);
+	border-radius: 5px;
+	padding: 2px 6px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+}
+.sd-ai-link {
+	color: #38bdf8;
+	text-decoration: none;
+	font-weight: 600;
+	border-bottom: 1px dashed #38bdf8;
+	transition: all 0.15s;
+}
+.sd-ai-link:hover {
+	color: #00f2fe;
+	border-bottom-style: solid;
+}
+.sd-ai-quote {
+	margin: 8px 0;
+	padding: 8px 12px;
+	background: rgba(15, 23, 42, 0.6);
+	border-left: 3px solid #00f2fe;
+	border-radius: 0 8px 8px 0;
+	font-size: 12px;
+	color: #cbd5e1;
+	font-style: italic;
+}
+.sd-ai-ul {
+	margin: 8px 0;
+	padding-left: 20px;
+}
+.sd-ai-li {
+	margin-bottom: 4px;
+	color: #e2e8f0;
+}
+.sd-ai-num-step {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 6px 0;
+	color: #e2e8f0;
+}
+.sd-ai-step-badge {
+	background: linear-gradient(135deg, #0284c7, #06b6d4);
+	color: #ffffff;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	font-size: 11px;
+	font-weight: 800;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+.sd-ai-gap {
+	height: 8px;
+}
+/* ==========================================================================
+   SARATHI AI AGENT - ULTRA-MODERN COLORFUL LIVE DESIGN SYSTEM
+   ========================================================================== */
+
+/* Top Real-time Live Activity Banner on Main Dashboard */
+.sd-live-banner {
+	position: fixed;
+	top: 18px;
+	left: 50%;
+	transform: translateX(-50%) translateY(-100px);
+	z-index: 99999;
+	background: linear-gradient(
+		135deg,
+		rgba(15, 23, 42, 0.96) 0%,
+		rgba(6, 78, 59, 0.94) 50%,
+		rgba(15, 23, 42, 0.96) 100%
+	);
+	border: 1px solid #10b981;
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.35);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border-radius: 30px;
+	padding: 10px 22px;
+	color: #ffffff;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+	opacity: 0;
+	pointer-events: none;
+}
+.sd-live-banner.active {
+	transform: translateX(-50%) translateY(0);
+	opacity: 1;
+	pointer-events: auto;
+}
+.sd-live-beacon {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #10b981;
+	box-shadow: 0 0 12px #10b981;
+	animation: sdLiveBeacon 1.2s infinite ease-in-out;
+	flex-shrink: 0;
+}
+@keyframes sdLiveBeacon {
+	0%,
+	100% {
+		transform: scale(1);
+		opacity: 1;
+		box-shadow: 0 0 14px #10b981;
+	}
+	50% {
+		transform: scale(1.4);
+		opacity: 0.6;
+		box-shadow: 0 0 22px #00f2fe;
+	}
+}
+.sd-live-banner-title {
+	font-size: 11px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.8px;
+	color: #34d399;
+}
+.sd-live-banner-text {
+	font-size: 13px;
+	font-weight: 600;
+	color: #f1f5f9;
+}
+.sd-live-banner-btn {
+	background: rgba(255, 255, 255, 0.15);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: #ffffff;
+	border-radius: 20px;
+	padding: 4px 12px;
+	font-size: 11px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+.sd-live-banner-btn:hover {
+	background: #10b981;
+	border-color: #10b981;
+	color: #0b1320;
+	transform: scale(1.05);
+}
+.sd-live-banner-close {
+	background: transparent;
+	border: none;
+	color: #94a3b8;
+	cursor: pointer;
+	font-size: 14px;
+	padding: 2px 6px;
+	border-radius: 50%;
+	transition: color 0.2s;
+}
+.sd-live-banner-close:hover {
+	color: #ffffff;
+}
+
+/* Live Card Highlight Pulse on Dashboard Mutation */
+.sd-live-highlight-pulse {
+	animation: sdCardHighlight 2.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+@keyframes sdCardHighlight {
+	0% {
+		box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.8), 0 0 0 0 rgba(16, 185, 129, 0.8);
+		border-color: #00f2fe !important;
+		transform: scale(1);
+	}
+	30% {
+		box-shadow: 0 0 35px 8px rgba(0, 242, 254, 0.6), 0 0 20px 4px rgba(16, 185, 129, 0.5);
+		border-color: #10b981 !important;
+		transform: scale(1.015);
+	}
+	100% {
+		box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+		transform: scale(1);
+	}
+}
+
+/* ==========================================================================
+   Interactive Cards Inside Chat
+   ========================================================================== */
+
+/* 1. Colorful Success Card (Mutation Completed) */
+.sd-ai-card-success {
+	background: linear-gradient(145deg, #064e3b 0%, #065f46 45%, #0f172a 100%);
+	border: 1.5px solid #34d399;
+	border-radius: 18px;
+	padding: 18px;
+	color: #ffffff;
+	box-shadow: 0 12px 35px rgba(6, 78, 59, 0.45), 0 0 20px rgba(52, 211, 153, 0.25);
+	animation: sdCardEnter 0.3s ease-out;
+}
+@keyframes sdCardEnter {
+	from {
+		opacity: 0;
+		transform: scale(0.96) translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+.sd-ai-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+.sd-ai-card-badge-live {
+	background: linear-gradient(135deg, #10b981, #059669);
+	color: #ffffff;
+	text-transform: uppercase;
+	font-weight: 800;
+	letter-spacing: 0.8px;
+	font-size: 10px;
+	padding: 4px 10px;
+	border-radius: 20px;
+	box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.sd-ai-card-badge-verified {
+	background: linear-gradient(135deg, #06b6d4, #0284c7);
+	color: #ffffff;
+	text-transform: uppercase;
+	font-weight: 800;
+	letter-spacing: 0.8px;
+	font-size: 10px;
+	padding: 4px 10px;
+	border-radius: 20px;
+	box-shadow: 0 0 12px rgba(6, 182, 212, 0.7);
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.sd-ai-card-header h4 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 800;
+	color: #ecfdf5;
+	letter-spacing: -0.2px;
+}
+.sd-ai-id-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+.sd-ai-id-label {
+	font-size: 11px;
+	color: #a7f3d0;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+.sd-ai-id-code {
+	background: #022c22;
+	color: #6ee7b7;
+	border: 1px solid #10b981;
+	padding: 4px 12px;
+	border-radius: 8px;
+	font-weight: 800;
+	font-size: 13px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Attributes Grid */
+.sd-ai-attr-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+	margin-bottom: 14px;
+}
+.sd-ai-attr-pill {
+	background: rgba(15, 23, 42, 0.55);
+	border: 1px solid rgba(52, 211, 153, 0.25);
+	border-radius: 10px;
+	padding: 6px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.sd-ai-attr-pill span {
+	font-size: 10px;
+	font-weight: 700;
+	color: #6ee7b7;
+	text-transform: uppercase;
+}
+.sd-ai-attr-pill strong {
+	font-size: 12px;
+	color: #ffffff;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sd-ai-card-text {
+	font-size: 12px;
+	color: #d1fae5;
+	line-height: 1.55;
+	margin-bottom: 14px;
+}
+.sd-ai-card-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.sd-ai-action-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 8px 14px;
+	font-size: 12px;
+	font-weight: 700;
+	border-radius: 8px;
+	cursor: pointer;
+	text-decoration: none;
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	border: none;
+}
+.sd-ai-btn-primary {
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	color: white;
+	border: 1px solid #6ee7b7;
+	box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+}
+.sd-ai-btn-primary:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(16, 185, 129, 0.65);
+	color: white;
+}
+.sd-ai-btn-secondary {
+	background: rgba(255, 255, 255, 0.14);
+	color: #e2e8f0;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.sd-ai-btn-secondary:hover {
+	background: rgba(255, 255, 255, 0.25);
+	color: white;
+	transform: translateY(-2px);
+}
+
+/* 2. Interactive Requirements Intake Card (Slot Filling) */
+.sd-ai-card-intake {
+	background: linear-gradient(145deg, #1e1b4b 0%, #1e293b 50%, #0f172a 100%);
+	border: 1.5px solid #a855f7;
+	border-radius: 18px;
+	padding: 18px;
+	color: #ffffff;
+	box-shadow: 0 12px 35px rgba(147, 51, 234, 0.25), 0 0 20px rgba(168, 85, 247, 0.2);
+	animation: sdCardEnter 0.3s ease-out;
+}
+.sd-ai-intake-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+.sd-ai-intake-header h4 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 800;
+	color: #f3e8ff;
+	letter-spacing: -0.2px;
+}
+.sd-ai-intake-badge {
+	background: #9333ea;
+	color: #ffffff;
+	font-size: 10px;
+	font-weight: 800;
+	text-transform: uppercase;
+	padding: 3px 9px;
+	border-radius: 20px;
+	box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+}
+.sd-ai-intake-desc {
+	font-size: 12px;
+	color: #e9d5ff;
+	margin-bottom: 12px;
+	line-height: 1.45;
+}
+.sd-ai-intake-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+.sd-ai-intake-field {
+	background: rgba(15, 23, 42, 0.65);
+	border: 1px solid rgba(168, 85, 247, 0.35);
+	border-radius: 10px;
+	padding: 8px 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+.sd-ai-intake-field-name {
+	font-size: 12px;
+	font-weight: 700;
+	color: #ffffff;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.sd-ai-intake-field-hint {
+	font-size: 11px;
+	color: #c084fc;
+}
+
+/* Quick-Fill Clickable Chips inside Questionnaire */
+.sd-ai-quick-fill-container {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px dashed rgba(168, 85, 247, 0.3);
+}
+.sd-ai-quick-fill-label {
+	font-size: 10px;
+	font-weight: 800;
+	color: #c084fc;
+	text-transform: uppercase;
+	margin-bottom: 6px;
+	letter-spacing: 0.5px;
+}
+.sd-ai-quick-fill-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.sd-ai-quick-fill-chip {
+	background: rgba(147, 51, 234, 0.25);
+	border: 1px solid #c084fc;
+	color: #ffffff;
+	border-radius: 20px;
+	padding: 4px 10px;
+	font-size: 11px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.sd-ai-quick-fill-chip:hover {
+	background: #a855f7;
+	color: #ffffff;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 14px rgba(168, 85, 247, 0.5);
+}
+
+/* 3. Live Changes / Activity Stream Card */
+.sd-ai-card-changes {
+	background: linear-gradient(145deg, #0c4a6e 0%, #075985 45%, #0f172a 100%);
+	border: 1.5px solid #38bdf8;
+	border-radius: 18px;
+	padding: 16px;
+	color: #ffffff;
+	box-shadow: 0 12px 35px rgba(2, 132, 199, 0.3), 0 0 20px rgba(56, 189, 248, 0.2);
+	animation: sdCardEnter 0.3s ease-out;
+}
+.sd-ai-changes-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+.sd-ai-changes-header h4 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 800;
+	color: #e0f2fe;
+}
+.sd-ai-changes-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.sd-ai-change-item {
+	background: rgba(15, 23, 42, 0.6);
+	border: 1px solid rgba(56, 189, 248, 0.25);
+	border-radius: 10px;
+	padding: 8px 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	transition: background 0.15s;
+}
+.sd-ai-change-item:hover {
+	background: rgba(15, 23, 42, 0.85);
+	border-color: #38bdf8;
+}
+.sd-ai-change-item a {
+	color: #7dd3fc;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 12px;
+}
+.sd-ai-change-item a:hover {
+	color: #ffffff;
+	text-decoration: underline;
+}
+
+/* 2b. Interactive Confirmation Card (Pre-Mutation Safety Gate) */
+.sd-ai-card-confirmation {
+	background: linear-gradient(145deg, #1e293b 0%, #0f172a 60%, #1e1b4b 100%);
+	border: 1.5px solid #00f2fe;
+	border-radius: 18px;
+	padding: 18px;
+	color: #ffffff;
+	box-shadow: 0 12px 35px rgba(0, 242, 254, 0.25), 0 0 20px rgba(0, 242, 254, 0.15);
+	animation: sdCardEnter 0.3s ease-out;
+}
+.sd-ai-confirm-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+.sd-ai-confirm-header h4 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 800;
+	color: #f0fdf4;
+}
+.sd-ai-card-badge-confirm {
+	background: linear-gradient(135deg, #0284c7, #00f2fe);
+	color: #0b1320;
+	font-size: 10px;
+	font-weight: 800;
+	text-transform: uppercase;
+	padding: 3px 9px;
+	border-radius: 20px;
+	box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+.sd-ai-validation-checklist {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 10px 0 14px 0;
+	background: rgba(15, 23, 42, 0.65);
+	border: 1px solid rgba(0, 242, 254, 0.25);
+	border-radius: 12px;
+	padding: 12px 14px;
+}
+.sd-ai-check-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	color: #cbd5e1;
+	font-weight: 600;
+}
+.sd-ai-check-icon {
+	color: #34d399;
+	font-weight: 900;
+}
+.sd-ai-confirm-callout {
+	font-size: 12px;
+	color: #e2e8f0;
+	margin: 10px 0 14px 0;
+	padding: 8px 12px;
+	background: rgba(0, 242, 254, 0.08);
+	border-left: 3px solid #00f2fe;
+	border-radius: 0 8px 8px 0;
+}
+.sd-ai-btn-confirm {
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	color: white;
+	border: 1px solid #6ee7b7;
+	box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+}
+.sd-ai-btn-confirm:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(16, 185, 129, 0.65);
+	color: white;
+}
+.sd-ai-btn-cancel {
+	background: rgba(239, 68, 68, 0.2);
+	color: #fca5a5;
+	border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.sd-ai-btn-cancel:hover {
+	background: rgba(239, 68, 68, 0.35);
+	color: #ffffff;
+	transform: translateY(-2px);
+}
+
+/* 4. Suggestion Chips Bar */
+.sd-ai-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 10px 18px;
+	background: #09131f;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sd-ai-chip {
+	background: #1e293b;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 20px;
+	padding: 5px 13px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #cbd5e1;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.sd-ai-chip:hover {
+	background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), rgba(16, 185, 129, 0.3));
+	border-color: #00f2fe;
+	color: #ffffff;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);
+}
+
+/* 5. Footer Input Area */
+.sd-ai-chat-footer {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 18px;
+	background: #0b1320;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.sd-ai-input {
+	flex: 1;
+	resize: none;
+	height: 42px;
+	background: #1e293b;
+	color: #ffffff;
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	border-radius: 12px;
+	padding: 10px 14px;
+	font-size: 13px;
+	font-family: inherit;
+	outline: none;
+	transition: all 0.2s;
+}
+.sd-ai-input:focus {
+	border-color: #00f2fe;
+	box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.25);
+	background: #0f172a;
+}
+.sd-ai-send-btn {
+	background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+	color: #0b1320;
+	border: none;
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	font-weight: 800;
+	box-shadow: 0 4px 16px rgba(0, 242, 254, 0.4);
+	transition: all 0.2s;
+}
+.sd-ai-send-btn:hover {
+	transform: translateY(-2px) scale(1.05);
+	box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6);
+}
+
+/* 6. Multi-Step Live Execution Progress Bar */
+.sd-ai-typing-indicator {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px 16px;
+	background: rgba(30, 41, 59, 0.95);
+	border: 1px solid rgba(0, 242, 254, 0.35);
+	border-radius: 14px;
+	align-self: flex-start;
+	box-shadow: 0 6px 20px rgba(0, 242, 254, 0.2);
+	width: 90%;
+	animation: sdCardEnter 0.2s ease-out;
+}
+.sd-ai-typing-top {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.sd-ai-live-spinner {
+	width: 14px;
+	height: 14px;
+	border: 2px solid rgba(0, 242, 254, 0.3);
+	border-top-color: #00f2fe;
+	border-radius: 50%;
+	animation: sd-spin 0.8s linear infinite;
+	flex-shrink: 0;
+}
+@keyframes sd-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.sd-ai-step-text {
+	font-size: 12px;
+	font-weight: 700;
+	background: linear-gradient(90deg, #38ef7d, #00f2fe);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: sd-pulse-text 1.5s infinite ease-in-out;
+}
+@keyframes sd-pulse-text {
+	0%,
+	100% {
+		opacity: 0.8;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+.sd-ai-progress-track {
+	height: 3px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 3px;
+	overflow: hidden;
+}
+.sd-ai-progress-bar {
+	height: 100%;
+	width: 40%;
+	background: linear-gradient(90deg, #00f2fe, #38ef7d);
+	border-radius: 3px;
+	animation: sdProgressMove 1.5s infinite ease-in-out;
+}
+@keyframes sdProgressMove {
+	0% {
+		transform: translateX(-100%);
+		width: 30%;
+	}
+	50% {
+		width: 60%;
+	}
+	100% {
+		transform: translateX(250%);
+		width: 30%;
+	}
+}
+
+/* 7. Floating Action Button (FAB) Breathing Hover */
+.sd-ai-fab {
+	animation: none;
+}
+@keyframes sdFloatBot {
+	0% {
+		transform: translateY(0);
+	}
+	100% {
+		transform: translateY(-5px);
+	}
+}
+.sd-ai-fab:hover {
+	transform: translateY(-8px) scale(1.05) !important;
+	box-shadow: 0 12px 35px rgba(0, 242, 254, 0.6), 0 0 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* 8. Expanded Chat Window State */
+.sd-ai-chat-window.sd-ai-expanded {
+	width: min(840px, 94vw) !important;
+	height: min(800px, 92vh) !important;
+}
+
+/* 9. Interactive Intake Form Inside Chat Cards */
+.sd-ai-intake-form {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 12px;
+}
+.sd-ai-intake-form-row {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.sd-ai-intake-label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #e9d5ff;
+	letter-spacing: 0.3px;
+}
+.sd-ai-intake-input {
+	width: 100%;
+	box-sizing: border-box;
+	background: rgba(15, 23, 42, 0.85);
+	border: 1.5px solid rgba(168, 85, 247, 0.45);
+	border-radius: 8px;
+	padding: 8px 12px;
+	color: #ffffff;
+	font-size: 12.5px;
+	outline: none;
+	transition: all 0.2s;
+}
+.sd-ai-intake-input:focus {
+	border-color: #00f2fe;
+	box-shadow: 0 0 10px rgba(0, 242, 254, 0.35);
+	background: rgba(15, 23, 42, 0.98);
+}
+.sd-ai-intake-input::placeholder {
+	color: #64748b;
+	font-size: 11.5px;
+}
+.sd-ai-intake-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+}
+.sd-ai-intake-select {
+	cursor: pointer;
+	appearance: auto;
+}
+.sd-ai-intake-select option {
+	background: #0f172a;
+	color: #ffffff;
+	padding: 6px 10px;
+}
+
+@media (max-width: 480px) {
+ .sd-ai-chat-window { width: calc(100vw - 24px) !important; right: 12px !important; max-height: calc(100dvh - 100px) !important; }
+}

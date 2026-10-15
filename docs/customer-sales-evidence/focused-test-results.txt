@@ -1,0 +1,28 @@
+{"tests": 20, "skipped": 0, "passed": true}
+/home/frappe/frappe-bench/apps/erpnext/erpnext/accounts/utils.py:1197: V16FrappeDeprecationWarning: It was marked on unknown for removal from v16 with note: Use `NumberFormat.from_string()` from `frappe.utils.number_format` instead
+  return get_number_format_info(number_format)[2]
+test_customer_ranking_ties_pagination_and_nonduplicated_income (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_customer_ranking_ties_pagination_and_nonduplicated_income) ... ok
+test_returns_cancelled_drafts_and_amended_invoices (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_returns_cancelled_drafts_and_amended_invoices) ... ok
+test_unattributed_journal_income_remains_reconcilable (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_unattributed_journal_income_remains_reconcilable) ... ok
+test_daily_monthly_boundaries_and_measured_empty_period (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_daily_monthly_boundaries_and_measured_empty_period) ... ok
+test_zero_and_negative_customer_share (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_zero_and_negative_customer_share) ... ok
+test_backlog_partial_delivery_net_discount_and_current_status (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_backlog_partial_delivery_net_discount_and_current_status) ... ok
+test_backlog_completed_closed_cancelled_draft_and_held (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_backlog_completed_closed_cancelled_draft_and_held) ... ok
+test_backlog_delivery_bounds_pagination_and_overdue (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_backlog_delivery_bounds_pagination_and_overdue) ... ok
+test_backlog_project_line_fallback_and_unbilled_independence (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_backlog_project_line_fallback_and_unbilled_independence) ... ok
+test_backlog_amended_order_only_active_replacement (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_backlog_amended_order_only_active_replacement) ... ok
+test_source_reconciliation_failure_is_unavailable (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_source_reconciliation_failure_is_unavailable) ... ok
+test_signed_negative_customer_share_and_currency (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_signed_negative_customer_share_and_currency) ... ok
+test_stock_uom_conversion_and_overdue_delivery (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_stock_uom_conversion_and_overdue_delivery) ... ok
+test_month_grouping_crosses_calendar_year (sarathi_owner.tests.test_sales_analytics.SalesAccountingTests.test_month_grouping_crosses_calendar_year) ... ok
+test_capabilities_and_forged_company (sarathi_owner.tests.test_sales_analytics.SalesSecurityTests.test_capabilities_and_forged_company) ... ok
+test_restricted_customer_cannot_receive_complete_aggregates (sarathi_owner.tests.test_sales_analytics.SalesSecurityTests.test_restricted_customer_cannot_receive_complete_aggregates) ... ok
+test_positive_nonadministrator_company_scope (sarathi_owner.tests.test_sales_analytics.SalesSecurityTests.test_positive_nonadministrator_company_scope) ... ok
+test_filters_limits_dates_and_injection (sarathi_owner.tests.test_sales_analytics.SalesSecurityTests.test_filters_limits_dates_and_injection) ... ok
+test_hidden_attribution_or_order_fields_fail_closed (sarathi_owner.tests.test_sales_analytics.SalesSecurityTests.test_hidden_attribution_or_order_fields_fail_closed) ... ok
+test_unexpected_failure_is_sanitized_not_zero (sarathi_owner.tests.test_sales_analytics.SalesSecurityTests.test_unexpected_failure_is_sanitized_not_zero) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 23.614s
+
+OK

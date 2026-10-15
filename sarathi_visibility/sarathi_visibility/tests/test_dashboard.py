@@ -488,7 +488,7 @@ class DashboardTests(unittest.TestCase):
 				"email": f"sarathi-test-{self.token}@example.invalid",
 				"first_name": "Dashboard test",
 				"send_welcome_email": 0,
-				"roles": [{"role": role} for role in ("Projects User", "Manufacturing User", "Sales User")],
+				"roles": [{"role": role} for role in ("Projects User", "Manufacturing Manager", "Sales User")],
 			}
 		).insert()
 		frappe.get_doc(

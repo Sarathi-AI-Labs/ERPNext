@@ -11,6 +11,8 @@ from __future__ import annotations
 from typing import Any
 
 import frappe
+
+from sarathi_visibility.api.access import (authorized, can_finance, require_capability, scoped_rows, scoped_sql, scoped_value, validate_filters)
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -133,16 +135,16 @@ def _sum_field(doctype: str, fieldname: str, filters: dict[str, Any]) -> float:
 			conds.append(f"`{k}` = %({k})s")
 			vals[k] = v
 	where_clause = f" WHERE {' AND '.join(conds)}" if conds else ""
-	res = frappe.db.sql(f"SELECT SUM(`{fieldname}`) FROM `tab{doctype}`{where_clause}", vals)
+	res = scoped_sql(f"SELECT SUM(`{fieldname}`) FROM `tab{doctype}`{where_clause}", vals)
 	return flt(res[0][0]) if res and res[0] and res[0][0] is not None else 0.0
 
 
 def _get_company_currency(company: str = "") -> str:
 	if company:
-		curr = frappe.db.get_value("Company", company, "default_currency")
+		curr = scoped_value("Company", company, "default_currency")
 		if curr:
 			return curr
-	def_comp = frappe.db.get_value("Company", {}, "default_currency")
+	def_comp = scoped_value("Company", {}, "default_currency")
 	return def_comp or "INR"
 
 
@@ -150,7 +152,10 @@ def get_accounting_card_summary(filters: Any = None) -> dict[str, Any]:
 	"""Lightweight summary specifically for the Main Dashboard Finance / Account Card.
 	Returns Net Profit, Revenue, Expenses, AR (Receivables), AP (Payables), Cash & Bank Balances.
 	"""
-	f = _parse_filters(filters)
+	if not can_finance():
+		return {"restricted": True}
+	require_capability("finance")
+	f = _parse_filters(validate_filters(filters))
 	has_gl = _check_read("GL Entry")
 	has_si = _check_read("Sales Invoice")
 	has_pi = _check_read("Purchase Invoice")
@@ -203,7 +208,7 @@ def get_accounting_card_summary(filters: Any = None) -> dict[str, Any]:
             GROUP BY acc.root_type
         """
 		try:
-			pnl_rows = frappe.db.sql(pnl_query, gl_params, as_dict=True)
+			pnl_rows = scoped_sql(pnl_query, gl_params, as_dict=True)
 			for r in pnl_rows:
 				rt = r.get("root_type")
 				if rt == "Income":
@@ -279,7 +284,7 @@ def get_accounting_card_summary(filters: Any = None) -> dict[str, Any]:
             WHERE {where_cb}
         """
 		try:
-			cb_res = frappe.db.sql(cb_query, gl_params, as_dict=True)
+			cb_res = scoped_sql(cb_query, gl_params, as_dict=True)
 			if cb_res and cb_res[0].get("balance") is not None:
 				cash_and_bank = flt(cb_res[0]["balance"])
 		except Exception:
@@ -293,11 +298,11 @@ def get_accounting_card_summary(filters: Any = None) -> dict[str, Any]:
 				b_filters["company"] = f["company"]
 			if f["project"]:
 				b_filters["project"] = f["project"]
-			budgets = frappe.get_all("Budget", fields=["name"], filters=b_filters)
+			budgets = scoped_rows("Budget", fields=["name"], filters=b_filters)
 			if budgets:
 				budget_names = [b.name for b in budgets]
 				tot_budget = flt(
-					frappe.db.sql(
+					scoped_sql(
 						"SELECT SUM(budget_amount) FROM `tabBudget Account` WHERE parent IN %(parents)s",
 						{"parents": tuple(budget_names)},
 					)[0][0]
@@ -322,6 +327,8 @@ def get_accounting_card_summary(filters: Any = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
+@authorized("finance")
 def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 	"""Comprehensive Analytical Payload for the Accounting Control Tower Detail View.
 	Fulfills all 17 sections of the 19-page Sarathi Architecture Specification.
@@ -388,7 +395,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
             GROUP BY acc.name, acc.account_type, acc.root_type
         """
 		try:
-			rows = frappe.db.sql(cur_pnl_query, gl_params, as_dict=True)
+			rows = scoped_sql(cur_pnl_query, gl_params, as_dict=True)
 			for r in rows:
 				rt = r.get("root_type")
 				at = r.get("account_type") or ""
@@ -429,7 +436,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
             GROUP BY acc.root_type
         """
 		try:
-			prev_rows = frappe.db.sql(prev_pnl_query, gl_params, as_dict=True)
+			prev_rows = scoped_sql(prev_pnl_query, gl_params, as_dict=True)
 			for r in prev_rows:
 				rt = r.get("root_type")
 				if rt == "Income":
@@ -497,7 +504,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
             ORDER BY balance DESC
         """
 		try:
-			b_rows = frappe.db.sql(bank_query, gl_params, as_dict=True)
+			b_rows = scoped_sql(bank_query, gl_params, as_dict=True)
 			for r in b_rows:
 				bal = flt(r.get("balance"))
 				at = r.get("account_type")
@@ -540,7 +547,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 		if f["customer"]:
 			si_ar_filter["customer"] = f["customer"]
 
-		invoices = frappe.get_all(
+		invoices = scoped_rows(
 			"Sales Invoice",
 			fields=[
 				"name",
@@ -615,7 +622,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 		if f["supplier"]:
 			pi_ap_filter["supplier"] = f["supplier"]
 
-		pinvoices = frappe.get_all(
+		pinvoices = scoped_rows(
 			"Purchase Invoice",
 			fields=[
 				"name",
@@ -682,7 +689,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
             GROUP BY acc.name
         """
 		try:
-			tax_rows = frappe.db.sql(tax_query, gl_params, as_dict=True)
+			tax_rows = scoped_sql(tax_query, gl_params, as_dict=True)
 			for r in tax_rows:
 				cr = flt(r.get("cr"))
 				dr = flt(r.get("dr"))
@@ -707,7 +714,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 			if f["cost_center"]:
 				b_filter["cost_center"] = f["cost_center"]
 
-			budgets = frappe.get_all(
+			budgets = scoped_rows(
 				"Budget",
 				fields=["name", "budget_against", "cost_center", "project", "account", "budget_amount"],
 				filters=b_filter,
@@ -718,7 +725,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 					ba_list.append({"account": b.account, "budget_amount": b.budget_amount})
 				elif frappe.db.exists("DocType", "Budget Account"):
 					try:
-						ba_list = frappe.get_all(
+						ba_list = scoped_rows(
 							"Budget Account",
 							fields=["account", "budget_amount"],
 							filters={"parent": b.name},
@@ -734,7 +741,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
                         WHERE {base_where} AND gl.account = %(acc_name)s AND gl.posting_date BETWEEN %(start_date)s AND %(end_date)s
                     """
 					act_val = abs(
-						flt(frappe.db.sql(act_sql, {**gl_params, "acc_name": ba.get("account")})[0][0] or 0.0)
+						flt(scoped_sql(act_sql, {**gl_params, "acc_name": ba.get("account")})[0][0] or 0.0)
 					)
 					variance = b_amt - act_val
 					util = (act_val / b_amt * 100.0) if b_amt > 0 else 0.0
@@ -783,7 +790,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 			pe_cond.append("project = %(project)s")
 		where_pe = " AND ".join(pe_cond)
 		try:
-			pe_rows = frappe.db.sql(
+			pe_rows = scoped_sql(
 				f"""
                 SELECT payment_type, SUM(received_amount) as rec, SUM(paid_amount) as paid
                 FROM `tabPayment Entry`
@@ -821,7 +828,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 		m_exp = 0.0
 		if has_gl:
 			try:
-				m_rows = frappe.db.sql(
+				m_rows = scoped_sql(
 					f"""
                     SELECT
                         acc.root_type,
@@ -829,10 +836,10 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
                         SUM(gl.debit - gl.credit) as dr
                     FROM `tabGL Entry` gl
                     INNER JOIN `tabAccount` acc ON acc.name = gl.account
-                    WHERE {base_where} AND gl.posting_date BETWEEN %s AND %s
+                    WHERE {base_where} AND gl.posting_date BETWEEN %(month_start)s AND %(month_end)s
                     GROUP BY acc.root_type
                 """,
-					(m_start, m_end),
+					dict(gl_params, month_start=m_start, month_end=m_end),
 					as_dict=True,
 				)
 				for r in m_rows:
@@ -884,7 +891,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 		if f["customer"]:
 			p_filter["customer"] = f["customer"]
 
-		projects = frappe.get_all(
+		projects = scoped_rows(
 			"Project",
 			fields=[
 				"name",
@@ -908,7 +915,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 			if has_gl:
 				try:
-					p_gl = frappe.db.sql(
+					p_gl = scoped_sql(
 						"""
                         SELECT
                             SUM(CASE WHEN acc.root_type = 'Expense' THEN gl.debit - gl.credit ELSE 0 END) as cost,
@@ -929,7 +936,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 			if has_pe:
 				try:
-					p_pe = frappe.db.sql(
+					p_pe = scoped_sql(
 						"""
                         SELECT SUM(received_amount) as coll
                         FROM `tabPayment Entry`
@@ -976,7 +983,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 			if f["project"]:
 				si_cust_cond.append("project = %(project)s")
 			where_si_cust = " AND ".join(si_cust_cond)
-			cust_rows = frappe.db.sql(
+			cust_rows = scoped_sql(
 				f"""
                 SELECT customer, customer_name, SUM(base_grand_total) as total
                 FROM `tabSales Invoice`
@@ -1013,7 +1020,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 			if f["company"]:
 				si_proj_cond.append("company = %(company)s")
 			where_si_proj = " AND ".join(si_proj_cond)
-			proj_rows = frappe.db.sql(
+			proj_rows = scoped_sql(
 				f"""
                 SELECT project, SUM(base_grand_total) as total
                 FROM `tabSales Invoice`
@@ -1048,7 +1055,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 				"gl.cost_center IS NOT NULL AND gl.cost_center != ''",
 			]
 			where_cc = " AND ".join(cc_cond)
-			cc_rows = frappe.db.sql(
+			cc_rows = scoped_sql(
 				f"""
                 SELECT gl.cost_center, SUM(gl.debit - gl.credit) as total
                 FROM `tabGL Entry` gl
@@ -1084,7 +1091,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 				"gl.project IS NOT NULL AND gl.project != ''",
 			]
 			where_pexp = " AND ".join(pe_cond)
-			pexp_rows = frappe.db.sql(
+			pexp_rows = scoped_sql(
 				f"""
                 SELECT gl.project, SUM(gl.debit - gl.credit) as total
                 FROM `tabGL Entry` gl
@@ -1120,7 +1127,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 				cust_cond.append("name = %(customer)s")
 				c_params["customer"] = f["customer"]
 			where_cust = f"WHERE {' AND '.join(cust_cond)}" if cust_cond else ""
-			custs = frappe.db.sql(
+			custs = scoped_sql(
 				f"SELECT name, customer_name FROM `tabCustomer` {where_cust} ORDER BY customer_name ASC LIMIT 20",
 				c_params,
 				as_dict=True,
@@ -1166,7 +1173,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 				supp_cond.append("name = %(supplier)s")
 				s_params["supplier"] = f["supplier"]
 			where_supp = f"WHERE {' AND '.join(supp_cond)}" if supp_cond else ""
-			supps = frappe.db.sql(
+			supps = scoped_sql(
 				f"SELECT name, supplier_name FROM `tabSupplier` {where_supp} ORDER BY supplier_name ASC LIMIT 20",
 				s_params,
 				as_dict=True,
@@ -1200,14 +1207,14 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 	companies_list = []
 	if _check_read("Company"):
-		companies_list = frappe.get_all(
+		companies_list = scoped_rows(
 			"Company", fields=["name", "company_name"], order_by="company_name asc"
 		)
 
 	projects_list = []
 	if has_project:
 		proj_filters = {"company": f["company"]} if f["company"] else {}
-		projects_list = frappe.get_all(
+		projects_list = scoped_rows(
 			"Project",
 			fields=["name", "project_name"],
 			filters=proj_filters,
@@ -1217,7 +1224,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 	customers_list = []
 	if _check_read("Customer"):
-		customers_list = frappe.get_all(
+		customers_list = scoped_rows(
 			"Customer",
 			fields=["name", "customer_name"],
 			order_by="customer_name asc",
@@ -1226,7 +1233,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 
 	suppliers_list = []
 	if _check_read("Supplier"):
-		suppliers_list = frappe.get_all(
+		suppliers_list = scoped_rows(
 			"Supplier",
 			fields=["name", "supplier_name"],
 			order_by="supplier_name asc",
@@ -1236,7 +1243,7 @@ def get_accounting_dashboard(filters: Any = None) -> dict[str, Any]:
 	cost_centers_list = []
 	if _check_read("Cost Center"):
 		cc_filters = {"company": f["company"], "is_group": 0} if f["company"] else {"is_group": 0}
-		cost_centers_list = frappe.get_all(
+		cost_centers_list = scoped_rows(
 			"Cost Center",
 			fields=["name", "cost_center_name"],
 			filters=cc_filters,

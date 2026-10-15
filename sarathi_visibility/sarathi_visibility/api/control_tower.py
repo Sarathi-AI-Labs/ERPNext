@@ -4,6 +4,11 @@ from typing import Any
 from urllib.parse import quote
 
 import frappe
+import hashlib
+import math
+from sarathi_visibility.api.access import save_draft_changes
+
+from sarathi_visibility.api.access import (authorized, check_record, require_capability, scoped_rows, scoped_sql, scoped_value, scoped_count)
 from frappe.utils import flt, getdate, now_datetime, today
 
 from sarathi_visibility.api.data import (
@@ -201,7 +206,7 @@ def get_all_safe(
 ) -> list[dict[str, Any]]:
 	if not doctype_exists(doctype):
 		return []
-	return frappe.get_all(
+	return scoped_rows(
 		doctype,
 		fields=safe_fields(doctype, fields) or ["name"],
 		filters=filters,
@@ -213,7 +218,7 @@ def get_all_safe(
 def count_safe(doctype: str, filters: dict | list | None = None) -> int:
 	if not doctype_exists(doctype):
 		return 0
-	return frappe.db.count(doctype, filters=filters)
+	return scoped_count(doctype, filters=filters)
 
 
 FORM_WRAPPER_DOCTYPES = {"Project", "Company"}
@@ -238,7 +243,7 @@ def get_link_options(doctype: str | None) -> list[dict[str, Any]]:
 		fields.append(title_field)
 
 	try:
-		rows = frappe.get_all(
+		rows = scoped_rows(
 			doctype,
 			fields=fields,
 			order_by="modified desc",
@@ -315,7 +320,7 @@ def resolve_project(project: str | None = None, company: str | None = None) -> d
 		return project_payload(project)
 
 	if project and doctype_exists("Project") and has_field("Project", "project_name"):
-		project_name = frappe.db.get_value("Project", {"project_name": project}, "name")
+		project_name = scoped_value("Project", {"project_name": project}, "name")
 		if project_name:
 			return project_payload(project_name)
 
@@ -372,7 +377,7 @@ def project_payload(project_name: str) -> dict[str, Any]:
 		"custom_item_code",
 		"custom_item",
 	]
-	values = frappe.db.get_value("Project", project_name, safe_fields("Project", fields), as_dict=True) or {}
+	values = scoped_value("Project", project_name, safe_fields("Project", fields), as_dict=True) or {}
 	return {
 		"name": values.get("name", project_name),
 		"project_name": values.get("project_name") or DEFAULT_PROJECT_CODE,
@@ -493,7 +498,7 @@ def get_company_options(selected_company: str | None = None) -> list[dict[str, A
 			}
 
 	if companies and doctype_exists("Project") and has_field("Project", "company"):
-		rows = frappe.db.sql(
+		rows = scoped_sql(
 			"""
             select company, count(name) as project_count
             from `tabProject`
@@ -538,7 +543,7 @@ def get_default_company_from_erp() -> str | None:
 		return None
 
 	if doctype_exists("Project") and has_field("Project", "company"):
-		project_company = frappe.db.get_value("Project", {"name": DEFAULT_PROJECT_DOC}, "company")
+		project_company = scoped_value("Project", {"name": DEFAULT_PROJECT_DOC}, "company")
 		if project_company and any(row.get("name") == project_company for row in companies):
 			return project_company
 
@@ -553,7 +558,7 @@ def find_sales_order(project_name: str) -> str:
 	if not doctype_exists("Sales Order") or not has_field("Sales Order", "project"):
 		return ""
 
-	sales_order = frappe.db.get_value("Sales Order", {"project": project_name}, "name")
+	sales_order = scoped_value("Sales Order", {"project": project_name}, "name")
 	return sales_order or ""
 
 
@@ -630,7 +635,7 @@ def get_pipeline_weights(project_name: str | None) -> list[dict[str, Any]]:
 	if not project_name or not doctype_exists("Sarathi Project Controller"):
 		return PIPELINE_WEIGHTS
 
-	controller = frappe.db.get_value(
+	controller = scoped_value(
 		"Sarathi Project Controller",
 		{"project": project_name},
 		["pipeline_weights_json"],
@@ -850,7 +855,7 @@ def get_available_qty(item_code: str | None, warehouse: str | None = None) -> fl
 		conditions.append("warehouse = %(warehouse)s")
 		values["warehouse"] = warehouse
 
-	result = frappe.db.sql(
+	result = scoped_sql(
 		f"""
         select sum(actual_qty)
         from `tabBin`
@@ -1180,7 +1185,7 @@ def get_bom_operation_rows(
 def get_component_counts(bom_names: list[str]) -> dict[str, int]:
 	if not bom_names or not doctype_exists("BOM Item"):
 		return {}
-	rows = frappe.db.sql(
+	rows = scoped_sql(
 		"""
         select parent, count(name)
         from `tabBOM Item`
@@ -2004,6 +2009,7 @@ def count_delayed_projects() -> int:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_dashboard(company: str | None = None, project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project, company)
 	project_name = project_doc["name"]
@@ -2095,6 +2101,7 @@ def get_dashboard(company: str | None = None, project: str | None = None) -> dic
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_organization_summary(company: str | None = None) -> dict[str, Any]:
 	company_names = {row.get("name") for row in get_company_options()}
 	selected_company = company if company in company_names else None
@@ -2183,6 +2190,7 @@ def get_organization_summary(company: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_project_summary(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	tasks = get_project_tasks(project_doc["name"])
@@ -2196,6 +2204,7 @@ def get_project_summary(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_project_boms(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	work_orders = get_work_orders_for_project(project_doc["name"])
@@ -2203,6 +2212,7 @@ def get_project_boms(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_project_materials(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	work_orders = get_work_orders_for_project(project_doc["name"])
@@ -2211,6 +2221,7 @@ def get_project_materials(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_project_production(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	work_orders = get_work_orders_for_project(project_doc["name"])
@@ -2223,6 +2234,7 @@ def get_project_production(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_workstations(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	work_orders = get_work_orders_for_project(project_doc["name"])
@@ -2231,6 +2243,7 @@ def get_workstations(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_stock_entries(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	work_orders = get_work_orders_for_project(project_doc["name"])
@@ -2238,6 +2251,7 @@ def get_stock_entries(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_finished_goods(project: str | None = None) -> dict[str, Any]:
 	project_doc = resolve_project(project)
 	work_orders = get_work_orders_for_project(project_doc["name"])
@@ -2245,33 +2259,30 @@ def get_finished_goods(project: str | None = None) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+@authorized("production")
 def get_form_schema(doctype: str = "Project") -> dict[str, Any]:
 	return envelope({"schema": form_wrapper_schema(doctype)})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("production")
 def update_project(project: str, changes: dict[str, Any]) -> dict[str, Any]:
 	require_super_admin()
-	doc = frappe.get_doc("Project", project)
-	for field, value in (changes or {}).items():
-		if has_field("Project", field):
-			doc.set(field, value)
-	doc.save()
+	save_draft_changes("Project", project, changes, {"project_name", "expected_start_date", "expected_end_date"})
 	return envelope({"project": project_payload(project)})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("production")
 def update_task(task: str, changes: dict[str, Any]) -> dict[str, Any]:
 	require_super_admin()
-	doc = frappe.get_doc("Task", task)
-	for field, value in (changes or {}).items():
-		if has_field("Task", field):
-			doc.set(field, value)
-	doc.save()
+	doc = save_draft_changes("Task", task, changes, {"subject", "exp_start_date", "exp_end_date"})
+	doc.apply_fieldlevel_read_permissions()
 	return envelope({"task": doc.as_dict()})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("production")
 def recalculate_progress(project: str | None = None) -> dict[str, Any]:
 	require_super_admin()
 	project_doc = resolve_project(project)
@@ -2283,10 +2294,8 @@ def recalculate_progress(project: str | None = None) -> dict[str, Any]:
 	completed = len([task for task in tasks if task.get("status") == "Completed"])
 	progress = round((completed / total) * 100, 2) if total else 0
 
-	doc = frappe.get_doc("Project", project_doc["name"])
 	if has_field("Project", "percent_complete"):
-		doc.percent_complete = progress
-		doc.save()
+		save_draft_changes("Project", project_doc["name"], {"percent_complete": progress}, {"percent_complete"})
 
 	return envelope({"project": project_payload(project_doc["name"]), "progress": progress})
 
@@ -2296,10 +2305,35 @@ def sync_integration(source_system: str, payload: dict[str, Any]) -> dict[str, A
 	if not doctype_exists("Sarathi Machine Integration Log"):
 		frappe.throw("Sarathi Machine Integration Log DocType is not installed.")
 
-	payload = payload or {}
+	payload = frappe.parse_json(payload) if isinstance(payload, str) else payload
+	if not isinstance(payload, dict):
+		frappe.throw("Invalid integration payload.")
+	request_id = payload.get("request_id")
+	if not isinstance(request_id, str) or not request_id or len(request_id) > 140:
+		frappe.throw("An integration request_id is required for safe retries.")
+	check_record("Project", payload.get("project"))
+	if source_system == "Tally":
+		require_capability("finance")
+	if not frappe.has_permission("Sarathi Machine Integration Log", "create"):
+		frappe.throw("This resource or action is not available for your permissions.", frappe.PermissionError)
+	if len(frappe.as_json(payload)) > 16384:
+		frappe.throw("Integration payload is too large.")
+	for key in ("planned_qty", "completed_qty", "rejected_qty"):
+		try:
+			qty = float(payload.get(key) or 0)
+		except (ValueError, TypeError):
+			frappe.throw("Invalid integration quantity.")
+		if not math.isfinite(qty) or qty < 0:
+			frappe.throw("Integration quantities must be finite and non-negative.")
+	name = "SIL-" + hashlib.sha256(f"{frappe.session.user}\0{source_system}\0{request_id}".encode()).hexdigest()[:40]
+	if frappe.db.exists("Sarathi Machine Integration Log", name):
+		prior = check_record("Sarathi Machine Integration Log", name)
+		if prior.raw_payload != frappe.as_json(payload):
+			frappe.throw("This request_id has already been used for a different payload.")
+		return envelope({"integration_log": name})
 	doc = frappe.new_doc("Sarathi Machine Integration Log")
 	doc.source_system = source_system
-	doc.project = payload.get("project") or DEFAULT_PROJECT_DOC
+	doc.project = payload["project"]
 	doc.machine = payload.get("machine")
 	doc.program = payload.get("program")
 	doc.drawing = payload.get("drawing")
@@ -2308,20 +2342,28 @@ def sync_integration(source_system: str, payload: dict[str, Any]) -> dict[str, A
 	doc.rejected_qty = flt(payload.get("rejected_qty"))
 	doc.sync_status = payload.get("sync_status") or "Pending"
 	doc.raw_payload = frappe.as_json(payload)
-	doc.insert()
+	try:
+		doc.insert(set_name=name)
+	except frappe.DuplicateEntryError:
+		prior = check_record("Sarathi Machine Integration Log", name)
+		if prior.raw_payload != frappe.as_json(payload):
+			frappe.throw("This request_id has already been used for a different payload.")
 	return envelope({"integration_log": doc.name})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("production")
 def sync_tubepro(payload: dict[str, Any]) -> dict[str, Any]:
 	return sync_integration("TubePro P1", payload)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("production")
 def sync_cypcut(payload: dict[str, Any]) -> dict[str, Any]:
 	return sync_integration("CypCut", payload)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@authorized("production")
 def sync_tally(payload: dict[str, Any]) -> dict[str, Any]:
 	return sync_integration("Tally", payload)

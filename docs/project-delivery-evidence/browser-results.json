@@ -1,0 +1,86 @@
+{
+  "viewports": [
+    {
+      "width": 360,
+      "page_scroll_width": 360,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 390,
+      "page_scroll_width": 390,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 480,
+      "page_scroll_width": 480,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 767,
+      "page_scroll_width": 767,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 768,
+      "page_scroll_width": 768,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 1023,
+      "page_scroll_width": 1023,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 1024,
+      "page_scroll_width": 1024,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 1440,
+      "page_scroll_width": 1440,
+      "records": 53,
+      "dashboard_container_overflow": []
+    },
+    {
+      "width": 844,
+      "page_scroll_width": 844,
+      "records": 53,
+      "dashboard_container_overflow": []
+    }
+  ],
+  "javascript_errors": [],
+  "http_errors": [],
+  "summary_requests": 0,
+  "multi_company_requires_selection": true,
+  "company_scope_matches": true,
+  "project_health_available": true,
+  "project_portfolio_counts": {
+    "total": 10,
+    "active": 9,
+    "completed": 1,
+    "cancelled": 0,
+    "overdue": 1,
+    "due_soon": 0,
+    "held": 0,
+    "at_risk": 0,
+    "unknown": 0
+  },
+  "delivery_counts": {
+    "open_orders": 6,
+    "overdue_orders": 0,
+    "due_soon_orders": 0,
+    "held_orders": 0,
+    "partially_delivered_orders": 0,
+    "unknown_date_orders": 0
+  },
+  "project_rows": 10,
+  "delivery_rows": 11,
+  "audit_session_revoked": true
+}

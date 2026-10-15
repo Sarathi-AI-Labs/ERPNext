@@ -1,0 +1,11 @@
+# Dashboard navigation and cache audit
+
+Retain both dashboard data APIs, filters, permissions, chat backend and confirmation flow. KPI definitions are unchanged. Improve page initialization with one pending promise, discard only Sarathi page payloads on activity, refresh data on entry and committed writes, and stop background refresh on inactive pages. Build one shared assistant hosted by the active dashboard; no duplicate bot or production-only context.
+
+The bot currently belongs to the production dashboard instance and its global DOM survives navigation. This is a lifecycle issue, not evidence that Redis needs flushing. Repeated global cache flushes would also discard chat state and metadata unnecessarily. Use targeted browser eviction and fresh API reads; preserve conversations. No core changes.
+
+Validation matrix: direct entry to either route; repeated bidirectional navigation; one bot and one dashboard per page; active bot filter context; inactive timers; activity eviction; refresh after mutation; desktop/mobile; JavaScript and network errors. Results pending.
+
+Local validation: authenticated Administrator, direct entry to either route and ten route visits, exactly one dashboard and bot, chat opens/closes, active host follows route, draft retained, stale page payload evicted on click, 390px chat fits viewport, zero JavaScript exceptions. Syntax checks and git diff --check pass. Router lifecycle was required because installed Frappe Page triggers show but does not dispatch on_page_hide. No core edits. Chat backend request was initiated but its response was not validated; financial reconciliation, other-role access and record creation remain outside this navigation repair. Rollback: restore both custom page scripts and dashboard controllers/styles together, remove shared runtime/assistant assets, then clear site cache once.
+
+Additional lifecycle checks: owner refresh timer stops on production entry; production becomes inactive on owner return; owner timer resumes. Instrumented activity triggered fresh reads (including periodic refresh), while typing retained the draft. Mobile bounding boxes are checked after entrance animation settles. No site-wide cache flushing was added to user activity.
