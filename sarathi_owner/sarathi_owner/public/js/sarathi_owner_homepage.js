@@ -55,8 +55,9 @@
    for (const [key, control] of Object.entries(this.homeControls)) control.value = this.homeFilters[key];
    this.homeScopeEpoch++; await this.loadHomeOptions("projects"); await this.loadHomeOptions("warehouses"); this.copyHomeFiltersToLegacy(); await this.refreshHomepage();
   }, validate: values => !values.company ? "Select an authorized Company." : values.from_date && values.to_date && values.from_date > values.to_date ? "From date must be on or before To date." : "" });
-  [...this.homeForm.querySelectorAll("input,select")].forEach((control, index) => {
-   const key = fields[index].key; control.name = key; this.homeControls[key] = control;
+  fields.forEach(field => {
+   const control = this.homeForm.querySelector(`[name="${field.key}"]`) || this.homeForm.querySelector(`#sui-filter-${field.key}`);
+   if (control) { control.name = field.key; this.homeControls[field.key] = control; }
   });
   this.homePanel = element("details", "sod-home-filters"); this.homePanel.open = matchMedia("(min-width:1024px)").matches;
   this.homePanel.append(element("summary", "", "Dashboard filters"), this.homeForm);

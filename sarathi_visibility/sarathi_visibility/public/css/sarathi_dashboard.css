@@ -108,17 +108,21 @@
 	font-weight: 650;
 	color: var(--sd-muted);
 	margin: 0;
+	flex: 1 1 160px;
+	min-width: 140px;
 }
 .sd-controls label:first-child {
-	flex: 1 1 210px;
+	flex: 1 1 190px;
 }
 .sd-controls label.sd-search {
-	flex: 1 1 190px;
+	flex: 1.5 1 210px;
+	min-width: 180px;
 }
 .sd-date-btn-group {
 	display: flex;
 	gap: 6px;
 	align-items: flex-end;
+	flex: 0 0 auto;
 }
 .sd-date-btn-group .sd-button {
 	height: 38px;

@@ -134,6 +134,210 @@
   if (title) el.append(header({ title, description, company, updatedAt, actions }));
   const content = node("div", "sui-content"); el.append(content); el.content = content; return el;
  }
+ function makeSearchableSelect(selectEl, { defaultValue } = {}) {
+  if (selectEl._suiCombo) return selectEl._suiCombo;
+  const wrap = node("div", "sui-combo-wrap");
+  selectEl.before(wrap);
+  wrap.append(selectEl);
+  selectEl.classList.add("sui-hidden-select");
+
+  const trigger = node("button", "sui-combo-trigger");
+  trigger.type = "button";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-label", selectEl.getAttribute("aria-label") || "Select option");
+
+  const triggerText = node("span", "sui-combo-trigger-text");
+  const clearBtn = node("button", "sui-combo-clear");
+  clearBtn.type = "button";
+  clearBtn.setAttribute("aria-label", "Clear selection");
+  clearBtn.setAttribute("title", "Clear selection");
+  clearBtn.setAttribute("tabindex", "-1");
+  clearBtn.innerHTML = '<svg viewBox="0 0 20 20" width="13" height="13" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
+
+  const chevron = node("span", "sui-combo-chevron", "▾");
+  trigger.append(triggerText, clearBtn, chevron);
+  wrap.append(trigger);
+
+  const menu = node("div", "sui-combo-menu");
+  menu.hidden = true;
+  const searchWrap = node("div", "sui-combo-search-wrap");
+  const searchInput = node("input", "sui-combo-search-input");
+  searchInput.type = "search";
+  searchInput.placeholder = "Search options…";
+  searchInput.setAttribute("autocomplete", "off");
+  searchInput.setAttribute("aria-label", "Search options");
+  searchWrap.append(searchInput);
+
+  const list = node("div", "sui-combo-list");
+  list.setAttribute("role", "listbox");
+  menu.append(searchWrap, list);
+  wrap.append(menu);
+
+  const initialDefault = defaultValue !== undefined ? defaultValue : (selectEl.options[0]?.value || "");
+
+  const updateTrigger = () => {
+   const opt = selectEl.options[selectEl.selectedIndex];
+   const text = opt ? (opt.textContent || opt.label) : "";
+   triggerText.textContent = text || selectEl.getAttribute("placeholder") || "Select…";
+   trigger.disabled = Boolean(selectEl.disabled);
+   wrap.classList.toggle("disabled", Boolean(selectEl.disabled));
+   const isDef = selectEl.value === "" || selectEl.value === initialDefault || (selectEl.selectedIndex === 0 && !selectEl.value);
+   clearBtn.classList.toggle("visible", !isDef);
+  };
+
+  const renderOptions = (filterQuery = "") => {
+   list.replaceChildren();
+   const query = (filterQuery || "").toLowerCase().trim();
+   let count = 0;
+   const currentVal = selectEl.value;
+
+   for (const opt of selectEl.options) {
+    const optText = opt.textContent || opt.label || "";
+    const optVal = opt.value;
+    if (query && !optText.toLowerCase().includes(query) && !optVal.toLowerCase().includes(query)) {
+     continue;
+    }
+    count++;
+    const item = node("div", "sui-combo-item");
+    item.setAttribute("role", "option");
+    item.dataset.value = optVal;
+    if (optVal === currentVal) {
+     item.classList.add("selected");
+     item.setAttribute("aria-selected", "true");
+    }
+    item.textContent = optText;
+    item.addEventListener("click", (e) => {
+     e.stopPropagation();
+     selectEl.value = optVal;
+     updateTrigger();
+     closeMenu();
+     selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    list.append(item);
+   }
+
+   if (count === 0) {
+    const empty = node("div", "sui-combo-empty", "No matching options");
+    list.append(empty);
+   }
+  };
+
+  const openMenu = () => {
+   if (selectEl.disabled) return;
+   document.querySelectorAll(".sui-combo-menu:not([hidden])").forEach(m => { m.hidden = true; });
+   document.querySelectorAll(".sui-combo-trigger[aria-expanded='true']").forEach(t => { t.setAttribute("aria-expanded", "false"); });
+   menu.hidden = false;
+   trigger.setAttribute("aria-expanded", "true");
+   searchInput.value = "";
+   renderOptions("");
+   setTimeout(() => searchInput.focus(), 50);
+  };
+
+  const closeMenu = () => {
+   menu.hidden = true;
+   trigger.setAttribute("aria-expanded", "false");
+  };
+
+  trigger.addEventListener("click", (e) => {
+   if (e.target.closest(".sui-combo-clear")) return;
+   if (menu.hidden) openMenu(); else closeMenu();
+  });
+
+  clearBtn.addEventListener("click", (e) => {
+   e.stopPropagation();
+   e.preventDefault();
+   selectEl.value = initialDefault !== undefined ? initialDefault : "";
+   updateTrigger();
+   closeMenu();
+   selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  searchInput.addEventListener("input", () => {
+   renderOptions(searchInput.value);
+  });
+
+  searchInput.addEventListener("keydown", (e) => {
+   if (e.key === "Escape") {
+    closeMenu();
+    trigger.focus();
+   } else if (e.key === "Enter") {
+    e.preventDefault();
+    const firstItem = list.querySelector(".sui-combo-item");
+    if (firstItem) firstItem.click();
+   }
+  });
+
+  const onDocClick = (e) => {
+   if (!wrap.contains(e.target)) closeMenu();
+  };
+  document.addEventListener("click", onDocClick);
+
+  const originalDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+  if (originalDesc) {
+   Object.defineProperty(selectEl, "value", {
+    get() { return originalDesc.get.call(this); },
+    set(v) { originalDesc.set.call(this, v); updateTrigger(); },
+    configurable: true
+   });
+  }
+
+  selectEl.addEventListener("change", updateTrigger);
+
+  const observer = new MutationObserver(() => {
+   updateTrigger();
+   if (!menu.hidden) renderOptions(searchInput.value);
+  });
+  observer.observe(selectEl, { childList: true, attributes: true });
+
+  updateTrigger();
+  const combo = {
+   wrap, trigger, clearBtn, menu, updateTrigger, renderOptions,
+   destroy: () => {
+    observer.disconnect();
+    document.removeEventListener("click", onDocClick);
+   }
+  };
+  selectEl._suiCombo = combo;
+  selectEl._syncCombo = updateTrigger;
+  return combo;
+ }
+ function makeClearableInput(inputEl, onClear) {
+  if (inputEl._suiClearable) return inputEl._suiClearable;
+  const wrap = node("div", "sui-clearable-input-wrap");
+  inputEl.before(wrap);
+  wrap.append(inputEl);
+
+  const clearBtn = node("button", "sui-input-clear-btn");
+  clearBtn.type = "button";
+  clearBtn.setAttribute("aria-label", "Clear search");
+  clearBtn.setAttribute("title", "Clear search");
+  clearBtn.setAttribute("tabindex", "-1");
+  clearBtn.innerHTML = '<svg viewBox="0 0 20 20" width="13" height="13" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
+  wrap.append(clearBtn);
+
+  const updateVisibility = () => {
+   clearBtn.classList.toggle("visible", Boolean(inputEl.value && String(inputEl.value).trim()));
+  };
+
+  clearBtn.addEventListener("click", (e) => {
+   e.stopPropagation();
+   e.preventDefault();
+   inputEl.value = "";
+   updateVisibility();
+   inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+   inputEl.dispatchEvent(new Event("change", { bubbles: true }));
+   inputEl.focus();
+   if (typeof onClear === "function") onClear();
+  });
+
+  inputEl.addEventListener("input", updateVisibility);
+  inputEl.addEventListener("change", updateVisibility);
+  updateVisibility();
+
+  inputEl._suiClearable = { wrap, clearBtn, updateVisibility };
+  return inputEl._suiClearable;
+ }
  function filterBar({ fields = [], onApply, onReset, validate } = {}) {
   if (typeof onApply !== "function") throw new TypeError("Filters need an apply callback.");
   const form = node("form", "sui-filters"); const controls = new Map();
@@ -141,11 +345,16 @@
    const label = node("label", "", field.label);
    const input = node(field.type === "select" ? "select" : "input", "");
    input.id = "sui-filter-" + ++sequence; label.htmlFor = input.id;
+   input.name = field.key;
    if (input.tagName === "INPUT") input.type = ["date", "search", "number"].includes(field.type) ? field.type : "text";
    if (field.required) input.required = true;
    label.append(input); form.append(label); controls.set(field.key, input);
-   if (field.type === "select") setOptions(field.key, field.options || [], field.optionState);
+   if (field.type === "select") {
+    setOptions(field.key, field.options || [], field.optionState);
+    makeSearchableSelect(input, { defaultValue: field.value ?? "" });
+   }
    input.value = field.value ?? "";
+   input._syncCombo?.();
   }
   const feedback = node("p", "sui-filter-feedback"); feedback.setAttribute("role", "status"); form.append(feedback);
   const values = () => Object.fromEntries([...controls].map(([key, el]) => [key, el.value]));
@@ -157,7 +366,11 @@
   }});
   form.append(apply);
   if (onReset) form.append(action({ label: "Reset filters", onActivate: async () => {
-   for (const field of fields) controls.get(field.key).value = field.value ?? "";
+   for (const field of fields) {
+    const ctrl = controls.get(field.key);
+    ctrl.value = field.value ?? "";
+    ctrl._syncCombo?.();
+   }
    feedback.textContent = ""; await onReset(values());
   }}));
   form.addEventListener("submit", event => { event.preventDefault(); apply.click(); });
@@ -169,6 +382,7 @@
    for (const option of options) { const el = node("option", "", option.label); el.value = option.value; input.append(el); }
    input.disabled = optionState === "loading" || optionState === "error" || !options.length;
    input.value = current;
+   input._syncCombo?.();
   }
   form.values = values; form.setOptions = setOptions; return form;
  }
@@ -339,6 +553,8 @@
    button.addEventListener("click", () => { const open = button.getAttribute("aria-expanded") !== "true"; button.setAttribute("aria-expanded", String(open)); target.classList.toggle("sui-open", open); });
   }
   disclosure("#sod-filters, .sd-controls", "Filters"); disclosure(".sod-side", "Dashboard menu");
+  for (const select of root.querySelectorAll(".sd-controls select")) makeSearchableSelect(select);
+  for (const input of root.querySelectorAll(".sd-controls [data-search]")) makeClearableInput(input);
   const prepare = () => {
    for (const table of root.querySelectorAll("table")) {
     const region = table.parentElement;
@@ -372,5 +588,5 @@
   mounted.set(root, handle); return handle;
  }
  window.frappe ||= {};
- frappe.sarathiUI = { action, state, status, severity, progress, kpi, header, layout, filterBar, recordList, chart, observeChart, enhance, announce, formatTimestamp, refreshStatus, staleNotice };
+ frappe.sarathiUI = { action, state, status, severity, progress, kpi, header, layout, filterBar, recordList, chart, observeChart, enhance, announce, formatTimestamp, refreshStatus, staleNotice, makeSearchableSelect, makeClearableInput };
 })();

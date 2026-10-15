@@ -237,3 +237,278 @@
   }
 }
 
+/* -------------------------------------------------------------
+   SEARCHABLE DROPDOWNS & CLEARABLE INPUTS (DASH-037)
+   ------------------------------------------------------------- */
+[data-sarathi-ui] .sui-combo-wrap,
+.sui-combo-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+[data-sarathi-ui] .sui-combo-wrap .sui-hidden-select,
+.sui-combo-wrap .sui-hidden-select {
+  position: absolute !important;
+  opacity: 0.001 !important;
+  pointer-events: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: -1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+[data-sarathi-ui] .sui-combo-trigger,
+.sui-combo-trigger {
+  width: 100%;
+  min-height: 38px;
+  height: 38px;
+  background: var(--sui-surface, #ffffff);
+  border: 1px solid var(--sui-border, #d6dce4);
+  border-radius: 8px;
+  padding: 6px 36px 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sui-ink, #1e293b);
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+[data-sarathi-ui] .sui-combo-trigger:hover,
+.sui-combo-trigger:hover {
+  border-color: #94a3b8;
+  background: var(--sui-surface-2, #f8fafc);
+}
+
+[data-sarathi-ui] .sui-combo-trigger:focus,
+[data-sarathi-ui] .sui-combo-trigger[aria-expanded="true"],
+.sui-combo-trigger:focus,
+.sui-combo-trigger[aria-expanded="true"] {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: #ffffff;
+}
+
+[data-sarathi-ui] .sui-combo-trigger:disabled,
+.sui-combo-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+[data-sarathi-ui] .sui-combo-trigger-text,
+.sui-combo-trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+
+[data-sarathi-ui] .sui-combo-chevron,
+.sui-combo-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #64748b;
+  pointer-events: none;
+  transition: transform 0.15s ease;
+}
+
+[data-sarathi-ui] .sui-combo-trigger[aria-expanded="true"] .sui-combo-chevron,
+.sui-combo-trigger[aria-expanded="true"] .sui-combo-chevron {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+[data-sarathi-ui] .sui-combo-clear,
+.sui-combo-clear {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  z-index: 2;
+  line-height: 1;
+}
+
+[data-sarathi-ui] .sui-combo-clear:hover,
+.sui-combo-clear:hover {
+  color: #ef4444;
+  background: #fee2e2;
+  transform: translateY(-50%) scale(1.1);
+}
+
+[data-sarathi-ui] .sui-combo-clear.visible,
+.sui-combo-clear.visible {
+  display: inline-flex !important;
+}
+
+[data-sarathi-ui] .sui-combo-menu,
+.sui-combo-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 200px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1050;
+  overflow: hidden;
+  animation: suiMenuFadeIn 0.12s ease;
+}
+
+@keyframes suiMenuFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+[data-sarathi-ui] .sui-combo-search-wrap,
+.sui-combo-search-wrap {
+  padding: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+[data-sarathi-ui] .sui-combo-search-input,
+.sui-combo-search-input {
+  width: 100% !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  color: #1e293b !important;
+  background: #ffffff !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+[data-sarathi-ui] .sui-combo-search-input:focus,
+.sui-combo-search-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12) !important;
+}
+
+[data-sarathi-ui] .sui-combo-list,
+.sui-combo-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+[data-sarathi-ui] .sui-combo-item,
+.sui-combo-item {
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-sarathi-ui] .sui-combo-item:hover,
+.sui-combo-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+[data-sarathi-ui] .sui-combo-item.selected,
+.sui-combo-item.selected {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 650;
+}
+
+[data-sarathi-ui] .sui-combo-empty,
+.sui-combo-empty {
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Clearable Input Styling (Find customers / projects) */
+[data-sarathi-ui] .sui-clearable-input-wrap,
+.sui-clearable-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+[data-sarathi-ui] .sui-clearable-input-wrap input,
+.sui-clearable-input-wrap input {
+  width: 100% !important;
+  padding-right: 30px !important;
+}
+
+[data-sarathi-ui] .sui-input-clear-btn,
+.sui-input-clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  z-index: 2;
+  line-height: 1;
+}
+
+[data-sarathi-ui] .sui-input-clear-btn:hover,
+.sui-input-clear-btn:hover {
+  color: #ef4444;
+  background: #fee2e2;
+  transform: translateY(-50%) scale(1.1);
+}
+
+[data-sarathi-ui] .sui-input-clear-btn.visible,
+.sui-input-clear-btn.visible {
+  display: inline-flex !important;
+}
+
+

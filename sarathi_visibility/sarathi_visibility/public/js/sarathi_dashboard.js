@@ -546,8 +546,10 @@ frappe.SarathiIndustrialDashboard = class {
 					)
 					.join("");
 		}
-		for (const n of this.root.querySelectorAll("[data-filter]"))
+		for (const n of this.root.querySelectorAll("[data-filter]")) {
 			n.value = this.filters[n.dataset.filter] || "";
+			n._syncCombo?.();
+		}
 		for (const n of this.root.querySelectorAll("[data-date-filter]")) {
 			const field = n.dataset.dateFilter;
 			const targetVal =
