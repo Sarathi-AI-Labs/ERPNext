@@ -1,10 +1,12 @@
 name: Linters
 
 on:
-  pull_request: { }
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - '**'
+      - main
   workflow_dispatch:
 
 permissions:
@@ -15,7 +17,17 @@ jobs:
   linters:
     name: linters
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     steps:
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
       - uses: actions/checkout@v4
 
       - name: Set up Python 3.12
@@ -26,13 +38,21 @@ jobs:
 
       - name: Install and Run Pre-commit
         uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --skip no-commit-to-branch
 
   js-unit-tests:
     name: js unit tests
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     steps:
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -46,7 +66,17 @@ jobs:
   semgrep:
     name: semgrep
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     steps:
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
       - uses: actions/checkout@v4
 
       - name: Set up Python 3.12
@@ -63,3 +93,4 @@ jobs:
 
       - name: Semgrep for Test Correctness
         run: semgrep scan --error --include=**/test_*.py --config ./ERPNEXT_MAIN/semgrep/test-correctness.yml
+

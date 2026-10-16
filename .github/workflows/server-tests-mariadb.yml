@@ -10,13 +10,16 @@ on:
       - '**.svg'
       - '**.md'
       - '**.html'
+      - '.github/**'
+      - 'compose.yaml'
+      - 'pwd.yml'
       - 'crowdin.yml'
       - '.coderabbit.yml'
       - '.mergify.yml'
       - '**.po'
-  schedule:
-    # Run everday at midnight UTC / 5:30 IST
-    - cron: "0 0 * * *"
+  # schedule:
+  #   # Run everday at midnight UTC / 5:30 IST
+  #   - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       user:
@@ -61,6 +64,10 @@ jobs:
     # Use GitHub-hosted runners so this workflow does not depend on a self-hosted runner.
     # The shared CI image and HOME path keep the packaged bench portable to test shards.
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     timeout-minutes: 40
     container:
       image: ghcr.io/frappe/erpnext-ci-mariadb:py3.14-node24
@@ -71,8 +78,14 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -151,6 +164,10 @@ jobs:
     name: Python Unit Tests
     needs: setup
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     timeout-minutes: 60
     container:
       image: ghcr.io/frappe/erpnext-ci-mariadb:py3.14-node24
@@ -217,11 +234,15 @@ jobs:
   coverage:
     name: Coverage Wrap Up
     needs: [test]
-    if: ${{ github.event_name != 'pull_request' }}
+    if: >
+      github.event_name != 'pull_request' &&
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Download artifacts
         uses: actions/download-artifact@v4

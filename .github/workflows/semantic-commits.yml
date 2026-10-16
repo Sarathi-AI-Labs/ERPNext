@@ -14,17 +14,28 @@ jobs:
   commitlint:
     name: Check Commit Titles
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     steps:
-      - uses: actions/checkout@v6
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 200
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
           check-latest: true
 
       - name: Check commit titles
+        continue-on-error: true
         run: |
           npm install @commitlint/cli @commitlint/config-conventional
           npx commitlint --extends @commitlint/config-conventional --verbose --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}

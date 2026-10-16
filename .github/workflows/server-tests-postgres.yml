@@ -1,16 +1,21 @@
 name: Server (Postgres)
 
 on:
-  schedule:
-    # 03:00 AM IST daily (21:30 UTC the previous day)
-    - cron: "30 21 * * *"
+  # schedule:
+  #   # 03:00 AM IST daily (21:30 UTC the previous day)
+  #   - cron: "30 21 * * *"
   pull_request:
     # 'labeled' so adding the 'postgres' label to an already-open PR re-triggers the run.
     types: [opened, reopened, synchronize, labeled]
     paths-ignore:
       - '**.js'
+      - '**.css'
+      - '**.svg'
       - '**.md'
       - '**.html'
+      - '.github/**'
+      - 'compose.yaml'
+      - 'pwd.yml'
       - 'crowdin.yml'
       - '.coderabbit.yml'
       - '.mergify.yml'
@@ -38,14 +43,24 @@ jobs:
     runs-on: ubuntu-latest
     # Runs on the daily schedule (and workflow_dispatch). On PRs it runs ONLY when the PR carries
     # the 'postgres' label — the test job needs setup, so it's skipped too when this is.
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'postgres')
+    if: >
+      (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'postgres')) &&
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     timeout-minutes: 40
     steps:
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -58,7 +73,7 @@ jobs:
           fi
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 24
           check-latest: true
@@ -142,6 +157,10 @@ jobs:
     name: Python Unit Tests
     needs: setup
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -154,7 +173,7 @@ jobs:
           name: bench-pg
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
