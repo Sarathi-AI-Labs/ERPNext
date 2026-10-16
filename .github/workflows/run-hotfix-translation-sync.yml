@@ -21,6 +21,10 @@ jobs:
   sync-translations:
     name: Sync translations from develop into ${{ github.ref_name }}
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     permissions:
       contents: write
     env:
@@ -29,18 +33,18 @@ jobs:
 
     steps:
       - name: Checkout ${{ env.HOTFIX_BRANCH }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           ref: ${{ env.HOTFIX_BRANCH }}
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.14"
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 24
 
@@ -48,5 +52,6 @@ jobs:
         run: |
           bash "${GITHUB_WORKSPACE}/.github/helper/sync_hotfix_translations.sh"
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           PR_REVIEWER: diptanilsaha
+

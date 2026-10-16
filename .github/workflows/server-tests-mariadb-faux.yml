@@ -21,6 +21,10 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     strategy:
       matrix:
         container: [1, 2, 3, 4]
