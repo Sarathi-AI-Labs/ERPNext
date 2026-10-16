@@ -25,6 +25,10 @@ jobs:
   regen-notes:
     name: 'Regenerate release notes'
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
 
     steps:
     - name: Update notes

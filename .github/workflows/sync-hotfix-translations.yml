@@ -11,9 +11,9 @@
 name: Sync translations to hotfix branches
 
 on:
-  schedule:
-    # 10:00 UTC Monday
-    - cron: "0 10 * * 1"
+  # schedule:
+  #   # 10:00 UTC Monday
+  #   - cron: "0 10 * * 1"
   workflow_dispatch:
 
 # The runner dispatch uses RELEASE_TOKEN (a PAT), not the default GITHUB_TOKEN,
@@ -24,6 +24,10 @@ jobs:
   trigger-runners:
     name: Trigger sync → ${{ matrix.hotfix_branch }}
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     strategy:
       matrix:
         hotfix_branch:
@@ -37,4 +41,5 @@ jobs:
             --repo "${{ github.repository }}" \
             --ref "${{ matrix.hotfix_branch }}"
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+

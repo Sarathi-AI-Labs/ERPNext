@@ -1,8 +1,8 @@
 name: Download translations from Crowdin
 
 on:
-  schedule:
-    - cron: "0 4 * * 1"
+  # schedule:
+  #   - cron: "0 4 * * 1"
   workflow_dispatch:
 
 concurrency:
@@ -16,6 +16,10 @@ jobs:
   download-translations:
     name: Download translations into ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout ${{ matrix.branch }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
           fetch-depth: 0
