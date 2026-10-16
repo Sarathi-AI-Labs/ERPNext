@@ -16,6 +16,10 @@ jobs:
   stable-release:
     name: Release
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     strategy:
       fail-fast: false
       matrix:

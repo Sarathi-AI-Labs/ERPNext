@@ -3,15 +3,19 @@
 
 name: Regenerate POT file (translatable strings)
 on:
-  schedule:
-    # 9:30 UTC => 3 PM IST Sunday
-    - cron: "30 9 * * 0"
+  # schedule:
+  #   # 9:30 UTC => 3 PM IST Sunday
+  #   - cron: "30 9 * * 0"
   workflow_dispatch:
 
 jobs:
   regenerate-pot-file:
     name: Regenerate POT file
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     strategy:
       fail-fast: false
       matrix:
@@ -21,17 +25,17 @@ jobs:
 
     steps:
         - name: Checkout
-          uses: actions/checkout@v6
+          uses: actions/checkout@v4
           with:
             ref: ${{ matrix.branch }}
 
         - name: Setup Python
-          uses: actions/setup-python@v6
+          uses: actions/setup-python@v5
           with:
             python-version: "3.14"
 
         - name: Setup Node
-          uses: actions/setup-node@v6
+          uses: actions/setup-node@v4
           with:
             node-version: 24
 
@@ -39,6 +43,7 @@ jobs:
           run: |
             bash ${GITHUB_WORKSPACE}/.github/helper/update_pot_file.sh
           env:
-            GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+            GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
             BASE_BRANCH: ${{ matrix.branch }}
             PR_REVIEWER: barredterra # change to your GitHub username if you copied this file
+
