@@ -13,6 +13,10 @@ permissions:
 jobs:
   lock:
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     steps:
       - uses: dessant/lock-threads@v5
         with:

@@ -17,6 +17,10 @@ jobs:
   build-assets:
     name: Build JS/CSS and upload to release
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
 
     steps:
       - uses: actions/checkout@v4
