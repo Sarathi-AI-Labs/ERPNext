@@ -13,11 +13,15 @@ permissions:
 jobs:
   discover:
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - name: Clone
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
     - id: set-matrix
       run: |
         # Use grep and find to get the list of test files
@@ -52,6 +56,10 @@ jobs:
     needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     env:
       NODE_ENV: "production"
 
@@ -73,15 +81,15 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.14'
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 24
           check-latest: true

@@ -12,6 +12,9 @@ jobs:
       github.event.issue.pull_request
       && github.event.comment.user.id == 28699486
       && contains(github.event.comment.body, 'This PR is included in version')
+      && github.actor != 'crowdin'
+      && github.actor != 'dependabot[bot]'
+      && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 2
 

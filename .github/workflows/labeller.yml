@@ -11,6 +11,10 @@ permissions:
 jobs:
   triage:
     runs-on: ubuntu-latest
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     steps:
     - uses: actions/labeler@v5
       continue-on-error: true

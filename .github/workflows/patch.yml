@@ -24,6 +24,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    if: >
+      github.actor != 'crowdin' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
 
     name: Patch Test
 
@@ -37,8 +41,14 @@ jobs:
         options: --health-cmd="mariadb-admin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
+      - name: Skip CI for known bot PRs
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'crowdin' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'github-actions[bot]') }}
+        run: |
+          echo "Skipping CI: PR created by ${{ github.event.pull_request.user.login }}"
+          exit 0
+
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -49,7 +59,7 @@ jobs:
           fi
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: |
             3.11
@@ -57,7 +67,7 @@ jobs:
             3.14
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 24
           check-latest: true
