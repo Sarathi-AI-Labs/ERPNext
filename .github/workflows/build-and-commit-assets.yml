@@ -3,8 +3,8 @@ name: Build and Upload Assets
 on:
   push:
     branches:
-      - develop
-      - 'version-*'
+      - main
+  workflow_dispatch:
 
 concurrency:
   group: build-assets-${{ github.ref }}
