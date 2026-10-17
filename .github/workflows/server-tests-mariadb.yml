@@ -4,6 +4,8 @@ on:
   repository_dispatch:
     types: [frappe-framework-change]
   pull_request:
+    branches:
+      - main
     paths-ignore:
       - '**.js'
       - '**.css'

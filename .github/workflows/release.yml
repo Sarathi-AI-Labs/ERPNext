@@ -2,7 +2,8 @@ name: Generate Semantic Release
 on:
   push:
     branches:
-      - version-13
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
