@@ -1,9 +1,6 @@
 name: Build and Upload Assets
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -27,7 +24,7 @@ jobs:
         with:
           repository: frappe/frappe
           path: apps/frappe
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.ref_name == 'main' && 'version-15' || github.ref_name }}
 
       - uses: actions/checkout@v4
         with:
