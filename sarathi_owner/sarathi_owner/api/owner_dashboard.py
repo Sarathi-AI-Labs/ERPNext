@@ -21,6 +21,17 @@ def broadcast_live_event(doc, method=None):
 		frappe.publish_realtime(event, message={}, room="all", after_commit=True)
 
 
+@frappe.whitelist()
+def clear_owner_cache(**kwargs):
+	"""Purges cached metadata and redis entries for Sarathi Owner."""
+	try:
+		frappe.cache.delete_keys("sarathi:*")
+		frappe.clear_cache()
+	except Exception:
+		pass
+	return {"status": "ok"}
+
+
 def _get_date_bounds(date_range_str, manual_from=None, manual_to=None):
 	"""Parses date range presets or explicit manual bounds into (from_date, to_date) ISO strings."""
 	if manual_from and manual_to:
@@ -71,7 +82,7 @@ def _get_date_bounds(date_range_str, manual_from=None, manual_to=None):
 
 
 @frappe.whitelist()
-def get_owner_context(company=None):
+def get_owner_context(company=None, **kwargs):
 	"""Returns baseline metadata for filters and user authorization."""
 	perm = get_permission_context()
 	if not perm["can_access_owner"]:
@@ -99,7 +110,7 @@ def get_owner_context(company=None):
 
 
 @frappe.whitelist()
-def get_owner_summary(filters=None):
+def get_owner_summary(filters=None, **kwargs):
 	"""Aggregates executive metrics, live charts, activity, and pipelines for the Owner Home view."""
 	if isinstance(filters, str):
 		try:
@@ -1470,7 +1481,7 @@ def _get_dynamic_module_sections(page_name: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def get_page_data(page_name: str, filters=None):
+def get_page_data(page_name: str, filters=None, **kwargs):
 	"""Server loader for each dedicated Owner page with integrated charts."""
 	if isinstance(filters, str):
 		try:

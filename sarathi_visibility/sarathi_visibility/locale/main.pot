@@ -1,0 +1,19 @@
+# Translations template for sarathi_visibility.
+# Copyright (C) 2026 Sarathi AI Labs
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sarathi_visibility 1.0.0\n"
+"Report-Msgid-Bugs-To: support@sarathiailabs.com\n"
+"POT-Creation-Date: 2026-10-17 19:40+0530\n"
+"PO-Revision-Date: 2026-10-17 19:40+0530\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+msgid "Production Control Tower"
+msgstr ""
+
+msgid "Shop Floor Control"
+msgstr ""

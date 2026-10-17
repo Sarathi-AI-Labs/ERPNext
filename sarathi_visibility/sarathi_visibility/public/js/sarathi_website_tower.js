@@ -2240,7 +2240,15 @@
 		}
 	}
 
-	root.querySelector("[data-action='refresh']").addEventListener("click", load);
+	const refreshBtn = root.querySelector("[data-action='refresh']");
+	if (refreshBtn) {
+		refreshBtn.addEventListener("click", () => {
+			refreshBtn.classList.add("sd-spinning", "sod-spinning");
+			Promise.resolve(load()).finally(() => {
+				setTimeout(() => refreshBtn.classList.remove("sd-spinning", "sod-spinning"), 600);
+			});
+		});
+	}
 	root.querySelector("[data-action='open-project-create']")?.addEventListener(
 		"click",
 		openCreateProjectPanel

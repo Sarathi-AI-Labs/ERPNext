@@ -34,6 +34,20 @@
 	display: none !important;
 }
 
+.page-container[data-page-route="sarathiownertower"] .layout-side-section,
+.page-container[data-page-route="sarathiownertower"] .desk-sidebar,
+.page-container[data-page-route="sarathiownertower"] .body-sidebar,
+.page-container[data-page-route="sarathiownertower"] .layout-side-section-wrapper {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+
 .sod-wrapper {
 	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 	color: var(--sod-ink);
@@ -659,7 +673,7 @@
 	background: #f8fafc;
 	border: 1.5px solid #dce2f0;
 	border-radius: 9px;
-	padding: 7px 28px 7px 11px;
+	padding: 7px 46px 7px 11px;
 	font-size: 12px;
 	font-weight: 600;
 	color: #1e293b;
@@ -681,6 +695,33 @@
 	box-shadow: 0 0 0 3px rgba(83, 105, 239, 0.15);
 }
 
+.sod-combo-clear {
+	position: absolute;
+	right: 26px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: transparent;
+	border: none;
+	color: #64748b;
+	cursor: pointer;
+	padding: 2px;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all 0.15s ease;
+	z-index: 2;
+}
+
+.sod-combo-clear:hover {
+	color: #0f172a;
+	transform: translateY(-50%) scale(1.15);
+}
+
+.sod-combo-clear.visible {
+	display: inline-flex !important;
+}
+
 .sod-combo-chevron {
 	position: absolute;
 	right: 6px;
@@ -699,6 +740,42 @@
 .sod-combo-chevron:hover {
 	color: #1e293b;
 	background: #e2e8f0;
+}
+
+.sod-submit-group {
+	flex: 0 0 auto;
+	min-width: 90px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+}
+
+.sod-btn-submit {
+	height: 36px;
+	background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+	color: #ffffff;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 9px;
+	padding: 0 20px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+	transition: all 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+}
+
+.sod-btn-submit:hover {
+	background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(79, 70, 229, 0.38);
+}
+
+.sod-btn-submit:active {
+	transform: translateY(0);
 }
 
 .sod-suggestions-menu {
@@ -3911,13 +3988,15 @@
 
 /* Column Dimensions */
 .sod-matrix-col-customer {
-	min-width: 260px;
-	max-width: 320px;
+	width: 185px !important;
+	min-width: 170px !important;
+	max-width: 200px !important;
 	position: sticky;
 	left: 0;
 	z-index: 12 !important;
 	background: #f1f5f9 !important;
 	border-right: 2px solid #cbd5e1 !important;
+	box-sizing: border-box !important;
 }
 
 .sod-matrix-col-customer .sod-matrix-th-inner {
@@ -3952,12 +4031,17 @@
 
 /* Sticky Customer Cell */
 .sod-matrix-cell-customer {
+	width: 185px !important;
+	min-width: 170px !important;
+	max-width: 200px !important;
 	position: sticky;
 	left: 0;
 	z-index: 6;
 	background: #ffffff;
 	border-right: 2px solid #cbd5e1 !important;
 	box-shadow: 2px 0 6px rgba(0, 0, 0, 0.03);
+	padding: 8px 10px !important;
+	box-sizing: border-box !important;
 }
 
 .sod-matrix-row:nth-child(even) .sod-matrix-cell-customer {
@@ -3971,7 +4055,17 @@
 .sod-matrix-customer-wrap {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
+	width: 100%;
+	min-width: 0;
+}
+
+.sod-matrix-avatar {
+	width: 26px !important;
+	height: 26px !important;
+	font-size: 11px !important;
+	flex-shrink: 0 !important;
+	border-radius: 6px !important;
 }
 
 .sod-matrix-row-num {
@@ -3988,15 +4082,18 @@
 	flex-direction: column;
 	gap: 2px;
 	overflow: hidden;
+	min-width: 0;
+	flex: 1;
 }
 
 .sod-matrix-customer-title {
-	font-size: 12.5px;
+	font-size: 12px !important;
 	font-weight: 800;
 	color: #0f172a;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	display: block;
 }
 
 .sod-matrix-cust-link {
@@ -4013,8 +4110,8 @@
 .sod-matrix-project-meta {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	font-size: 11px;
+	gap: 4px;
+	font-size: 10.5px !important;
 	color: #64748b;
 	white-space: nowrap;
 	overflow: hidden;
@@ -4022,12 +4119,9 @@
 }
 
 .sod-matrix-proj-code {
-	font-weight: 750;
-	color: #2563eb;
-	background: #eff6ff;
-	padding: 1px 5px;
-	border-radius: 4px;
-	text-decoration: none;
+	font-size: 10px !important;
+	padding: 1px 4px !important;
+	flex-shrink: 0;
 }
 
 .sod-matrix-proj-title {
@@ -4769,4 +4863,36 @@
 .sod-detail-dialog .sod-quick-table table {
 	min-width: 1000px;
 	table-layout: auto;
+}
+
+/* Desk Icons: Owner & Production Manager */
+.desktop-icon[data-id="Owner"] .icon-container,
+.desktop-icon[data-id="owner"] .icon-container,
+.desktop-icon[data-id="Production Manager"] .icon-container,
+.desktop-icon[data-id="production-manager"] .icon-container,
+.desktop-icon[data-id="production_manager"] .icon-container {
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+.desktop-icon[data-id="Owner"] .icon-container img,
+.desktop-icon[data-id="owner"] .icon-container img,
+.desktop-icon[data-id="Production Manager"] .icon-container img,
+.desktop-icon[data-id="production-manager"] .icon-container img,
+.desktop-icon[data-id="production_manager"] .icon-container img {
+	width: 54px !important;
+	height: 54px !important;
+	object-fit: contain !important;
+	border-radius: 14px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.desktop-icon[data-id="Owner"]:hover .icon-container img,
+.desktop-icon[data-id="owner"]:hover .icon-container img,
+.desktop-icon[data-id="Production Manager"]:hover .icon-container img,
+.desktop-icon[data-id="production-manager"]:hover .icon-container img,
+.desktop-icon[data-id="production_manager"]:hover .icon-container img {
+	transform: scale(1.06);
+	box-shadow: 0 4px 14px rgba(2, 137, 247, 0.3);
 }

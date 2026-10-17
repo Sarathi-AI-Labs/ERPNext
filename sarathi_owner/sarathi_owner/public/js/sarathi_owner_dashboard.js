@@ -58,6 +58,7 @@ frappe.SarathiOwnerDashboard = class {
 			parent: wrapper,
 			title: "Sarathi Owner Dashboard",
 			single_column: true,
+			hide_sidebar: true,
 		});
 
 		this.page.main.empty();
@@ -122,24 +123,61 @@ frappe.SarathiOwnerDashboard = class {
         </div>
       </section>
 
-      <!-- Global Filter Bar with Searchable Combos & Non-Overlapping Date Range -->
+      <!-- Global Filter Bar: Customer | Project | Status | Date Range | Submit -->
       <section class="sod-filters" id="sod-filters" aria-label="Global Filters">
-        <!-- Company Search & Suggestion Combo -->
+        <!-- 1. Customer Search & Suggestion Combo with Cancel Mark -->
         <div class="sod-filter-group sod-combo-group">
-          <label for="sod-filter-company-input">Company</label>
+          <label for="sod-filter-customer-input">Customer</label>
           <div class="sod-search-combo">
-            <input type="text" id="sod-filter-company-input" class="sod-combo-input" placeholder="All Companies"
+            <input type="text" id="sod-filter-customer-input" class="sod-combo-input" placeholder="All Customers"
               autocomplete="off" />
-            <button type="button" class="sod-combo-chevron" id="sod-combo-company-btn"
-              aria-label="Toggle company options">▾</button>
-            <div class="sod-suggestions-menu" id="sod-company-suggestions"></div>
+            <button type="button" class="sod-combo-clear" id="sod-clear-customer-btn" aria-label="Clear customer" title="Clear customer" tabindex="-1">
+              <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button type="button" class="sod-combo-chevron" id="sod-combo-customer-btn"
+              aria-label="Toggle customer options">▾</button>
+            <div class="sod-suggestions-menu" id="sod-customer-suggestions"></div>
           </div>
-          <select id="sod-filter-company" class="sod-hidden-select" style="display:none;" aria-label="Company filter">
-            <option value="">All Companies</option>
+          <select id="sod-filter-customer" class="sod-hidden-select" style="display:none;" aria-label="Customer filter">
+            <option value="">All Customers</option>
           </select>
         </div>
 
-        <!-- Date Range Filter with Floating Custom Range Picker (Zero Overlap) -->
+        <!-- 2. Project Search & Suggestion Combo with Cancel Mark -->
+        <div class="sod-filter-group sod-combo-group">
+          <label for="sod-filter-project-input">Project</label>
+          <div class="sod-search-combo">
+            <input type="text" id="sod-filter-project-input" class="sod-combo-input" placeholder="All Projects"
+              autocomplete="off" />
+            <button type="button" class="sod-combo-clear" id="sod-clear-project-btn" aria-label="Clear project" title="Clear project" tabindex="-1">
+              <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button type="button" class="sod-combo-chevron" id="sod-combo-project-btn"
+              aria-label="Toggle project options">▾</button>
+            <div class="sod-suggestions-menu" id="sod-project-suggestions"></div>
+          </div>
+          <select id="sod-filter-project" class="sod-hidden-select" style="display:none;" aria-label="Project filter">
+            <option value="">All Projects</option>
+          </select>
+        </div>
+
+        <!-- 3. Status Filter -->
+        <div class="sod-filter-group">
+          <label for="sod-filter-status">Status</label>
+          <select id="sod-filter-status" class="sod-select" aria-label="Project status filter">
+            <option value="">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <!-- 4. Date Range Filter with Floating Custom Range Picker (Zero Overlap) -->
         <div class="sod-filter-group sod-combo-group sod-date-group">
           <label for="sod-filter-date">Date Range</label>
           <div class="sod-date-wrapper">
@@ -180,53 +218,11 @@ frappe.SarathiOwnerDashboard = class {
           </div>
         </div>
 
-        <!-- Customer Search & Suggestion Combo -->
-        <div class="sod-filter-group sod-combo-group">
-          <label for="sod-filter-customer-input">Customer</label>
-          <div class="sod-search-combo">
-            <input type="text" id="sod-filter-customer-input" class="sod-combo-input" placeholder="All Customers"
-              autocomplete="off" />
-            <button type="button" class="sod-combo-chevron" id="sod-combo-customer-btn"
-              aria-label="Toggle customer options">▾</button>
-            <div class="sod-suggestions-menu" id="sod-customer-suggestions"></div>
-          </div>
-          <select id="sod-filter-customer" class="sod-hidden-select" style="display:none;" aria-label="Customer filter">
-            <option value="">All Customers</option>
-          </select>
-        </div>
-
-        <!-- Project Search & Suggestion Combo -->
-        <div class="sod-filter-group sod-combo-group">
-          <label for="sod-filter-project-input">Project</label>
-          <div class="sod-search-combo">
-            <input type="text" id="sod-filter-project-input" class="sod-combo-input" placeholder="All Projects"
-              autocomplete="off" />
-            <button type="button" class="sod-combo-chevron" id="sod-combo-project-btn"
-              aria-label="Toggle project options">▾</button>
-            <div class="sod-suggestions-menu" id="sod-project-suggestions"></div>
-          </div>
-          <select id="sod-filter-project" class="sod-hidden-select" style="display:none;" aria-label="Project filter">
-            <option value="">All Projects</option>
-          </select>
-        </div>
-
-        <!-- Status Filter -->
-        <div class="sod-filter-group">
-          <label for="sod-filter-status">Status</label>
-          <select id="sod-filter-status" class="sod-select" aria-label="Project status filter">
-            <option value="">All Statuses</option>
-            <option value="Open">Open</option>
-            <option value="On Hold">On Hold</option>
-            <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        <!-- Global Search Input -->
-        <div class="sod-filter-group sod-search-group">
-          <label for="sod-search-input">Search ERPNext</label>
-          <input type="search" id="sod-search-input" class="sod-input" placeholder="Search ID, customer, item..."
-            aria-label="Search records" />
+        <!-- 5. Submit Button -->
+        <div class="sod-filter-group sod-submit-group">
+          <button type="button" class="sod-btn-submit" id="sod-filter-submit-btn">
+            <span>Submit</span>
+          </button>
         </div>
       </section>
 
@@ -793,11 +789,31 @@ frappe.SarathiOwnerDashboard = class {
 		});
 
 		// Refresh action
+		// Refresh action (Clears server and client cache, reloads context, refreshes page)
 		this.$el.on("click", "[data-action='refresh']", function () {
 			const $btn = $(this);
 			$btn.addClass("sod-spinning");
-			self.refreshCurrentPage();
-			setTimeout(() => $btn.removeClass("sod-spinning"), 600);
+			if (typeof localStorage !== "undefined") {
+				try {
+					localStorage.removeItem("_page:sarathiownertower");
+					localStorage.removeItem("page:sarathiownertower");
+				} catch (e) {
+					// Ignore storage exceptions in restricted environments
+				}
+			}
+			frappe.call({
+				method: "sarathi_owner.api.owner_dashboard.clear_owner_cache",
+				callback: () => {
+					self.loadContext();
+					self.refreshCurrentPage();
+					setTimeout(() => $btn.removeClass("sod-spinning"), 600);
+				},
+				error: () => {
+					self.loadContext();
+					self.refreshCurrentPage();
+					setTimeout(() => $btn.removeClass("sod-spinning"), 600);
+				},
+			});
 		});
 
 		// Breadcrumb navigation
@@ -825,23 +841,16 @@ frappe.SarathiOwnerDashboard = class {
 		});
 
 		// Global Reactive Filters
-		this.$el.find("#sod-filter-company").on("change", function () {
-			self.populateFilterDropdowns();
+		this.$el.find("#sod-filter-date, #sod-filter-status").on("change", function () {
 			self.refreshCurrentPage();
 		});
 
-		this.$el
-			.find("#sod-filter-date, #sod-filter-customer, #sod-filter-project, #sod-filter-status")
-			.on("change", function () {
-				self.refreshCurrentPage();
-			});
-
-		let searchTimeout = null;
-		this.$el.find("#sod-search-input").on("input", function () {
-			clearTimeout(searchTimeout);
-			searchTimeout = setTimeout(() => {
-				self.refreshCurrentPage();
-			}, 300);
+		// Submit Button
+		this.$el.find("#sod-filter-submit-btn").on("click", function () {
+			const $btn = $(this);
+			$btn.css("opacity", "0.75");
+			self.refreshCurrentPage();
+			setTimeout(() => $btn.css("opacity", "1"), 250);
 		});
 
 		this.$content.on("click", "[data-quick-detail]", (event) => {
@@ -910,7 +919,6 @@ frappe.SarathiOwnerDashboard = class {
 	setupSearchableCombos() {
 		const self = this;
 		const combos = [
-			{ key: "company", placeholder: "All Companies" },
 			{ key: "customer", placeholder: "All Customers" },
 			{ key: "project", placeholder: "All Projects" },
 		];
@@ -919,7 +927,18 @@ frappe.SarathiOwnerDashboard = class {
 			const $input = self.$el.find(`#sod-filter-${key}-input`);
 			const $hidden = self.$el.find(`#sod-filter-${key}`);
 			const $btn = self.$el.find(`#sod-combo-${key}-btn`);
+			const $clear = self.$el.find(`#sod-clear-${key}-btn`);
 			const $dropdown = self.$el.find(`#sod-${key}-suggestions`);
+
+			const updateClearVisibility = () => {
+				const val = ($input.val() || "").trim();
+				const hiddenVal = ($hidden.val() || "").trim();
+				if (val || hiddenVal) {
+					$clear.addClass("visible");
+				} else {
+					$clear.removeClass("visible");
+				}
+			};
 
 			const renderMenu = (query = "") => {
 				const options = (self[`${key}Options`] || []).slice();
@@ -964,11 +983,34 @@ frappe.SarathiOwnerDashboard = class {
 			// Input typing / focus
 			$input.on("focus", function () {
 				renderMenu($(this).val().trim());
+				updateClearVisibility();
 			});
 
 			$input.on("input", function () {
 				const query = $(this).val().trim();
 				renderMenu(query);
+				updateClearVisibility();
+			});
+
+			$input.on("keydown", function (e) {
+				if (e.key === "Enter") {
+					e.preventDefault();
+					$dropdown.removeClass("show");
+					self.refreshCurrentPage();
+				}
+			});
+
+			// Cancel / Clear mark click
+			$clear.on("click", function (e) {
+				e.stopPropagation();
+				$input.val("");
+				$hidden.val("");
+				if (key === "project") {
+					self.selectedProject = "";
+				}
+				updateClearVisibility();
+				$dropdown.removeClass("show");
+				self.refreshCurrentPage();
 			});
 
 			// Chevron toggle
@@ -990,12 +1032,11 @@ frappe.SarathiOwnerDashboard = class {
 				const label = $(this).text().replace("✓", "").trim();
 				$hidden.val(val);
 				$input.val(val ? label : "");
-				$dropdown.removeClass("show");
-
-				if (key === "company") {
-					self.populateFilterDropdowns();
+				if (key === "project") {
+					self.selectedProject = val;
 				}
-				self.refreshCurrentPage();
+				updateClearVisibility();
+				$dropdown.removeClass("show");
 			});
 		});
 
@@ -1204,29 +1245,8 @@ frappe.SarathiOwnerDashboard = class {
 
 	populateFilterDropdowns() {
 		if (!this.context) return;
-		const selectedCompany = this.$el.find("#sod-filter-company").val() || "";
 
-		// 1. Companies
-		this.companyOptions = [{ value: "", label: "All Companies" }];
-		const $co = this.$el.find("#sod-filter-company");
-		const currentCo = $co.val();
-		$co.find("option:not(:first)").remove();
-		(this.context.companies || []).forEach((c) => {
-			const label = c.company_name || c.name;
-			this.companyOptions.push({ value: c.name, label });
-			$co.append(
-				`<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(
-					label
-				)}</option>`
-			);
-		});
-		if (currentCo) {
-			$co.val(currentCo);
-			const match = this.companyOptions.find((o) => o.value === currentCo);
-			this.$el.find("#sod-filter-company-input").val(match ? match.label : "");
-		}
-
-		// 2. Customers
+		// 1. Customers
 		this.customerOptions = [{ value: "", label: "All Customers" }];
 		const $cust = this.$el.find("#sod-filter-customer");
 		const currentCust = $cust.val();
@@ -1244,44 +1264,50 @@ frappe.SarathiOwnerDashboard = class {
 			$cust.val(currentCust);
 			const match = this.customerOptions.find((o) => o.value === currentCust);
 			this.$el.find("#sod-filter-customer-input").val(match ? match.label : "");
+			this.$el.find("#sod-clear-customer-btn").addClass("visible");
+		} else {
+			this.$el.find("#sod-clear-customer-btn").removeClass("visible");
 		}
 
-		// 3. Projects (Dynamically filtered by selected company)
+		// 2. Projects
 		this.projectOptions = [{ value: "", label: "All Projects" }];
 		const $proj = this.$el.find("#sod-filter-project");
-		const currentProj = $proj.val();
+		const currentProj = $proj.val() || this.selectedProject;
 		$proj.find("option:not(:first)").remove();
-		(this.context.projects || [])
-			.filter((p) => !selectedCompany || p.company === selectedCompany)
-			.forEach((p) => {
-				const label = p.project_name || p.name;
-				this.projectOptions.push({ value: p.name, label });
-				$proj.append(
-					`<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(
-						label
-					)}</option>`
-				);
-			});
+		(this.context.projects || []).forEach((p) => {
+			const label = p.project_name || p.name;
+			this.projectOptions.push({ value: p.name, label });
+			$proj.append(
+				`<option value="${frappe.utils.escape_html(p.name)}">${frappe.utils.escape_html(
+					label
+				)}</option>`
+			);
+		});
 		if (currentProj && $proj.find(`option[value="${currentProj}"]`).length) {
 			$proj.val(currentProj);
 			const match = this.projectOptions.find((o) => o.value === currentProj);
 			this.$el.find("#sod-filter-project-input").val(match ? match.label : "");
+			this.$el.find("#sod-clear-project-btn").addClass("visible");
 		} else if (currentProj) {
 			$proj.val("");
 			this.$el.find("#sod-filter-project-input").val("");
+			this.$el.find("#sod-clear-project-btn").removeClass("visible");
+		} else {
+			this.$el.find("#sod-clear-project-btn").removeClass("visible");
 		}
 	}
 
 	getFilters() {
 		return {
-			company: this.$el.find("#sod-filter-company").val() || "",
+			company: "",
 			date_range: this.$el.find("#sod-filter-date").val() || "all",
 			from_date: this.$el.find("#sod-filter-from-date").val() || "",
 			to_date: this.$el.find("#sod-filter-to-date").val() || "",
 			customer: this.$el.find("#sod-filter-customer").val() || "",
 			project: this.$el.find("#sod-filter-project").val() || this.selectedProject || "",
 			status: this.$el.find("#sod-filter-status").val() || "",
-			search: this.$el.find("#sod-search-input").val() || "",
+			search: "",
+			_ts: Date.now(),
 		};
 	}
 
@@ -1437,8 +1463,24 @@ frappe.SarathiOwnerDashboard = class {
 
 		let html = "";
 
-		// 1. KPI Cards (Top Executive Metrics with Clickable Drill-Downs)
-		html += '<div class="sod-grid sod-cards" id="sod-kpi-cards-grid">';
+		// 1. Strategic Manufacturing Pipeline Section (Matrix Comparison Table Format - Steps 1–8)
+		html += `
+      <section class="sod-panel sod-pipeline-sheet-section">
+        <div class="sod-panel-head">
+          <div>
+            <h2>Strategic Manufacturing Pipeline · Active Projects</h2>
+            <p>Commercial &amp; Sales Engineering Process Flow (Steps #01 to #08) · Complete (✔), Waiting (⏳) &amp; Not Done (✖) Status per Client · Click any mark to inspect live records</p>
+          </div>
+          <div>
+            <span class="sod-sheet-count-pill">${pipelines.length} Active Clients Tracked</span>
+          </div>
+        </div>
+        ${this.renderStrategicPipelineSheet(pipelines)}
+      </section>
+    `;
+
+		// 2. KPI Cards (Executive Metrics below Pipeline)
+		html += '<div class="sod-grid sod-cards" id="sod-kpi-cards-grid" style="margin-top: 17px;">';
 		cards.forEach((c) => {
 			html += `
         <div class="sod-card ${c.color}" data-action="${frappe.utils.escape_html(
@@ -1608,24 +1650,7 @@ frappe.SarathiOwnerDashboard = class {
       </section>
     `;
 
-		// 4. Strategic Manufacturing Pipeline Section (Matrix Comparison Table Format - Steps 1–8)
-		html += `
-      <section class="sod-panel sod-pipeline-sheet-section" style="margin-top: 17px;">
-        <div class="sod-panel-head">
-          <div>
-            <h2>Strategic Manufacturing Pipeline · Active Projects</h2>
-            <p>Commercial &amp; Sales Engineering Process Flow (Steps #01 to #08) · Complete (✔), Waiting (⏳) &amp; Not Done (✖) Status per Client · Click any mark to inspect live records</p>
-          </div>
-          <div>
-            <span class="sod-sheet-count-pill">${pipelines.length} Active Clients Tracked</span>
-          </div>
-        </div>
-        ${this.renderStrategicPipelineSheet(pipelines)}
-      </section>
-
-    `;
-
-		// 5. Two-Column Grid: Active Projects Table & Live Activity Feed
+		// 3. Two-Column Grid: Active Projects Table & Live Activity Feed
 		html += '<div class="sod-grid sod-two" style="margin-top: 17px;">';
 
 		// Panel A: Active Projects Portfolio Table
@@ -2246,36 +2271,7 @@ frappe.SarathiOwnerDashboard = class {
 			html += "</div>";
 		}
 
-		// 2. Desk Shortcuts Bar
-		if (data.shortcuts && data.shortcuts.length) {
-			html += `
-        <div class="sod-shortcuts-bar">
-          <div class="sod-shortcuts-label">
-            <span class="sod-shortcuts-tag">QUICK DESK ACTIONS</span>
-            <small style="color:#7583a0; font-size:11px;">Explore records and reports here without leaving your dashboard</small>
-          </div>
-          <div class="sod-shortcuts-pills">
-      `;
-			data.shortcuts.forEach((sc, index) => {
-				html += `
-          <button type="button" data-quick-detail="${index}" class="sod-shortcut-pill" title="View ${frappe.utils.escape_html(
-					sc.label.replace(/\s*\(\+ New\)/i, "")
-				)} details here">
-            <span class="sod-sc-icon">${this.workspaceIcon(sc.label)}</span>
-            <span class="sod-sc-text">${frappe.utils.escape_html(
-				sc.label.replace(/\s*\(\+ New\)/i, "").replace(/^New /, "")
-			)}</span>
-            <span class="sod-sc-arrow">→</span>
-          </button>
-        `;
-			});
-			html += `
-          </div>
-        </div>
-      `;
-		}
-
-		// 3. Interactive Charts on Specific Pages
+		// 2. Interactive Charts on Specific Pages
 		if (data.chart) {
 			const chartTitles = {
 				sales_orders: "Commercial Order Book Velocity",
@@ -2293,6 +2289,200 @@ frappe.SarathiOwnerDashboard = class {
             </div>
           </div>
           <div id="sod-generic-chart" class="sod-chart-container"></div>
+        </div>
+      `;
+		}
+
+		// 3. Data Tables with Linked Records (Rendered at top directly below filters/cards/charts)
+		if (data.table && data.table.headers && data.table.rows) {
+			html += `
+        <div class="sod-panel" style="margin-top: 17px;">
+          <div class="sod-tablewrap">
+            <table class="sod-table">
+              <thead>
+                <tr>${data.table.headers.map((h) => `<th>${frappe.utils.escape_html(h)}</th>`).join("")}</tr>
+              </thead>
+              <tbody>
+      `;
+			if (!data.table.rows.length) {
+				html += `<tr><td colspan="${data.table.headers.length}" style="text-align:center; color:#888;">No records found matching current filters.</td></tr>`;
+			} else {
+				data.table.rows.forEach((r) => {
+					html += "<tr>";
+					r.forEach((cell, ci) => {
+						const strCell = String(cell !== null && cell !== undefined ? cell : "");
+
+						// Pre-rendered HTML (links, buttons, pills)
+						if (
+							strCell.includes("<a ") ||
+							strCell.includes("<span ") ||
+							strCell.includes("<button ")
+						) {
+							html += `<td>${strCell}</td>`;
+							return;
+						}
+
+						// Linkify based on pageKey
+						if (pageKey === "projects" && ci === 0) {
+							html += `<td><a href="/app/project/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "projects" && ci === 1) {
+							const projId = r[0];
+							html += `<td><a href="javascript:void(0)" data-project-drill="${encodeURIComponent(
+								projId
+							)}" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
+						} else if (pageKey === "projects" && ci === 2 && strCell !== "Unassigned") {
+							html += `<td><a href="/app/customer/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "projects" && ci === 3 && strCell !== "—") {
+							html += `<td><a href="/app/sales-order/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "customers" && (ci === 0 || ci === 1)) {
+							const custId = r[0];
+							html += `<td><a href="/app/customer/${encodeURIComponent(
+								custId
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "sales_orders" && ci === 0) {
+							html += `<td><a href="/app/sales-order/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "sales_orders" && ci === 1) {
+							html += `<td><a href="/app/customer/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "manufacturing" && ci === 0) {
+							html += `<td><a href="/app/work-order/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "stock_quality" && (ci === 0 || ci === 1)) {
+							const whId = r[0];
+							html += `<td><a href="/app/warehouse/${encodeURIComponent(
+								whId
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 0) {
+							const isPurchase =
+								strCell.toUpperCase().startsWith("PINV") ||
+								strCell.toUpperCase().startsWith("PUR-");
+							const dt = isPurchase ? "purchase-invoice" : "sales-invoice";
+							html += `<td><a href="/app/${dt}/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 1) {
+							html += `<td><a href="/app/customer/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "payments" && ci === 0) {
+							html += `<td><a href="/app/payment-entry/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "taxes" && ci === 0) {
+							html += `<td><a href="/app/sales-taxes-and-charges-template/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "banking" && ci === 0) {
+							html += `<td><a href="/app/bank-account/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "budget" && ci === 0) {
+							html += `<td><a href="/app/budget/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "share_management" && ci === 0) {
+							html += `<td><a href="/app/shareholder/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (pageKey === "subscription" && ci === 0) {
+							html += `<td><a href="/app/subscription/${encodeURIComponent(
+								strCell
+							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
+								strCell
+							)}</a></td>`;
+						} else if (
+							strCell === "Delayed" ||
+							strCell === "Stop" ||
+							strCell === "Disabled" ||
+							strCell.startsWith("Critical")
+						) {
+							html += `<td><span class="sod-pill red">${frappe.utils.escape_html(
+								strCell
+							)}</span></td>`;
+						} else if (
+							strCell === "On Track" ||
+							strCell === "On Time" ||
+							strCell === "Paid" ||
+							strCell === "Active" ||
+							strCell === "Registered" ||
+							strCell === "Submitted" ||
+							strCell === "Compliant" ||
+							strCell === "Primary Default"
+						) {
+							html += `<td style="color:#0d825f; font-weight:700;"><span class="sod-pill green">${strCell}</span></td>`;
+						} else if (strCell.startsWith("Overdue >30d")) {
+							html += `<td><span class="sod-pill red">${frappe.utils.escape_html(
+								strCell
+							)}</span></td>`;
+						} else if (
+							strCell.startsWith("Overdue 1-30d") ||
+							strCell === "Optional" ||
+							strCell === "Warn"
+						) {
+							html += `<td><span class="sod-pill amber">${frappe.utils.escape_html(
+								strCell
+							)}</span></td>`;
+						} else if (
+							strCell === "Current (Not Due)" ||
+							strCell === "Open" ||
+							strCell === "Draft" ||
+							strCell === "Receive" ||
+							strCell === "Pay"
+						) {
+							html += `<td><span class="sod-pill blue">${frappe.utils.escape_html(
+								strCell
+							)}</span></td>`;
+						} else {
+							html += `<td>${frappe.utils.escape_html(strCell)}</td>`;
+						}
+					});
+					html += "</tr>";
+				});
+			}
+			html += `
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
 		}
@@ -2613,200 +2803,6 @@ frappe.SarathiOwnerDashboard = class {
 			});
 
 			html += `
-          </div>
-        </div>
-      `;
-		}
-
-		// 5. Data Tables with Linked Records
-		if (data.table && data.table.headers && data.table.rows) {
-			html += `
-        <div class="sod-panel" style="margin-top: 17px;">
-          <div class="sod-tablewrap">
-            <table class="sod-table">
-              <thead>
-                <tr>${data.table.headers.map((h) => `<th>${frappe.utils.escape_html(h)}</th>`).join("")}</tr>
-              </thead>
-              <tbody>
-      `;
-			if (!data.table.rows.length) {
-				html += `<tr><td colspan="${data.table.headers.length}" style="text-align:center; color:#888;">No records found matching current filters.</td></tr>`;
-			} else {
-				data.table.rows.forEach((r) => {
-					html += "<tr>";
-					r.forEach((cell, ci) => {
-						const strCell = String(cell !== null && cell !== undefined ? cell : "");
-
-						// Pre-rendered HTML (links, buttons, pills)
-						if (
-							strCell.includes("<a ") ||
-							strCell.includes("<span ") ||
-							strCell.includes("<button ")
-						) {
-							html += `<td>${strCell}</td>`;
-							return;
-						}
-
-						// Linkify based on pageKey
-						if (pageKey === "projects" && ci === 0) {
-							html += `<td><a href="/app/project/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "projects" && ci === 1) {
-							const projId = r[0];
-							html += `<td><a href="javascript:void(0)" data-project-drill="${encodeURIComponent(
-								projId
-							)}" class="sod-link">${frappe.utils.escape_html(strCell)}</a></td>`;
-						} else if (pageKey === "projects" && ci === 2 && strCell !== "Unassigned") {
-							html += `<td><a href="/app/customer/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "projects" && ci === 3 && strCell !== "—") {
-							html += `<td><a href="/app/sales-order/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "customers" && (ci === 0 || ci === 1)) {
-							const custId = r[0];
-							html += `<td><a href="/app/customer/${encodeURIComponent(
-								custId
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "sales_orders" && ci === 0) {
-							html += `<td><a href="/app/sales-order/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "sales_orders" && ci === 1) {
-							html += `<td><a href="/app/customer/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "manufacturing" && ci === 0) {
-							html += `<td><a href="/app/work-order/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "stock_quality" && (ci === 0 || ci === 1)) {
-							const whId = r[0];
-							html += `<td><a href="/app/warehouse/${encodeURIComponent(
-								whId
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 0) {
-							const isPurchase =
-								strCell.toUpperCase().startsWith("PINV") ||
-								strCell.toUpperCase().startsWith("PUR-");
-							const dt = isPurchase ? "purchase-invoice" : "sales-invoice";
-							html += `<td><a href="/app/${dt}/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if ((pageKey === "invoicing" || pageKey === "finance") && ci === 1) {
-							html += `<td><a href="/app/customer/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "payments" && ci === 0) {
-							html += `<td><a href="/app/payment-entry/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "taxes" && ci === 0) {
-							html += `<td><a href="/app/sales-taxes-and-charges-template/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "banking" && ci === 0) {
-							html += `<td><a href="/app/bank-account/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "budget" && ci === 0) {
-							html += `<td><a href="/app/budget/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "share_management" && ci === 0) {
-							html += `<td><a href="/app/shareholder/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (pageKey === "subscription" && ci === 0) {
-							html += `<td><a href="/app/subscription/${encodeURIComponent(
-								strCell
-							)}" target="_blank" class="sod-link">${frappe.utils.escape_html(
-								strCell
-							)}</a></td>`;
-						} else if (
-							strCell === "Delayed" ||
-							strCell === "Stop" ||
-							strCell === "Disabled" ||
-							strCell.startsWith("Critical")
-						) {
-							html += `<td><span class="sod-pill red">${frappe.utils.escape_html(
-								strCell
-							)}</span></td>`;
-						} else if (
-							strCell === "On Track" ||
-							strCell === "On Time" ||
-							strCell === "Paid" ||
-							strCell === "Active" ||
-							strCell === "Registered" ||
-							strCell === "Submitted" ||
-							strCell === "Compliant" ||
-							strCell === "Primary Default"
-						) {
-							html += `<td style="color:#0d825f; font-weight:700;"><span class="sod-pill green">${strCell}</span></td>`;
-						} else if (strCell.startsWith("Overdue >30d")) {
-							html += `<td><span class="sod-pill red">${frappe.utils.escape_html(
-								strCell
-							)}</span></td>`;
-						} else if (
-							strCell.startsWith("Overdue 1-30d") ||
-							strCell === "Optional" ||
-							strCell === "Warn"
-						) {
-							html += `<td><span class="sod-pill amber">${frappe.utils.escape_html(
-								strCell
-							)}</span></td>`;
-						} else if (
-							strCell === "Current (Not Due)" ||
-							strCell === "Open" ||
-							strCell === "Draft" ||
-							strCell === "Receive" ||
-							strCell === "Pay"
-						) {
-							html += `<td><span class="sod-pill blue">${frappe.utils.escape_html(
-								strCell
-							)}</span></td>`;
-						} else {
-							html += `<td>${frappe.utils.escape_html(strCell)}</td>`;
-						}
-					});
-					html += "</tr>";
-				});
-			}
-			html += `
-              </tbody>
-            </table>
           </div>
         </div>
       `;
@@ -4955,6 +4951,15 @@ frappe.SarathiOwnerDashboard = class {
 	show() {
 		window.scrollTo(0, 0);
 
+		if (typeof localStorage !== "undefined") {
+			try {
+				localStorage.removeItem("_page:sarathiownertower");
+				localStorage.removeItem("page:sarathiownertower");
+			} catch (e) {
+				// Local storage might be restricted in certain browser contexts
+			}
+		}
+
 		// Purge any rogue duplicate wrappers or footers
 		if (this.root) {
 			$(".sod-wrapper").not(this.root).remove();
@@ -4962,6 +4967,7 @@ frappe.SarathiOwnerDashboard = class {
 			$(".sod-wrapper ~ .sod-wrapper").remove();
 		}
 
+		this.refreshFilterDropdownsOnly();
 		this.refreshCurrentPage();
 		setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
 		if (!this.refreshTimer) {
