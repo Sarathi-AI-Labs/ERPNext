@@ -1,7 +1,10 @@
 name: "Pull Request Labeler"
 on:
   pull_request_target:
+    branches:
+      - main
     types: [opened, reopened]
+  workflow_dispatch:
 
 permissions:
   contents: read

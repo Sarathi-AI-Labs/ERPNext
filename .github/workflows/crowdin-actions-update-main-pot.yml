@@ -3,8 +3,7 @@ name: Upload main.pot to Crowdin
 on:
   push:
     branches:
-      - develop
-      - version-16-hotfix
+      - main
     paths:
       - "erpnext/locale/main.pot"
   workflow_dispatch:
