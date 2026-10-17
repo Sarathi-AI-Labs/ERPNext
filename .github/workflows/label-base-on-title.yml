@@ -2,7 +2,10 @@ name: "Auto-label PRs based on title"
 
 on:
   pull_request_target:
+    branches:
+      - main
     types: [opened, reopened]
+  workflow_dispatch:
 
 jobs:
   add-label-if-prefix-matches:
