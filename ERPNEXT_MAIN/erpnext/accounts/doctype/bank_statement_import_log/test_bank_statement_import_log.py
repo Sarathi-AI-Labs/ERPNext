@@ -310,35 +310,24 @@ class TestBankStatementImportLog(ERPNextTestSuite, AccountsTestMixin):
 
 	@staticmethod
 	def _make_pdf(html: str) -> bytes:
-		try:
-			import pdfkit
+		import pdfkit
 
-			return pdfkit.from_string(html, False)
-		except (ImportError, ModuleNotFoundError, Exception):
-			try:
-				from frappe.utils.pdf import get_pdf
-
-				return get_pdf(html)
-			except Exception:
-				return b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n>>\nendobj\ntrailer\n<<\n/Root 1 0 R\n>>\n%%EOF"
+		return pdfkit.from_string(html, False)
 
 	@staticmethod
 	def _encrypt(pdf_bytes: bytes, password: str) -> bytes:
-		try:
-			import io
+		import io
 
-			from pypdf import PdfReader, PdfWriter
+		from pypdf import PdfReader, PdfWriter
 
-			reader = PdfReader(io.BytesIO(pdf_bytes))
-			writer = PdfWriter()
-			for page in reader.pages:
-				writer.add_page(page)
-			writer.encrypt(password)
-			buffer = io.BytesIO()
-			writer.write(buffer)
-			return buffer.getvalue()
-		except (ImportError, ModuleNotFoundError, Exception):
-			return pdf_bytes
+		reader = PdfReader(io.BytesIO(pdf_bytes))
+		writer = PdfWriter()
+		for page in reader.pages:
+			writer.add_page(page)
+		writer.encrypt(password)
+		buffer = io.BytesIO()
+		writer.write(buffer)
+		return buffer.getvalue()
 
 	@staticmethod
 	def _auto_map(table: dict) -> dict:
