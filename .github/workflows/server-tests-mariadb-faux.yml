@@ -4,6 +4,8 @@ name: Skipped Tests
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - "**.js"
       - "**.css"
