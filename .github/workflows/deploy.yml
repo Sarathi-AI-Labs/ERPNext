@@ -40,4 +40,8 @@ jobs:
             echo "=== Restarting application services ==="
             docker compose restart frontend backend
 
+            echo "=== Clearing Frappe cache ==="
+            docker compose exec -T backend bench --site erp.sarathiailabs.com clear-cache || true
+            docker compose exec -T backend bench --site erp.sarathiailabs.com clear-website-cache || true
+
             echo "=== Deployment successfully completed! ==="
