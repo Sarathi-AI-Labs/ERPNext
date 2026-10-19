@@ -226,6 +226,11 @@ def extend_bootinfo_desktop_icons(bootinfo):
 		bootinfo["desktop_icons"] = desktop_icons
 
 
+def filter_bootinfo_desktop_icons(bootinfo):
+	"""Backwards-compatible alias for cached hook references."""
+	return extend_bootinfo_desktop_icons(bootinfo)
+
+
 def ensure_role(role_name: str):
 	if frappe.db.exists("Role", role_name):
 		return
