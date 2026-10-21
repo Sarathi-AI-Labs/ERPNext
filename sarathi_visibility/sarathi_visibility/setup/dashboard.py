@@ -174,8 +174,13 @@ def allowed_project_bom(candidate, main_bom, project):
 
 def validate_item_projects(doc):
 	header_project = doc.get("project")
+	wo_project = None
+	if doc.get("work_order"):
+		wo_project = frappe.db.get_value("Work Order", doc.work_order, "project")
 	for row in doc.get("items") or []:
-		if header_project and not row.get("project") and hasattr(row, "project"):
+		if doc.get("work_order") and hasattr(row, "project"):
+			row.project = wo_project
+		elif header_project and not row.get("project") and hasattr(row, "project"):
 			row.project = header_project
 		name = row.get("project") or header_project
 		if not name:
@@ -189,22 +194,31 @@ def validate_item_projects(doc):
 			and project.customer != doc.get("customer")
 		):
 			frappe.throw("Every project item must match the document customer")
-		if doc.get("work_order") and frappe.db.get_value("Work Order", doc.work_order, "project") != name:
+		if doc.get("work_order") and wo_project and wo_project != name:
 			frappe.throw("Stock item Project must match the linked Work Order")
 
 
 def validate_transaction(doc, method=None):
-	validate_item_projects(doc)
 	project_name = doc.get("project")
 	if doc.get("work_order"):
 		wo = frappe.get_doc("Work Order", doc.work_order)
-		if project_name and project_name != wo.project:
-			frappe.throw("Project does not match the linked Work Order.")
 		if doc.get("company") and wo.company != doc.company:
 			frappe.throw("Organization does not match the linked Work Order.")
-		project_name = wo.project
-		if doc.meta.has_field("project"):
-			doc.project = project_name
+		# For execution documents (Job Card, Stock Entry) or when Work Order has a project,
+		# auto-synchronize doc.project with the parent Work Order's project instead of throwing.
+		if wo.project:
+			project_name = wo.project
+			if doc.meta.has_field("project"):
+				doc.project = wo.project
+		else:
+			if doc.doctype == "Job Card":
+				# Job cards must not be blocked when the linked Work Order has no project
+				if doc.meta.has_field("project"):
+					doc.project = None
+				project_name = None
+			elif project_name:
+				frappe.throw("Project does not match the linked Work Order.")
+	validate_item_projects(doc)
 	if not project_name:
 		return
 	project = frappe.get_doc("Project", project_name)
