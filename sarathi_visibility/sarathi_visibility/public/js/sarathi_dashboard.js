@@ -1876,9 +1876,7 @@ frappe.SarathiIndustrialDashboard = class {
 		};
 		const allowedFields = ESSENTIAL_CARD_COLUMNS[reportKey];
 		if (allowedFields && allowedFields.length) {
-			const filtered = allowedFields
-				.map((f) => columns.find((c) => c.fieldname === f))
-				.filter(Boolean);
+			const filtered = allowedFields.map((f) => columns.find((c) => c.fieldname === f)).filter(Boolean);
 			if (filtered.length) {
 				return filtered;
 			}
@@ -2099,10 +2097,7 @@ frappe.SarathiIndustrialDashboard = class {
 							? row[firstCol.fieldname]
 							: docName;
 					const primaryName = firstVal || docName || "—";
-					const subName =
-						doctype && doctype !== primaryName
-							? doctype
-							: "";
+					const subName = doctype && doctype !== primaryName ? doctype : "";
 					const initials =
 						String(primaryName)
 							.replace(/[^a-zA-Z0-9]/g, "")
@@ -2444,7 +2439,9 @@ frappe.SarathiIndustrialDashboard = class {
 								const relCols = this.getEssentialColumns(rel.columns, rel.report);
 								const firstRelCol = relCols[0];
 								const firstRelVal =
-									firstRelCol && rrow[firstRelCol.fieldname] !== undefined && rrow[firstRelCol.fieldname] !== null
+									firstRelCol &&
+									rrow[firstRelCol.fieldname] !== undefined &&
+									rrow[firstRelCol.fieldname] !== null
 										? rrow[firstRelCol.fieldname]
 										: rname;
 								const rPrimary = firstRelVal || rname || "—";
