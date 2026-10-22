@@ -1176,18 +1176,6 @@ frappe.SarathiIndustrialDashboard = class {
 	pipelineOverview() {
 		const selected = !!this.filters.project;
 		const projects = this.data.pipeline_summary || [];
-		const setup = this.data.tracking_setup
-			.map(
-				(p) =>
-					`<div class="sd-alert"><span>${this.esc(p.project)} · ${this.esc(
-						p.validation
-					)} · ${this.esc(p.physical_parts)}</span>${this.link(
-						"Project",
-						p.project,
-						"Open setup"
-					)}${p.main_bom ? this.link("BOM", p.main_bom, "Open main BOM") : ""}</div>`
-			)
-			.join("");
 
 		const tableContent = projects.length
 			? `
@@ -1329,11 +1317,7 @@ frappe.SarathiIndustrialDashboard = class {
 
 		return `<section class="sd-panel" data-pipeline-panel><div class="sd-panel-heading"><div><h2>${
 			selected ? "Project working pipeline" : "Project pipelines"
-		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${tableContent}<div class="sd-production-links"><button class="sd-button" data-report="part_production">Recorded cutting / welding / grinding outputs</button><button class="sd-button" data-report="material_history">Lifetime materials</button><button class="sd-button" data-report="tracking_setup">Part tracking setup</button></div><details class="sd-setup-details"><summary>Project attribution & physical part setup</summary>${setup}</details>${
-			this.data.procurement_exception_count
-				? `<div class="sd-alert"><span>${this.data.procurement_exception_count} procurement item rows have missing or conflicting project links.</span><button class="sd-text-button" data-report="procurement_exceptions">Review records ↗</button></div>`
-				: ""
-		}</section>`;
+		}</h2><p>Lifetime records · Steps can run in parallel · Counts are documents, not part quantities</p></div></div>${tableContent}</section>`;
 	}
 	projectHealth() {
 		const entries = this.data.project_health || [];
@@ -1586,111 +1570,7 @@ frappe.SarathiIndustrialDashboard = class {
 		}<div class="sd-production-links"><button class="sd-button" data-report="production_summary">All project production summaries</button><button class="sd-button" data-report="projects" data-subset="completed">Completed projects</button><button class="sd-button" data-report="wip_stock">Semi-finished warehouse stock</button></div><p class="sd-scope-note">Remaining = planned − completed − process loss, minimum zero. Cutting/welding/grinding are separate operations; their quantities must not be added as unique finished parts. Warehouse stock requires configured semi-finished items and posted stock movements.</p></section>`;
 	}
 	setupOverview() {
-		const d = this.data;
-		const isProj = !!this.filters.project;
-		const p = d.selected_project;
-		const title = isProj
-			? `Project Setup & Master Records (${p?.project_name || p?.name})`
-			: "Manufacturing & Setup Masters";
-		const sub = isProj
-			? "Warehouses, operations, workstations, and items configured for this project"
-			: "Click any card to inspect all records, or click + New to create one";
-
-		const getCount = (reportKey) => {
-			const k = d.kpis.find((x) => x.report === reportKey);
-			return k ? k.value : 0;
-		};
-
-		const cards = [
-			{
-				key: "warehouses",
-				title: "Warehouses",
-				icon: "🏢",
-				dt: "Warehouse",
-				desc: isProj ? "Project storage & WIP locations" : "Stores, WIP, FG & transit warehouses",
-				count: getCount("warehouses"),
-			},
-			{
-				key: "operations_catalogue",
-				title: "Operations",
-				icon: "⚙️",
-				dt: "Operation",
-				desc: isProj
-					? "Standard operations in this project"
-					: "Fabrication, welding & assembly operations",
-				count: getCount("operations_catalogue"),
-			},
-			{
-				key: "workstations",
-				title: "Workstations",
-				icon: "🏭",
-				dt: "Workstation",
-				desc: isProj
-					? "Assigned machinery & workstations"
-					: "Active production machines & capacities",
-				count: getCount("workstations"),
-			},
-			{
-				key: "workstation_types",
-				title: "Workstation Types",
-				icon: "🏷️",
-				dt: "Workstation Type",
-				desc: "Machine classes & standard cost centers",
-				count: getCount("workstation_types"),
-			},
-			{
-				key: "routings",
-				title: "Routings",
-				icon: "🔄",
-				dt: "Routing",
-				desc: "Standard multi-operation sequences",
-				count: getCount("routings"),
-			},
-			{
-				key: "items",
-				title: "Items Catalogue",
-				icon: "📦",
-				dt: "Item",
-				desc: isProj ? "Finished parts & raw materials" : "Products, parts & raw materials",
-				count: getCount("items"),
-			},
-		];
-
-		return `
-      <section class="sd-panel sd-setup-panel">
-        <div class="sd-panel-heading">
-          <div>
-            <h2>${this.esc(title)}</h2>
-            <p>${this.esc(sub)}</p>
-          </div>
-          ${
-				isProj
-					? `<button class="sd-button sd-text-button" data-action="clear-project-setup">View All Master Lists ↗</button>`
-					: ""
-			}
-        </div>
-        <div class="sd-cards sd-setup-cards">
-          ${cards
-				.map(
-					(c) => `
-            <article class="sd-card sd-setup-card" data-report="${c.key}">
-              <div class="sd-setup-header">
-                <span class="sd-setup-icon">${this.workspaceIcon(c.title || c.label || c.key)}</span>
-                <span class="sd-pill sd-tone-blue">${this.num(c.count)}</span>
-              </div>
-              <h3>${this.esc(c.title)}</h3>
-              <p>${this.esc(c.desc)}</p>
-              <div class="sd-setup-actions">
-                <button class="sd-button sd-tone-blue" data-report="${c.key}">Show List ↗</button>
-                <button class="sd-button" data-new="${c.dt}" title="Create new ${c.dt}">+ New</button>
-              </div>
-            </article>
-          `
-				)
-				.join("")}
-        </div>
-      </section>
-    `;
+		return "";
 	}
 	renderContent() {
 		const content = this.el("[data-content]");
@@ -1703,7 +1583,7 @@ frappe.SarathiIndustrialDashboard = class {
 		this.detailSequence++;
 		if (this.tab === "overview") {
 			this.reportState = null;
-			content.innerHTML = `${this.projectHealth()}${this.pipelineOverview()}${this.productionOverview()}${this.setupOverview()}${this.chartGrid(
+			content.innerHTML = `${this.projectHealth()}${this.pipelineOverview()}${this.productionOverview()}${this.chartGrid(
 				this.chartsForTab()
 			)}<section class="sd-panel"><div class="sd-panel-heading"><h2>Alerts & data quality <span class="sd-pill">${
 				this.data.alert_count
@@ -1954,6 +1834,85 @@ frappe.SarathiIndustrialDashboard = class {
 		return map[report] || "Item";
 	}
 
+	getEssentialColumns(columns = [], reportKey = "") {
+		const ESSENTIAL_CARD_COLUMNS = {
+			items: ["name", "item_name", "item_group"],
+			inventory: ["item_code", "item_name", "warehouse", "actual_qty"],
+			warehouses: ["name", "warehouse_name", "company"],
+			workstations: ["name", "workstation_name", "workstation_type", "status"],
+			workstation_types: ["name", "description"],
+			operations_catalogue: ["name", "operation_name", "workstation"],
+			operations: ["parent", "operation", "workstation"],
+			routings: ["name", "routing_name"],
+			boms: ["name", "item", "quantity", "total_cost"],
+			customers: ["name", "customer_name", "customer_group"],
+			suppliers: ["name", "supplier_name", "supplier_group"],
+			orders: ["name", "customer", "grand_total", "status"],
+			work_orders: ["name", "production_item", "qty", "status"],
+			job_cards: ["name", "operation", "workstation", "status"],
+			projects: ["name", "project_name", "status", "expected_end_date"],
+			production_summary: ["project", "project_name", "live_status", "operations"],
+			components: ["parent", "item_code", "item_name", "qty"],
+			materials: ["item_code", "warehouse", "required_qty", "available_qty"],
+			stock: ["name", "work_order", "purpose", "posting_date"],
+			finished: ["parent", "item_code", "transfer_qty", "posting_date"],
+			tasks: ["name", "subject", "status", "exp_end_date"],
+			quality: ["name", "item_code", "status", "report_date"],
+			requests: ["name", "item_code", "qty", "status"],
+			purchases: ["name", "supplier", "net_amount", "status"],
+			receipts: ["name", "supplier", "item_code", "status"],
+			purchase_invoices: ["name", "supplier", "outstanding_amount", "status"],
+			deliveries: ["name", "customer", "item_code", "status"],
+			sales_invoices: ["name", "customer", "outstanding_amount", "status"],
+			part_production: ["job_card", "operation", "item_code", "transfer_qty"],
+			material_history: ["work_order", "item_code", "required_qty", "consumed_qty"],
+			reservations: ["name", "item_code", "warehouse", "reserved_qty"],
+			stock_details: ["parent", "item_code", "transfer_qty", "posting_date"],
+			stock_ledger: ["voucher_no", "item_code", "actual_qty", "posting_date"],
+			deadlines: ["name", "due_date", "status", "days_remaining"],
+			integrations: ["name", "machine", "sync_status", "completed_qty"],
+			issues: ["doctype", "name", "issue"],
+			procurement_exceptions: ["doctype", "name", "item_code", "issue"],
+		};
+		const allowedFields = ESSENTIAL_CARD_COLUMNS[reportKey];
+		if (allowedFields && allowedFields.length) {
+			const filtered = allowedFields.map((f) => columns.find((c) => c.fieldname === f)).filter(Boolean);
+			if (filtered.length) {
+				return filtered;
+			}
+		}
+		return columns.length > 4 ? columns.slice(0, 4) : columns;
+	}
+
+	getReportForDocType(doctype) {
+		const map = {
+			Item: "items",
+			Bin: "inventory",
+			Warehouse: "warehouses",
+			Workstation: "workstations",
+			"Workstation Type": "workstation_types",
+			Operation: "operations_catalogue",
+			Routing: "routings",
+			BOM: "boms",
+			Customer: "customers",
+			Supplier: "suppliers",
+			"Sales Order": "orders",
+			"Work Order": "work_orders",
+			"Job Card": "job_cards",
+			Project: "projects",
+			Task: "tasks",
+			"Quality Inspection": "quality",
+			"Stock Entry": "stock",
+			"Material Request": "requests",
+			"Purchase Order": "purchases",
+			"Purchase Receipt": "receipts",
+			"Purchase Invoice": "purchase_invoices",
+			"Delivery Note": "deliveries",
+			"Sales Invoice": "sales_invoices",
+		};
+		return map[doctype] || "";
+	}
+
 	formatCellValue(c, val) {
 		if (val === null || val === undefined || val === "" || val === "—") {
 			return '<span style="color:#94a3b8; font-weight:500;">—</span>';
@@ -2066,7 +2025,7 @@ frappe.SarathiIndustrialDashboard = class {
 
 	renderCardDetailsTable(dialog, data, reportKey, subset, title, project, initialSearch = "") {
 		const $container = dialog.fields_dict.card_content.$wrapper;
-		const columns = data.columns || [];
+		const columns = this.getEssentialColumns(data.columns || [], reportKey);
 		const rows = data.rows || [];
 		const total = data.total || rows.length;
 		let currentSearch = initialSearch;
@@ -2103,16 +2062,19 @@ frappe.SarathiIndustrialDashboard = class {
 
 		const getColumnIcon = (col, idx) => {
 			const s = `${col.label || ""} ${col.fieldname || ""}`.toLowerCase();
-			if (/customer|client|organization|party/.test(s)) return "🏢";
-			if (/project|task|operation|work_order|wo/.test(s)) return "📋";
 			if (/item|part|product|material|bom/.test(s)) return "📦";
+			if (/customer|client|organization|party/.test(s)) return "🏢";
+			if (/workstation/.test(s)) return "🏭";
+			if (/operation/.test(s)) return "⚙️";
+			if (/routing/.test(s)) return "🔄";
+			if (/project|task|work_order|wo/.test(s)) return "📋";
+			if (/warehouse|location|stock/.test(s)) return "🏬";
+			if (/supplier|vendor/.test(s)) return "🤝";
 			if (/status|state|workflow/.test(s)) return "🛡️";
 			if (/date|time|schedule|due/.test(s)) return "📅";
 			if (/qty|quantity|count|delivered|produced/.test(s)) return "⏱️";
 			if (/amount|cost|price|total|value|rate|curr|balance|tax/.test(s)) return "💰";
 			if (/percent|pct|progress|compl/.test(s)) return "⭐";
-			if (/warehouse|location/.test(s)) return "🏬";
-			if (/supplier|vendor/.test(s)) return "🤝";
 			if (/user|manager|assign|owner/.test(s)) return "👤";
 			return PIN_THEMES[idx % PIN_THEMES.length].defaultIcon;
 		};
@@ -2130,17 +2092,12 @@ frappe.SarathiIndustrialDashboard = class {
 					const isEven = rIdx % 2 === 0;
 
 					const firstCol = columns[0];
-					const firstVal = firstCol ? row[firstCol.fieldname] ?? docName : docName;
-					const primaryName =
-						row.customer_name ||
-						row.project_name ||
-						row.item_name ||
-						row.title ||
-						firstVal ||
-						docName ||
-						"—";
-					const subName =
-						primaryName !== docName && docName ? docName : row.doctype || defaultDt || "";
+					const firstVal =
+						firstCol && row[firstCol.fieldname] !== undefined && row[firstCol.fieldname] !== null
+							? row[firstCol.fieldname]
+							: docName;
+					const primaryName = firstVal || docName || "—";
+					const subName = doctype && doctype !== primaryName ? doctype : "";
 					const initials =
 						String(primaryName)
 							.replace(/[^a-zA-Z0-9]/g, "")
@@ -2343,7 +2300,9 @@ frappe.SarathiIndustrialDashboard = class {
 			});
 
 			const row = data.row || {};
-			const columns = data.columns || [];
+			const rawColumns = data.columns || [];
+			const repKey = this.getReportForDocType(doctype);
+			const columns = this.getEssentialColumns(rawColumns, repKey);
 			const related = data.related || [];
 			const status = row.status || row.workflow_state || row.docstatus_name || "";
 
@@ -2362,16 +2321,19 @@ frappe.SarathiIndustrialDashboard = class {
 
 			const getColumnIcon = (col, idx) => {
 				const s = `${col.label || ""} ${col.fieldname || ""}`.toLowerCase();
-				if (/customer|client|organization|party/.test(s)) return "🏢";
-				if (/project|task|operation|work_order|wo/.test(s)) return "📋";
 				if (/item|part|product|material|bom/.test(s)) return "📦";
+				if (/customer|client|organization|party/.test(s)) return "🏢";
+				if (/workstation/.test(s)) return "🏭";
+				if (/operation/.test(s)) return "⚙️";
+				if (/routing/.test(s)) return "🔄";
+				if (/project|task|work_order|wo/.test(s)) return "📋";
+				if (/warehouse|location|stock/.test(s)) return "🏬";
+				if (/supplier|vendor/.test(s)) return "🤝";
 				if (/status|state|workflow/.test(s)) return "🛡️";
 				if (/date|time|schedule|due/.test(s)) return "📅";
 				if (/qty|quantity|count|delivered|produced/.test(s)) return "⏱️";
 				if (/amount|cost|price|total|value|rate|curr|balance|tax/.test(s)) return "💰";
 				if (/percent|pct|progress|compl/.test(s)) return "⭐";
-				if (/warehouse|location/.test(s)) return "🏬";
-				if (/supplier|vendor/.test(s)) return "🤝";
 				if (/user|manager|assign|owner/.test(s)) return "👤";
 				return PIN_THEMES[idx % PIN_THEMES.length].defaultIcon;
 			};
@@ -2446,7 +2408,7 @@ frappe.SarathiIndustrialDashboard = class {
 					)} Table">
                     <thead>
                       <tr class="sd-color-table-header-row">
-                        ${rel.columns
+                        ${this.getEssentialColumns(rel.columns, rel.report)
 							.map((rc, ci) => {
 								const theme = PIN_THEMES[ci % PIN_THEMES.length];
 								const pinIcon = getColumnIcon(rc, ci);
@@ -2474,18 +2436,16 @@ frappe.SarathiIndustrialDashboard = class {
 								const rname = rrow.name || rrow.parent || "";
 								const rdt = rrow.doctype || rel.doctype || "";
 								const isEvenRow = ri % 2 === 0;
-								const firstRelCol = rel.columns[0];
-								const firstRelVal = firstRelCol
-									? rrow[firstRelCol.fieldname] ?? rname
-									: rname;
-								const rPrimary =
-									rrow.project_name ||
-									rrow.customer_name ||
-									rrow.item_name ||
-									firstRelVal ||
-									rname ||
-									"—";
-								const rSub = rPrimary !== rname && rname ? rname : rdt || "";
+								const relCols = this.getEssentialColumns(rel.columns, rel.report);
+								const firstRelCol = relCols[0];
+								const firstRelVal =
+									firstRelCol &&
+									rrow[firstRelCol.fieldname] !== undefined &&
+									rrow[firstRelCol.fieldname] !== null
+										? rrow[firstRelCol.fieldname]
+										: rname;
+								const rPrimary = firstRelVal || rname || "—";
+								const rSub = rdt && rdt !== rPrimary ? rdt : "";
 								const rInitials =
 									String(rPrimary)
 										.replace(/[^a-zA-Z0-9]/g, "")
@@ -2517,7 +2477,7 @@ frappe.SarathiIndustrialDashboard = class {
                                 <div class="sd-ribbon-chevron"></div>
                               </div>
                             </td>
-                            ${rel.columns
+                            ${relCols
 								.slice(1)
 								.map(
 									(rc) =>
