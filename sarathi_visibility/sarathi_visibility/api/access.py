@@ -155,6 +155,12 @@ def validate_filters(filters=None, **links):
 		frappe.throw("Invalid dashboard filters.")
 	result = dict(parsed or {})
 	result.update({k: v for k, v in links.items() if v is not None})
+	if result.get("company") in ("All organizations", "All"):
+		result["company"] = ""
+	if result.get("workstation") in ("All workstations", "All"):
+		result["workstation"] = ""
+	if result.get("status") in ("All statuses", "All"):
+		result["status"] = ""
 	for field, dt in {
 		"company": "Company",
 		"customer": "Customer",

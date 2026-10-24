@@ -1495,6 +1495,8 @@ def get_summary(filters=None, **kwargs):
 	factory_overview = None
 	try:
 		f_filters = dict(raw_filters)
+		if f_filters.get("company") in ("All organizations", "All"):
+			f_filters["company"] = ""
 		if not f_filters.get("company") and data.get("filters", {}).get("company"):
 			f_filters["company"] = data["filters"]["company"]
 		factory_overview = get_factory_overview(f_filters)

@@ -94,17 +94,31 @@ def _identifier(value):
 
 
 def _company(value=None):
-	"""A unique readable Company may be selected; never pick the first of many."""
-	if value is not None:
+	"""A unique readable Company may be selected; fallback to user/global default or primary permitted company."""
+	if value and value not in ("All organizations", "All"):
 		_identifier(value)
-	filters = {"name": value} if value is not None else {}
-	rows = frappe.get_list("Company", filters=filters, fields=["name"], order_by="name asc", page_length=2)
-	if not rows:
-		deny()
-	if len(rows) != 1:
-		invalid("Select an authorized Company before requesting records.")
-	check_record("Company", rows[0].name)
-	return rows[0].name
+		rows = frappe.get_list("Company", filters={"name": value}, fields=["name"], order_by="name asc", page_length=2)
+		if not rows:
+			deny()
+		check_record("Company", rows[0].name)
+		return rows[0].name
+
+	default_company = (
+		frappe.defaults.get_user_default("Company")
+		or frappe.defaults.get_global_default("company")
+		or frappe.db.get_single_value("Global Defaults", "default_company")
+	)
+	if default_company and frappe.has_permission("Company", "read", default_company):
+		check_record("Company", default_company)
+		return default_company
+
+	rows = frappe.get_list("Company", fields=["name"], order_by="name asc", limit_page_length=20)
+	for r in rows:
+		if frappe.has_permission("Company", "read", r.name):
+			check_record("Company", r.name)
+			return r.name
+
+	deny()
 
 
 def _parse(filters):

@@ -74,10 +74,16 @@ def validate_factory_filters(filters):
 	values = {k: v for k, v in values.items() if v is not None and v != ""}
 	
 	company_arg = values.get("company")
-	if not company_arg:
-		user_default_company = frappe.defaults.get_user_default("Company")
+	if not company_arg or company_arg in ("All organizations", "All"):
+		user_default_company = (
+			frappe.defaults.get_user_default("Company")
+			or frappe.defaults.get_global_default("company")
+			or frappe.db.get_single_value("Global Defaults", "default_company")
+		)
 		if user_default_company and frappe.has_permission("Company", "read", user_default_company):
 			company_arg = user_default_company
+		else:
+			company_arg = None
 	values["company"] = _company(company_arg)
 
 	# Validate dates
