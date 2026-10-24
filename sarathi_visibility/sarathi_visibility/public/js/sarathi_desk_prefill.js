@@ -337,12 +337,29 @@
 		}
 		formsRegistered = true;
 
+		function fixProjectSalesOrderRoutes(frm) {
+			const so = frm.get_docfield("sales_order");
+			if (so) {
+				so.get_route_options_for_new_doc = () => {
+					if (frm.is_new()) return {};
+					return {
+						customer: frm.doc.customer,
+						company: frm.doc.company,
+						project: frm.doc.name,
+						project_name: frm.doc.name,
+					};
+				};
+			}
+		}
+
 		frappe.ui.form.on("Project", {
 			onload(frm) {
 				applyOptions(frm);
+				fixProjectSalesOrderRoutes(frm);
 			},
 			refresh(frm) {
 				applyOptions(frm);
+				fixProjectSalesOrderRoutes(frm);
 			},
 			setup(frm) {
 				frm.set_query("custom_sarathi_bom", () => ({
@@ -353,6 +370,35 @@
 						is_active: 1,
 					},
 				}));
+			},
+		});
+
+		frappe.ui.form.on("Sales Order", {
+			onload(frm) {
+				applyOptions(frm);
+				if (frm.is_new()) {
+					const routeOpts = frappe.route_options || {};
+					const project = routeOpts.project || routeOpts.project_name;
+					if (project && !frm.doc.project) {
+						frm.set_value("project", project);
+					}
+					if (routeOpts.customer && !frm.doc.customer) {
+						frm.set_value("customer", routeOpts.customer);
+					}
+					if (routeOpts.company && !frm.doc.company) {
+						frm.set_value("company", routeOpts.company);
+					}
+				}
+			},
+			refresh(frm) {
+				applyOptions(frm);
+				if (frm.is_new()) {
+					const routeOpts = frappe.route_options || {};
+					const project = routeOpts.project || routeOpts.project_name;
+					if (project && !frm.doc.project) {
+						frm.set_value("project", project);
+					}
+				}
 			},
 		});
 

@@ -247,6 +247,49 @@ def validate_transaction(doc, method=None):
 				)
 
 
+def sync_project_sales_order(doc):
+	"""Ensure bidirectional linking between Project and Sales Order.
+	When sales_order is selected or updated on a Project, ensure the Sales Order
+	and all its child items have project set to this Project's name.
+	"""
+	if not doc.get("name"):
+		return
+	if doc.get("sales_order"):
+		so_name = doc.sales_order
+		so_project = frappe.db.get_value("Sales Order", so_name, "project")
+		if so_project != doc.name:
+			frappe.db.set_value("Sales Order", so_name, "project", doc.name, update_modified=False)
+			frappe.db.sql(
+				"""UPDATE `tabSales Order Item` SET project = %s WHERE parent = %s""",
+				(doc.name, so_name),
+			)
+			so_amount = frappe.db.get_value("Sales Order", so_name, "base_net_total") or 0.0
+			doc.db_set("total_sales_amount", so_amount, update_modified=False)
+
+
+def on_project_update(doc, method=None):
+	sync_project_sales_order(doc)
+	notify_dashboard(doc)
+
+
+def on_sales_order_update(doc, method=None):
+	"""Ensure bidirectional linking when a Sales Order is created or updated.
+	1. Propagate header project to child items.
+	2. If linked Project has no sales_order set, bind this Sales Order to the Project!
+	"""
+	project_name = doc.get("project")
+	if project_name and frappe.db.exists("Project", project_name):
+		frappe.db.sql(
+			"""UPDATE `tabSales Order Item` SET project = %s WHERE parent = %s AND (project IS NULL OR project = '')""",
+			(project_name, doc.name),
+		)
+		current_so = frappe.db.get_value("Project", project_name, "sales_order")
+		if not current_so:
+			frappe.db.set_value("Project", project_name, "sales_order", doc.name, update_modified=False)
+	notify_dashboard(doc)
+
+
 def notify_dashboard(doc=None, method=None):
 	# A rolled-back transaction must not refresh dashboards or expose record IDs.
 	frappe.publish_realtime("sarathi_dashboard_changed", message={}, room="all", after_commit=True)
+

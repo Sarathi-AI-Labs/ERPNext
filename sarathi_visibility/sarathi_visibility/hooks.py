@@ -26,14 +26,20 @@ add_to_apps_screen = [
 
 
 doc_events = {
-	"Project": {"validate": "sarathi_visibility.setup.dashboard.validate_project"},
+	"Project": {
+		"validate": "sarathi_visibility.setup.dashboard.validate_project",
+		"on_update": "sarathi_visibility.setup.dashboard.on_project_update",
+	},
 	"BOM": {
 		"validate": "sarathi_visibility.setup.dashboard.validate_bom",
 		"before_cancel": "sarathi_visibility.setup.dashboard.validate_bom",
 		"before_update_after_submit": "sarathi_visibility.setup.dashboard.validate_bom",
 		"on_submit": "sarathi_visibility.setup.dashboard.on_bom_submit",
 	},
-	"Sales Order": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
+	"Sales Order": {
+		"validate": "sarathi_visibility.setup.dashboard.validate_transaction",
+		"on_update": "sarathi_visibility.setup.dashboard.on_sales_order_update",
+	},
 	"Work Order": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
 	"Job Card": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
 	"Stock Entry": {"validate": "sarathi_visibility.setup.dashboard.validate_transaction"},
