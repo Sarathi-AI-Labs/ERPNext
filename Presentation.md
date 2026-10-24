@@ -44,8 +44,9 @@ When presenting to the Project Manager (PM) or Senior Leadership, this document 
    - [Sub-Section 6A: Manufacturing Output & Work Orders](#sub-section-6a-manufacturing-output--work-orders)
    - [Sub-Section 6B: Inventory Valuation & Stock Risk](#sub-section-6b-inventory-valuation--stock-risk)
    - [Sub-Section 6C: Raw Material Shortages Affecting Production](#sub-section-6c-raw-material-shortages-affecting-production)
-8. [High-Stakes PM Presentation Script & Demo Walkthrough](#8-high-stakes-pm-presentation-script--demo-walkthrough)
-9. [Executive FAQ & Defense Guide](#9-executive-faq--defense-guide)
+8. [What Happens Exactly When You Select Company: SarathiAILabs](#8-what-happens-exactly-when-you-select-company-sarathiailabs)
+9. [High-Stakes PM Presentation Script & Demo Walkthrough](#9-high-stakes-pm-presentation-script--demo-walkthrough)
+10. [Executive FAQ & Defense Guide](#10-executive-faq--defense-guide)
 
 ---
 
@@ -267,40 +268,136 @@ Visualizes customer dependency risk through horizontal magnitude bars and share 
 2. **Overdue delivery commitments (₹ 68,00,000.00):** Value of undelivered commitments whose contractual shipping date has already passed. Immediate revenue at risk!
 3. **Held demand (On Hold) (₹ 0.00):** Value of orders paused due to payment default or design changes.
 
----
-
 ## 7. Section 6: Manufacturing & Inventory Summary
 
-Manufacturing is the engine that converts purchase orders into delivered revenue. This section audits factory output, stock valuation, and material readiness.
+Manufacturing is the engine that converts purchase orders into delivered revenue. This section bridges the boardroom with the shop floor by auditing factory output, warehouse valuation, and raw material readiness.
 
-### Sub-Section 6A: Manufacturing Output & Work Orders
-- **Active Work Orders:** Work Orders in `In Process` or `Not Started` states.
-- **Completed Work Orders:** Successfully produced jobs with submitted Stock Entries.
-- **Overdue Work Orders:** Jobs past their `target_completion_date`.
-- **Planned vs Actual Output Cards:** Evaluates production efficiency per Unit of Measure (UOM):
-  - *Planned Qty* vs *Produced Qty* vs *Variance* (+/-) vs *Achievement %*.
-- **Work Orders Operational Table:** Provides full visibility into assembling item, planned start date, target completion date, deadline countdown, and linked project.
-
-### Sub-Section 6B: Inventory Valuation & Stock Risk
-- **Total Inventory Valuation:** Total asset value of recorded warehouse stock. Reconciles with the standard ERPNext `Stock Balance` report.
-- **Total Actual vs Reserved vs Projected Stock:**
-  - $\text{Actual Qty}$: Physical stock currently inside warehouse bins.
-  - $\text{Reserved Qty}$: Stock earmarked for open Sales Orders or Work Order assembly.
-  - $\text{Projected Qty} = \text{Actual} + \text{Ordered} + \text{Indented} - \text{Reserved}$.
-- **Stock Risk KPIs:**
-  - *Low-stock items*: Items below defined warehouse reorder levels.
-  - *Negative projected items*: Imminent production stoppage risk.
-  - *Zero stock with demand*: Orders waiting with zero warehouse supply.
-
-### Sub-Section 6C: Raw Material Shortages Affecting Production
-- **Affected Work Orders:** Work Orders actively stalled because required Bill of Materials (BOM) components are missing.
-- **Shortage Lines Table:** Dissects every stalled job card by showing:
-  $$\text{Shortage Qty} = \text{Required Qty} - \text{Available Warehouse Qty}$$
-- Empowers procurement officers to prioritize purchase orders based on high-priority Work Orders.
+### Why Use Cards in Manufacturing & Inventory?
+Factory floors generate thousands of transactional movements daily (stock ledger entries, job card timers, scrap logs). Leadership cannot parse row-level logs during an executive review. 
+- **Output Cards** synthesize machine production into macroscopic UOM commitments (e.g. *Total Planned vs Total Produced*).
+- **Valuation Cards** turn physical inventory quantities into capital numbers for the CFO/PM.
+- **Shortage Cards** act as an early-warning alarm: rather than waiting for an operator to declare a machine idle, leadership sees the exact count of Work Orders blocked by raw materials.
 
 ---
 
-## 8. High-Stakes PM Presentation Script & Demo Walkthrough
+### Sub-Section 6A: Manufacturing Output & Work Orders
+
+#### The 6 Production KPI Cards:
+| Card Title | Calculation & DocType Filter | Business Meaning & Executive Impact | Target / Healthy Threshold |
+| :--- | :--- | :--- | :--- |
+| **Active Work Orders** | `status IN ('Not Started', 'In Process')` | Total assembly jobs actively scheduled or currently running on workstations. | Should align with plant capacity. |
+| **Completed Work Orders** | `status = 'Completed'` | Successfully manufactured jobs where finished goods were transferred to warehouse stock. | Steady upward trend throughout month. |
+| **Overdue Work Orders** | `target_completion_date < CURRENT_DATE` & status active | Jobs that failed to meet their committed shop-floor finish date. Primary driver of delayed customer deliveries. | **Target: 0.** Any positive value requires production rescheduling. |
+| **Jobs due soon** | `target_completion_date` within 7-day review window | Open jobs reaching completion this week. High priority for QA inspection and packing. | Daily monitoring in morning plant standup. |
+| **Draft Work Orders** | `docstatus = 0` | Production indents prepared by planners but not yet submitted for machine allocation. | Review before releasing to shop floor. |
+| **Cancelled Work Orders** | `status = 'Cancelled'` | Orders aborted due to customer cancellation, engineering design changes, or scrap. | Keep minimal (< 2% of total orders). |
+
+#### Planned vs Actual Output per UOM Cards:
+Groups production execution by Stock Unit of Measure (e.g., `Nos`, `Kg`, `Mtr`):
+- **Planned Qty:** Total finished goods quantity scheduled across active Work Orders.
+- **Produced Qty:** Actual finished goods quantity logged through submitted Stock Entries.
+- **Variance:** $\text{Produced Qty} - \text{Planned Qty}$ (Negative indicates execution backlog).
+- **Achievement %:** $\frac{\text{Produced Qty}}{\text{Planned Qty}} \times 100$ (Visual progress bar).
+
+#### Work Orders Operational Table Breakdown:
+| Column Header | Database Field | Data Type | Purpose & Executive Meaning |
+| :--- | :--- | :--- | :--- |
+| **Work Order** | `tabWork Order.name` | Link (`Work Order`) | Unique production order ID (e.g., `MFG-WO-2026-00001`). Clickable drill-down. |
+| **Item** | `production_item` | Link (`Item`) | Finished good or sub-assembly being manufactured. |
+| **Recorded status**| `status` | Select | Standard ERPNext state (`Not Started`, `In Process`, `Completed`, `Stopped`). |
+| **Health** | Computed | Badge | `⚠️ Overdue`, `🕒 Due soon`, or `✅ Not overdue`. |
+| **Progress** | Computed | Progress Bar | Ratio of `produced_qty` to `qty` with exact numbers (e.g., `5 / 10 Nos`). |
+| **Planned start** | `planned_start_date` | Date | Scheduled machine loading timestamp. |
+| **Target completion**| `target_completion_date` | Date | Committed completion timestamp. |
+| **Deadline** | Computed | Tag | Live countdown (e.g., `3 days remaining` or `5d past due`). |
+| **Project** | `project` | Link (`Project`) | Links physical assembly to the paying customer's capital contract. |
+| **Actions** | Action Link | Button | `[Open Work Order]` — 1-click navigation to production document. |
+
+---
+
+### Sub-Section 6B: Inventory Valuation & Stock Risk
+
+#### The 4 Inventory Valuation Cards:
+| Card Title | Calculation & DocType Formula | Executive Meaning & Business Context | Drill-Down Report |
+| :--- | :--- | :--- | :--- |
+| **Total inventory valuation** | $\sum (\text{actual_qty} \times \text{valuation_rate})$ across `tabBin` | Total asset liquidity tied up in raw materials, WIP, and finished stock across all company warehouses. | **Stock Balance** |
+| **Total actual stock** | $\sum \text{actual_qty}$ across leaf warehouses | Physical quantity of all items physically inside factory bins. | Stock Summary |
+| **Total reserved stock** | $\sum \text{reserved_qty}$ | Stock locked for Sales Orders or issued to active Work Orders. Cannot be sold or used elsewhere. | Reserved Stock Report |
+| **Total projected stock** | $\text{Actual} + \text{Ordered} + \text{Indented} - \text{Reserved}$ | Future anticipated stock after all pending purchase receipts and customer dispatches clear. | Projected Quantity Report |
+
+#### The 4 Stock Risk Cards:
+| Card Title | Calculation Trigger | Executive Warning | Corrective Action |
+| :--- | :--- | :--- | :--- |
+| **Low-stock items** | $\text{actual_qty} \le \text{reorder_level}$ | Warehouse stock has breached the safety buffer. Stockout imminent. | Generate auto-Material Request to purchase vendor. |
+| **Negative projected items**| $\text{projected_qty} < 0$ | Total committed customer orders exceed available stock plus incoming POs. | Expedite supplier deliveries immediately. |
+| **Zero stock with demand** | $\text{actual_qty} = 0 \text{ AND } \text{reserved_qty} > 0$ | Factory has confirmed customer orders waiting, but zero physical inventory exists on the shelf. | Emergency procurement escalation. |
+| **Unconfigured thresholds**| Missing `reorder_level` or `safety_stock` | Items that cannot be automatically monitored due to missing master data. | Instruct inventory manager to set min/max levels. |
+
+---
+
+### Sub-Section 6C: Raw Material Shortages Affecting Active Production
+
+#### The 3 Shortage Alert Cards:
+1. **Affected Work Orders:** Number of active Work Orders that cannot proceed because required BOM components have zero available stock.
+2. **Shortage materials:** Number of distinct raw material Item Codes currently in shortage.
+3. **Shortage lines:** Total bill-of-materials requirement lines where required assembly stock exceeds warehouse availability.
+
+#### Material Shortages Table Breakdown:
+| Column Header | Database Source | Description & Operational Use |
+| :--- | :--- | :--- |
+| **Work Order** | `tabWork Order.name` | Production order blocked on the shop floor. |
+| **Assembling item** | `tabWork Order.production_item` | High-level finished assembly being delayed. |
+| **Raw material** | `tabWork Order Item.item_code` | Exact missing component (e.g., `STEEL-ROD-01`, `BEARING-6204`). |
+| **Required qty** | `tabWork Order Item.required_qty` | Quantity demanded by BOM for scheduled batch size. |
+| **Available stock** | `tabBin.actual_qty - reserved_qty` | Usable quantity currently in warehouse. |
+| **Shortage qty** | $\text{Required} - \text{Available}$ | Deficit quantity that purchasing must immediately procure. |
+| **Actions** | 1-Click Action | Direct link to create Purchase Order or Material Request. |
+
+---
+
+## 8. What Happens Exactly When You Select Company: `SarathiAILabs`
+
+When the user selects **`SarathiAILabs`** in the top filter bar, a cascade of security and multi-tenancy routines execute:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Executive / PM
+    participant UI as Dashboard UI (/desk/sarathiownertower)
+    participant Sec as Security Gatekeeper (access.py)
+    participant Helper as Data Helpers (data_helpers.py)
+    participant DB as ERPNext MariaDB Ledgers
+
+    User->>UI: Selects "SarathiAILabs" & Clicks Apply
+    UI->>Sec: request("get_homepage", {company: "SarathiAILabs"})
+    Sec->>Sec: Validate User Session & Roles (Owner, PM, Auditor)
+    Sec->>Sec: check_record("Company", "SarathiAILabs")
+    alt Unauthorized Company
+        Sec-->>UI: Raise PermissionError (HTTP 403)
+        UI-->>User: Render "Access restricted for this company" (Zero Data Leak)
+    else Authorized Company
+        Sec->>Helper: Filter context initialized with company = 'SarathiAILabs'
+        Helper->>DB: Query GL Entry WHERE company = 'SarathiAILabs'
+        Helper->>DB: Query Sales Invoice WHERE company = 'SarathiAILabs'
+        Helper->>DB: Query Project WHERE company = 'SarathiAILabs'
+        Helper->>DB: Query Work Order WHERE company = 'SarathiAILabs'
+        Helper->>DB: Query Warehouse / Bin WHERE company = 'SarathiAILabs'
+        DB-->>Helper: Return raw submitted financial & operational records
+        Helper->>Helper: Aggregate KPIs, compute margins & triage risks
+        Helper-->>UI: Return verified JSON payload
+        UI-->>User: Render updated cards, tables, charts & audit timestamps
+    end
+```
+
+### Key Technical Guarantees for `SarathiAILabs`:
+1. **Zero Data Contamination:** Multi-company databases never bleed metrics across boundaries. A purchase invoice or project belonging to another entity is mathematically excluded from all cards and lists.
+2. **Graceful Default Fallback:** If a user opens the dashboard without specifying a company, `sarathi_visibility.api.data_helpers._company()` automatically falls back to:
+   - User Default Company $\rightarrow$ `Global Defaults.default_company` (`SarathiAILabs`) $\rightarrow$ First permitted company.
+3. **Audit Immutability:** All financial calculations strictly query submitted documents (`docstatus = 1`). Draft (`docstatus = 0`) and Cancelled (`docstatus = 2`) records never contaminate official ledger totals.
+
+---
+
+## 9. High-Stakes PM Presentation Script & Demo Walkthrough
 
 Use this step-by-step spoken script when presenting the dashboard to the Project Manager or Leadership Team.
 
